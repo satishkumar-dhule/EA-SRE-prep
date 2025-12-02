@@ -1999,6 +1999,472 @@ flowchart TD
 
 **Detailed Explanation:** Use timeline, assign roles.
 
+### 107. How do you design and execute chaos experiments using AWS Fault Injection Simulator (FIS)?
+
+**Answer:**
+- Define experiments to simulate failures like network latency or instance termination.
+  - **Why:** Tests system resilience under stress; identifies weaknesses proactively; benefits improved fault tolerance and preparedness for real incidents.
+- Run in staging environments first, monitor impact on SLOs.
+  - **Why:** Avoids production disruption; measures effects on reliability metrics; benefits data-driven improvements without risk.
+- Analyze results and implement fixes like adding retries or redundancy.
+  - **Why:** Turns insights into actions; prevents future failures; benefits overall system stability.
+
+**Service Explanations:**
+- **AWS Fault Injection Simulator (FIS):** Service for running controlled chaos experiments on AWS infrastructure.
+
+**Special Notes:**
+- Chaos engineering: Discipline of experimenting on systems to build confidence in their resilience.
+- Game days: Scheduled chaos experiments to simulate real-world failures.
+
+*Example:* Injected AZ failure in a gaming platform, discovered load balancer bottleneck, added more ALBs to handle failover.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    A[Define Chaos Hypothesis - e.g., System handles AZ loss] --> B[Create FIS Experiment Template]
+    B --> C[Select Targets - EC2, RDS, etc.]
+    C --> D[Set Actions - Terminate Instances, Add Latency]
+    D --> E[Run Experiment in Non-Prod]
+    E --> F[Monitor with CloudWatch/X-Ray]
+    F --> G[Measure SLO Impact]
+    G --> H[Analyze Results - Identify Failures]
+    H --> I[Implement Mitigations - e.g., Multi-AZ]
+    I --> J[Repeat and Mature]
+```
+
+### 108. Explain implementing chaos engineering in a microservices architecture on AWS.
+
+**Answer:**
+- Use FIS to inject failures at service level, like killing pods in EKS.
+  - **Why:** Simulates microservice failures; ensures isolation and resilience; benefits prevents cascading outages in distributed systems.
+- Combine with service mesh like App Mesh for traffic manipulation.
+  - **Why:** App Mesh allows routing failures; enhances chaos scenarios; benefits realistic testing of inter-service dependencies.
+- Measure blast radius and recovery time.
+  - **Why:** Quantifies failure impact; improves incident response; benefits faster recovery in real events.
+
+**Service Explanations:**
+- **EKS:** Managed Kubernetes service for containerized applications.
+- **AWS App Mesh:** Service mesh for microservice communication and observability.
+
+**Special Notes:**
+- Blast radius: Scope of impact from a failure.
+- Steady state: Normal system behavior to return to after chaos.
+
+*Example:* Killed a payment microservice pod, verified circuit breaker activated, preventing order failures in e-commerce.
+
+### 109. How do you integrate chaos engineering into CI/CD pipelines?
+
+**Answer:**
+- Automate chaos experiments post-deployment using tools like Gremlin or FIS in pipelines.
+  - **Why:** Ensures resilience testing is routine; catches issues early; benefits continuous reliability assurance.
+- Set thresholds for experiment success based on SLOs.
+  - **Why:** Defines acceptable failure levels; gates deployments if breached; benefits quality gates in CI/CD.
+- Use canary deployments with chaos to validate in production subsets.
+  - **Why:** Tests real traffic safely; builds confidence incrementally; benefits low-risk experimentation.
+
+**Service Explanations:**
+- **CI/CD pipelines:** Automated processes for building, testing, and deploying code.
+- **Gremlin:** Chaos engineering platform for injecting failures.
+
+**Special Notes:**
+- Hypothesis-driven: Each experiment tests a specific resilience hypothesis.
+- Observability integration: Chaos tools should feed into monitoring stacks.
+
+*Example:* After deploying a new game feature, ran automated latency injection, confirmed auto-scaling handled it without errors.
+
+### 110. Describe using monitoring stacks like Prometheus, Grafana, and Loki for SRE.
+
+**Answer:**
+- Prometheus scrapes metrics, Grafana visualizes dashboards, Loki aggregates logs.
+  - **Why:** Prometheus provides time-series data; Grafana offers customizable views; Loki handles log querying; benefits comprehensive observability in one stack.
+- Set up alerting rules in Prometheus for SLO breaches.
+  - **Why:** Proactive notifications; enables quick response; benefits maintains reliability targets.
+- Use exporters for AWS services integration.
+  - **Why:** Pulls metrics from EC2, RDS, etc.; centralizes monitoring; benefits unified view across hybrid environments.
+
+**Service Explanations:**
+- **Prometheus:** Open-source monitoring and alerting toolkit.
+- **Grafana:** Visualization and analytics platform.
+- **Loki:** Log aggregation system designed for Prometheus.
+
+**Special Notes:**
+- Exporters: Agents that collect metrics from services and expose to Prometheus.
+- Alertmanager: Component of Prometheus for handling alerts.
+
+*Example:* Monitored game server CPU with Prometheus, alerted on high usage via Grafana, preventing crashes during peak play.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Services[AWS Services - EC2, RDS] --> Exporters[Prometheus Exporters]
+    Exporters --> Prometheus[Prometheus Server]
+    Prometheus --> Grafana[Grafana Dashboards]
+    Logs[Application Logs] --> Loki[Loki for Log Aggregation]
+    Loki --> Grafana
+    Prometheus --> Alertmanager[Alertmanager]
+    Alertmanager --> PagerDuty[PagerDuty for Alerts]
+    Grafana --> SLO[SLO Dashboards]
+```
+
+### 111. How do you build custom dashboards in Grafana for monitoring AWS resources?
+
+**Answer:**
+- Connect Grafana to CloudWatch as data source.
+  - **Why:** Pulls AWS metrics directly; enables real-time visualization; benefits native AWS integration without exporters.
+- Create panels for latency, error rates, and resource utilization.
+  - **Why:** Customizes views for SRE needs; highlights key metrics; benefits faster issue identification.
+- Use variables for dynamic filtering by region or service.
+  - **Why:** Allows interactive exploration; simplifies multi-environment monitoring; benefits scalability in large infrastructures.
+
+**Service Explanations:**
+- **Grafana:** Open-source platform for monitoring and observability.
+- **CloudWatch:** AWS monitoring service.
+
+**Special Notes:**
+- Panels: Individual visualizations in a dashboard.
+- Variables: Dynamic elements for filtering data.
+
+*Example:* Built a dashboard showing player latency across regions, identified high-latency AZ, optimized routing.
+
+### 112. Explain setting up alerting in Prometheus for gaming workloads.
+
+**Answer:**
+- Define rules for game-specific metrics like player count or session errors.
+  - **Why:** Tailors alerts to business-critical KPIs; ensures timely response to gaming issues; benefits maintains player experience.
+- Use Alertmanager to route alerts to on-call SREs via Slack or PagerDuty.
+  - **Why:** Automates notification; reduces MTTR; benefits efficient incident handling.
+- Include silencing and inhibition for maintenance windows.
+  - **Why:** Prevents noise during planned downtime; avoids alert fatigue; benefits focused alerting.
+
+**Service Explanations:**
+- **Prometheus:** Monitoring system with built-in alerting.
+- **Alertmanager:** Handles Prometheus alerts and notifications.
+
+**Special Notes:**
+- Inhibition: Suppresses alerts based on other alerts.
+- Silencing: Temporarily mutes alerts.
+
+*Example:* Alerted on sudden drop in active players, traced to server overload, scaled up instances.
+
+### 113. How do you use IaC with Terraform for AWS infrastructure provisioning?
+
+**Answer:**
+- Write Terraform configurations for VPC, EC2, RDS.
+  - **Why:** Defines infrastructure as code; enables version control and reproducibility; benefits consistent, automated deployments.
+- Use modules for reusable components like networking.
+  - **Why:** Promotes DRY principles; simplifies management; benefits faster provisioning of complex setups.
+- Plan and apply changes with state locking.
+  - **Why:** Previews modifications; prevents concurrent changes; benefits safe, predictable updates.
+
+**Service Explanations:**
+- **Terraform:** Open-source IaC tool by HashiCorp.
+- **AWS provider:** Terraform plugin for AWS resources.
+
+**Special Notes:**
+- State file: Stores infrastructure state for Terraform.
+- Modules: Reusable Terraform configurations.
+
+*Example:* Provisioned a multi-AZ gaming cluster with Terraform, deployed in minutes with zero manual errors.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Code[Terraform Code - main.tf] --> Plan[terraform plan]
+    Plan --> Apply[terraform apply]
+    Apply --> AWS[AWS Resources - VPC, EC2, etc.]
+    AWS --> State[Terraform State File]
+    State --> Code
+    Modules[Reusable Modules] --> Code
+    Note over Plan: Preview Changes
+    Note over Apply: Provision Infrastructure
+```
+
+### 114. Describe managing Terraform state in a team environment.
+
+**Answer:**
+- Store state in S3 with DynamoDB for locking.
+  - **Why:** Enables shared state; prevents conflicts; benefits collaborative IaC management.
+- Use workspaces for environment separation.
+  - **Why:** Isolates dev, staging, prod; avoids cross-environment issues; benefits safe testing.
+- Implement access controls with IAM.
+  - **Why:** Secures state access; follows least privilege; benefits compliance and security.
+
+**Service Explanations:**
+- **S3:** Object storage for state files.
+- **DynamoDB:** NoSQL database for state locking.
+
+**Special Notes:**
+- Workspaces: Terraform feature for managing multiple environments.
+- Remote state: Storing state remotely for team access.
+
+*Example:* Team collaborated on infrastructure changes without overwriting each other's work using locked state.
+
+### 115. How do you handle IaC for multi-region deployments?
+
+**Answer:**
+- Use Terraform with provider aliases for multiple regions.
+  - **Why:** Allows provisioning across regions; ensures global coverage; benefits disaster recovery and low-latency.
+- Parameterize configurations for region-specific values.
+  - **Why:** Customizes per region; avoids hardcoding; benefits flexibility and maintainability.
+- Use remote state with cross-region replication.
+  - **Why:** Shares state securely; enables dependencies; benefits coordinated multi-region setups.
+
+**Service Explanations:**
+- **Terraform:** IaC tool supporting multi-provider configurations.
+
+**Special Notes:**
+- Provider aliases: Multiple instances of the same provider in Terraform.
+- Parameterization: Using variables for dynamic values.
+
+*Example:* Deployed gaming servers in us-east-1 and eu-west-1, with shared state for consistent configurations.
+
+### 116. Explain implementing IaC with AWS CloudFormation for serverless applications.
+
+**Answer:**
+- Define Lambda, API Gateway, DynamoDB in YAML/JSON templates.
+  - **Why:** Declarative provisioning; integrates with AWS services; benefits managed, versioned infrastructure.
+- Use nested stacks for modularity.
+  - **Why:** Breaks down complex apps; reuses components; benefits maintainable code.
+- Deploy via CodePipeline for CI/CD integration.
+  - **Why:** Automates deployments; ensures reliability; benefits continuous delivery.
+
+**Service Explanations:**
+- **CloudFormation:** AWS IaC service.
+- **CodePipeline:** CI/CD service for AWS.
+
+**Special Notes:**
+- Nested stacks: Hierarchical CloudFormation templates.
+- Change sets: Previews changes before applying.
+
+*Example:* Provisioned a serverless backend for a game leaderboard, updated via pipeline without downtime.
+
+### 117. How do you design VPC networking for high-availability applications?
+
+**Answer:**
+- Create VPC with public/private subnets across multiple AZs.
+  - **Why:** Isolates resources; ensures redundancy; benefits fault tolerance and security.
+- Use NAT gateways for outbound traffic from private subnets.
+  - **Why:** Allows internet access without exposing instances; secures architecture; benefits compliance.
+- Implement VPC peering or Transit Gateway for inter-VPC communication.
+  - **Why:** Connects networks securely; scales connectivity; benefits microservices across VPCs.
+
+**Service Explanations:**
+- **VPC:** Virtual private cloud for network isolation.
+- **NAT Gateway:** Managed service for outbound internet access.
+- **Transit Gateway:** Network hub for connecting VPCs.
+
+**Special Notes:**
+- Subnets: Divisions within VPC for resource placement.
+- AZs: Availability Zones for redundancy.
+
+*Example:* Designed VPC for a gaming app, with private DB subnets and public ALB, handling millions of requests reliably.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    VPC[VPC] --> PublicSubnet1[Public Subnet AZ1]
+    VPC --> PublicSubnet2[Public Subnet AZ2]
+    VPC --> PrivateSubnet1[Private Subnet AZ1]
+    VPC --> PrivateSubnet2[Private Subnet AZ2]
+    PublicSubnet1 --> IGW[Internet Gateway]
+    PublicSubnet2 --> IGW
+    PrivateSubnet1 --> NAT[NAT Gateway]
+    PrivateSubnet2 --> NAT
+    NAT --> IGW
+    PrivateSubnet1 --> RDS[RDS in Private Subnet]
+    PrivateSubnet2 --> RDS
+    PublicSubnet1 --> ALB[ALB in Public Subnet]
+    PublicSubnet2 --> ALB
+    ALB --> ASG[Auto Scaling Group in Private]
+```
+
+### 118. Describe optimizing network performance for global gaming audiences.
+
+**Answer:**
+- Use CloudFront with Lambda@Edge for edge computing.
+  - **Why:** Caches content globally; processes requests at edge; benefits reduced latency for worldwide players.
+- Implement Global Accelerator for TCP/UDP traffic.
+  - **Why:** Routes traffic via AWS backbone; optimizes routing; benefits lower latency and jitter for games.
+- Monitor with VPC Flow Logs and optimize instance placement.
+  - **Why:** Tracks network traffic; identifies bottlenecks; benefits performance tuning.
+
+**Service Explanations:**
+- **CloudFront:** CDN for content delivery.
+- **Global Accelerator:** Service for improving global application performance.
+- **Lambda@Edge:** Runs functions at CloudFront edges.
+
+**Special Notes:**
+- Edge locations: Points of presence for faster delivery.
+- Jitter: Variation in latency.
+
+*Example:* Reduced game load times from 5s to 1s for Asian players using Global Accelerator.
+
+### 119. How do you secure networking in AWS with VPC and security groups?
+
+**Answer:**
+- Configure security groups with least-privilege rules.
+  - **Why:** Controls inbound/outbound traffic; minimizes attack surface; benefits enhanced security.
+- Use NACLs for subnet-level filtering.
+  - **Why:** Adds stateless rules; complements security groups; benefits layered defense.
+- Enable VPC Flow Logs for monitoring.
+  - **Why:** Captures traffic data; detects anomalies; benefits proactive threat identification.
+
+**Service Explanations:**
+- **Security Groups:** Virtual firewalls for EC2 instances.
+- **NACLs:** Network ACLs for subnet traffic control.
+- **VPC Flow Logs:** Logs for network traffic monitoring.
+
+**Special Notes:**
+- Least privilege: Granting minimal necessary access.
+- Stateful: Security groups remember connections.
+
+*Example:* Blocked unauthorized SSH attempts via security groups, preventing brute-force attacks on game servers.
+
+### 120. Explain handling DDoS protection in AWS networking.
+
+**Answer:**
+- Use AWS Shield for automatic protection.
+  - **Why:** Mitigates DDoS attacks; integrates with CloudFront/ALB; benefits always-on defense.
+- Implement WAF with rate limiting rules.
+  - **Why:** Filters malicious traffic; controls request rates; benefits application-level security.
+- Scale with auto-scaling during attacks.
+  - **Why:** Absorbs traffic spikes; maintains availability; benefits resilience under load.
+
+**Service Explanations:**
+- **AWS Shield:** Managed DDoS protection service.
+- **WAF:** Web Application Firewall for filtering traffic.
+- **CloudFront:** CDN that also helps with DDoS mitigation.
+
+**Special Notes:**
+- DDoS: Distributed Denial of Service attacks.
+- Rate limiting: Restricting request frequency.
+
+*Example:* During a gaming event, Shield absorbed a 100Gbps attack, keeping servers online.
+
+### 121. How do you design auto-scaling for gaming-specific scenarios like player spikes?
+
+**Answer:**
+- Use target tracking scaling based on player count metrics.
+  - **Why:** Scales with demand; maintains performance; benefits cost-efficiency during variable loads.
+- Implement predictive scaling for known events.
+  - **Why:** Pre-scales resources; avoids latency during launches; benefits smooth player experience.
+- Set cooldown periods to prevent thrashing.
+  - **Why:** Allows stabilization; avoids over-scaling; benefits stable operations.
+
+**Service Explanations:**
+- **Auto Scaling:** AWS service for adjusting capacity.
+- **CloudWatch:** Provides metrics for scaling.
+
+**Special Notes:**
+- Thrashing: Frequent scaling in and out.
+- Predictive scaling: Uses ML to forecast demand.
+
+*Example:* Scaled game servers from 50 to 500 instances during a tournament, handling 2x player surge.
+
+### 122. Describe monitoring player experience in gaming applications.
+
+**Answer:**
+- Track metrics like session duration, error rates, and latency.
+  - **Why:** Measures user satisfaction; identifies issues; benefits improved retention.
+- Use RUM tools integrated with CloudWatch.
+  - **Why:** Captures real-user data; provides end-to-end visibility; benefits data-driven optimizations.
+- Set SLOs for player experience KPIs.
+  - **Why:** Defines targets; ensures focus on quality; benefits business alignment.
+
+**Service Explanations:**
+- **CloudWatch RUM:** Real User Monitoring for web apps.
+- **X-Ray:** For tracing user requests.
+
+**Special Notes:**
+- RUM: Real User Monitoring.
+- KPIs: Key Performance Indicators.
+
+*Example:* Detected high latency in mobile game, optimized API calls, increased player engagement by 20%.
+
+### 123. How do you handle database failover in gaming workloads?
+
+**Answer:**
+- Use RDS Multi-AZ with automatic failover.
+  - **Why:** Ensures high availability; minimizes downtime; benefits continuous gameplay.
+- Implement read replicas for scaling reads.
+  - **Why:** Offloads queries; improves performance; benefits handling concurrent players.
+- Monitor with Performance Insights.
+  - **Why:** Tracks DB health; alerts on issues; benefits proactive maintenance.
+
+**Service Explanations:**
+- **RDS Multi-AZ:** Automatic failover for databases.
+- **Read Replicas:** Copies for read scaling.
+
+**Special Notes:**
+- Failover: Switching to backup during failure.
+- RTO: Recovery Time Objective.
+
+*Example:* During DB maintenance, failover occurred seamlessly, no player disconnects.
+
+### 124. Explain implementing leaderboards in gaming with AWS.
+
+**Answer:**
+- Use DynamoDB with global tables for low-latency updates.
+  - **Why:** Handles high writes; replicates globally; benefits real-time leaderboards.
+- Implement caching with ElastiCache for reads.
+  - **Why:** Speeds up queries; reduces DB load; benefits performance for millions of users.
+- Secure with IAM and encrypt data.
+  - **Why:** Protects player data; complies with regulations; benefits trust and security.
+
+**Service Explanations:**
+- **DynamoDB:** NoSQL database for scalable applications.
+- **ElastiCache:** In-memory caching service.
+
+**Special Notes:**
+- Global tables: Multi-region replication for DynamoDB.
+- Partitioning: Distributing data across nodes.
+
+*Example:* Updated leaderboard in real-time during tournament, with sub-second latency worldwide.
+
+### 125. How do you manage in-game purchases securely on AWS?
+
+**Answer:**
+- Use API Gateway with Lambda for processing.
+  - **Why:** Secures endpoints; scales automatically; benefits fraud prevention.
+- Integrate with payment services like Stripe via webhooks.
+  - **Why:** Handles transactions securely; offloads complexity; benefits compliance.
+- Log and monitor transactions with CloudTrail.
+  - **Why:** Audits activities; detects anomalies; benefits security and auditing.
+
+**Service Explanations:**
+- **API Gateway:** Manages APIs securely.
+- **Lambda:** Serverless compute for logic.
+
+**Special Notes:**
+- Webhooks: Event notifications from payment providers.
+- PCI compliance: Standards for payment security.
+
+*Example:* Processed millions of purchases during sale, with zero security incidents.
+
+### 126. Describe handling real-time multiplayer gaming with AWS.
+
+**Answer:**
+- Use GameLift for session management.
+  - **Why:** Manages game servers; scales fleets; benefits low-latency matchmaking.
+- Integrate with Lambda for backend logic.
+  - **Why:** Processes events; scales per request; benefits cost-efficiency.
+- Monitor with CloudWatch for player metrics.
+  - **Why:** Tracks performance; alerts on issues; benefits smooth gameplay.
+
+**Service Explanations:**
+- **Amazon GameLift:** Managed service for game servers.
+- **Lambda:** For event-driven processing.
+
+**Special Notes:**
+- Matchmaking: Pairing players for games.
+- Fleets: Groups of game servers.
+
+*Example:* Hosted 10k concurrent players in a battle royale, with auto-scaling fleets.
+
 *Example:* Database corruption: restored from backup, communicated impact.
 
 **Diagram:**
