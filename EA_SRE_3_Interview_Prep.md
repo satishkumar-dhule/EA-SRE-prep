@@ -2,20 +2,20 @@
 
 ## Introduction
 
-This document provides a comprehensive guide for preparing for an EA SRE 3 (Site Reliability Engineer Level 3) interview at Electronic Arts. It focuses on architecting and scaling cloud infrastructure in AWS, multi-cloud strategies, reliability, scalability, observability, and cost optimization. The guide includes over 50 scenario-based questions with in-depth answers and examples, structured into key sections.
+This guide prepares for <span style="color:blue">EA SRE 3</span> interviews, covering <span style="color:blue">AWS architecture</span>, multi-cloud, reliability, scalability, observability, and cost optimization. It includes 50+ scenario-based questions with detailed answers and examples.
 
-SREs at this level are expected to design, implement, and maintain highly reliable, scalable, and cost-effective systems. They must demonstrate deep knowledge of cloud technologies, automation, monitoring, and incident response.
+<span style="color:blue">SREs</span> at this level design and maintain highly reliable, scalable, cost-effective systems, demonstrating expertise in cloud tech, automation, monitoring, and incident response.
 
 ## AWS Architecture
 
 ### 1. How would you design a highly available web application on AWS?
 
 **Answer:**
-- Use multi-AZ architecture with Auto Scaling groups, Elastic Load Balancers (ELB), and Amazon RDS with Multi-AZ deployment.
-- Deploy EC2 instances in at least two Availability Zones behind an Application Load Balancer (ALB) to distribute traffic.
-- Use Auto Scaling to adjust instance count based on CPU utilization or request count.
-- For the database, configure Amazon RDS with Multi-AZ for automatic failover.
-- Implement Route 53 for DNS with health checks to route traffic away from unhealthy instances.
+- Use multi-AZ architecture with <span style="color:blue">Auto Scaling groups</span>, <span style="color:blue">Elastic Load Balancers (ELB)</span>, and <span style="color:blue">Amazon RDS</span> with Multi-AZ deployment.
+- Deploy <span style="color:blue">EC2 instances</span> in at least two <span style="color:blue">Availability Zones</span> behind an <span style="color:blue">Application Load Balancer (ALB)</span> to distribute traffic.
+- Use <span style="color:blue">Auto Scaling</span> to adjust instance count based on CPU utilization or request count.
+- For the database, configure <span style="color:blue">Amazon RDS</span> with Multi-AZ for automatic failover.
+- Implement <span style="color:blue">Route 53</span> for DNS with health checks to route traffic away from unhealthy instances.
 - This ensures 99.9% uptime by eliminating single points of failure.
 
 **Example:** In a gaming application, if one AZ fails due to a power outage, the ALB automatically routes traffic to healthy instances in other AZs, and RDS fails over seamlessly, minimizing downtime.
@@ -23,6 +23,7 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     User[User] --> Route53[Route 53 DNS]
     Route53 --> ALB[Application Load Balancer]
@@ -42,11 +43,11 @@ graph TD
 ### 2. Explain how to architect a serverless application using AWS Lambda and API Gateway.
 
 **Answer:**
-- Use AWS Lambda for compute, API Gateway for API management, and DynamoDB for storage.
-- API Gateway acts as the entry point, triggering Lambda functions based on HTTP requests.
-- Lambda functions are stateless and scale automatically.
-- Use CloudWatch for monitoring and X-Ray for tracing.
-- Implement IAM roles for least-privilege access.
+- Use <span style="color:blue">AWS Lambda</span> for compute, <span style="color:blue">API Gateway</span> for API management, and <span style="color:blue">DynamoDB</span> for storage.
+- <span style="color:blue">API Gateway</span> acts as the entry point, triggering <span style="color:blue">Lambda functions</span> based on HTTP requests.
+- <span style="color:blue">Lambda functions</span> are stateless and scale automatically.
+- Use <span style="color:blue">CloudWatch</span> for monitoring and <span style="color:blue">X-Ray</span> for tracing.
+- Implement <span style="color:blue">IAM roles</span> for least-privilege access.
 
 **Example:** A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
 
@@ -69,18 +70,18 @@ graph TD
 ### 3. How do you handle data migration from on-premises to AWS?
 
 **Answer:**
-- Use AWS Database Migration Service (DMS) for homogeneous migrations or AWS Snowball for large datasets.
+- Use <span style="color:blue">AWS Database Migration Service (DMS)</span> for homogeneous migrations or <span style="color:blue">AWS Snowball</span> for large datasets.
 - Assess data dependencies, plan cutover windows, and perform dry runs.
-- For minimal downtime, use change data capture (CDC) in DMS to replicate ongoing changes.
+- For minimal downtime, use change data capture (CDC) in <span style="color:blue">DMS</span> to replicate ongoing changes.
 
 **Example:** Migrating a 10TB database: Use Snowball to transfer initial data, then DMS with CDC to sync changes, ensuring the application switches to AWS with less than 1 hour downtime.
 
 ### 4. Describe architecting a microservices-based application on AWS.
 
 **Answer:**
-- Use ECS or EKS for container orchestration, API Gateway for service communication, and EventBridge for event-driven architecture.
-- Each microservice runs in its own container, with service discovery via Cloud Map.
-- Implement circuit breakers with AWS App Mesh for resilience.
+- Use <span style="color:blue">ECS</span> or <span style="color:blue">EKS</span> for container orchestration, <span style="color:blue">API Gateway</span> for service communication, and <span style="color:blue">EventBridge</span> for event-driven architecture.
+- Each microservice runs in its own container, with service discovery via <span style="color:blue">Cloud Map</span>.
+- Implement circuit breakers with <span style="color:blue">AWS App Mesh</span> for resilience.
 
 **Example:** An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
 
@@ -108,11 +109,11 @@ graph TD
 ### 5. How do you secure an AWS architecture?
 
 **Answer:**
-- Implement the principle of least privilege with IAM.
-- Use VPC with security groups and NACLs.
-- Enable encryption with KMS.
-- Deploy WAF for web applications.
-- Use AWS Config and GuardDuty for compliance monitoring.
+- Implement the principle of least privilege with <span style="color:blue">IAM</span>.
+- Use <span style="color:blue">VPC</span> with security groups and <span style="color:blue">NACLs</span>.
+- Enable encryption with <span style="color:blue">KMS</span>.
+- Deploy <span style="color:blue">WAF</span> for web applications.
+- Use <span style="color:blue">AWS Config</span> and <span style="color:blue">GuardDuty</span> for compliance monitoring.
 
 **Example:** For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
 
@@ -140,8 +141,8 @@ graph TD
 
 **Answer:**
 - Use a multi-region strategy with pilot light or warm standby.
-- Replicate data with Cross-Region Replication (CRR) for S3 and Global Tables for DynamoDB.
-- Automate recovery with CloudFormation and Route 53 failover.
+- Replicate data with <span style="color:blue">Cross-Region Replication (CRR)</span> for <span style="color:blue">S3</span> and <span style="color:blue">Global Tables</span> for <span style="color:blue">DynamoDB</span>.
+- Automate recovery with <span style="color:blue">CloudFormation</span> and <span style="color:blue">Route 53</span> failover.
 
 **Example:** In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
 
@@ -165,18 +166,18 @@ graph TD
 ### 7. How do you optimize network performance in AWS?
 
 **Answer:**
-- Use CloudFront for global distribution.
-- VPC endpoints for private access to AWS services.
-- Transit Gateway for multi-VPC connectivity.
-- Monitor with VPC Flow Logs and optimize instance types for network throughput.
+- Use <span style="color:blue">CloudFront</span> for global distribution.
+- <span style="color:blue">VPC endpoints</span> for private access to AWS services.
+- <span style="color:blue">Transit Gateway</span> for multi-VPC connectivity.
+- Monitor with <span style="color:blue">VPC Flow Logs</span> and optimize instance types for network throughput.
 
 **Example:** A video streaming service uses CloudFront to cache content at edge locations, reducing latency from 500ms to 50ms for users worldwide.
 
 ### 8. Describe architecting a data lake on AWS.
 
 **Answer:**
-- Use S3 as the storage layer, Glue for ETL, Athena for querying, and Lake Formation for governance.
-- Ingest data via Kinesis or DMS, catalog with Glue Catalog.
+- Use <span style="color:blue">S3</span> as the storage layer, <span style="color:blue">Glue</span> for ETL, <span style="color:blue">Athena</span> for querying, and <span style="color:blue">Lake Formation</span> for governance.
+- Ingest data via <span style="color:blue">Kinesis</span> or <span style="color:blue">DMS</span>, catalog with <span style="color:blue">Glue Catalog</span>.
 
 **Example:** For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
 
@@ -416,9 +417,9 @@ graph TD
 ### 17. How do you define and measure reliability in SRE?
 
 **Answer:**
-- Measured by SLIs: uptime, latency, error rates.
-- SLOs set targets, e.g., 99.9% uptime.
-- SLAs define consequences.
+- Measured by <span style="color:blue">SLIs</span>: uptime, latency, error rates.
+- <span style="color:blue">SLOs</span> set targets, e.g., 99.9% uptime.
+- <span style="color:blue">SLAs</span> define consequences.
 
 **Example:** For a game server, SLI is successful logins per minute; SLO is 99.95% success rate.
 
@@ -746,6 +747,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     A[Alert Triggered] --> B[Assemble Incident Response Team]
     B --> C[Assess Impact and Scope]
@@ -825,8 +827,9 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
-    SLO[SLO: 99.9% Uptime] --> SLI1[SLI: Request Success Rate]
+    SLO[SLO: 99.9% Availability] --> SLI1[SLI: Request Success Rate]
     SLO --> SLI2[SLI: Latency < 100ms]
     SLO --> SLI3[SLI: Error Rate < 0.1%]
     SLO --> SLI4[SLI: Saturation < 80%]
@@ -959,6 +962,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     Dockerfile[Dockerfile] --> DockerImage[Docker Image]
     DockerImage --> Registry[Docker Registry]
@@ -1122,6 +1126,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     A[Define Experiment - e.g., Terminate EC2] --> B[Set Up FIS Template]
     B --> C[Run in Staging Environment]
@@ -1189,6 +1194,7 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     SLO[SLO: 99.9% Availability] --> ErrorBudget[Error Budget: 0.1%]
     ErrorBudget --> BurnRate[Track Burn Rate Over Time]
@@ -1213,6 +1219,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     Client[Client] --> LoadBalancer[Load Balancer]
     LoadBalancer --> Service1[Service Instance 1]
@@ -1255,6 +1262,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     Client[Client] --> Proxy[Proxy Layer - e.g., HAProxy]
     Proxy --> Shard1[Shard 1 - Redis Node 1]
@@ -1303,6 +1311,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 sequenceDiagram
     participant Client
     participant API_GW
@@ -1334,6 +1343,7 @@ sequenceDiagram
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     Metrics[Collect Metrics - CPU, Memory, etc.] --> Baseline[Establish Baseline]
     Baseline --> Threshold[Set Dynamic Thresholds]
@@ -1399,6 +1409,7 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     Alert[Alert Received] --> Acknowledge[Acknowledge and Page Team]
     Acknowledge --> Assemble[Assemble War Room - Zoom/Slack]
@@ -1473,10 +1484,10 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     User[User] --> MFA[MFA Verification]
-    MFA --> AccessRequest[Access Request]
-    AccessRequest --> PolicyEngine[Policy Engine - Check Context]
+    AccessRequest[Access Request] --> PolicyEngine[Policy Engine - Check Context]
     PolicyEngine --> Allow[Allow Access]
     PolicyEngine --> Deny[Deny Access]
     Allow --> Resource[Resource - e.g., Server]
@@ -1517,6 +1528,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     Issue[Network Issue Detected] --> Logs[Check VPC Flow Logs]
     Logs --> Analyzer[Use Reachability Analyzer]
@@ -1573,6 +1585,7 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     Code[Commit IaC Code to Git] --> Lint[Lint with TFLint]
     Lint --> Test[Test with Terratest]
@@ -1607,6 +1620,7 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 flowchart TD
     Identify[Identify Bottleneck - e.g., High Latency] --> Profile[Profile Code with APM]
     Profile --> Query[Analyze DB Queries]
@@ -1714,6 +1728,7 @@ flowchart TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     Event[Live Event Announcement] --> PreScale[Pre-Scale Resources - ASG, DB]
     PreScale --> Monitor[Real-Time Monitoring - Dashboards]
@@ -1745,6 +1760,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     GameServer[Game Server] --> Metrics[Custom Metrics - Latency, FPS, Players]
     Metrics --> Prometheus[Prometheus]
@@ -1767,6 +1783,7 @@ graph TD
 **Diagram:**
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '10px'}}}%%
 graph TD
     Players[Global Players] --> CloudFront[CloudFront CDN]
     CloudFront --> RegionalLB[Regional Load Balancer]
