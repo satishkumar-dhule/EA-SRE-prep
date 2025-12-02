@@ -2,23 +2,23 @@
 
 ## Introduction
 
-This guide prepares for <span style="color:blue">EA SRE 3</span> interviews, covering <span style="color:blue">AWS architecture</span>, multi-cloud, reliability, scalability, observability, and cost optimization. It includes 50+ scenario-based questions with detailed answers and examples.
+This guide prepares for **EA SRE 3** interviews, covering **AWS architecture**, multi-cloud, reliability, scalability, observability, and cost optimization. It includes 50+ scenario-based questions with detailed answers and examples.
 
-<span style="color:blue">SREs</span> at this level design and maintain highly reliable, scalable, cost-effective systems, demonstrating expertise in cloud tech, automation, monitoring, and incident response.
+**SREs** at this level design and maintain *highly reliable*, *scalable*, *cost-effective* systems, demonstrating expertise in cloud tech, automation, monitoring, and incident response.
 
 ## AWS Architecture
 
 ### 1. How would you design a highly available web application on AWS?
 
 **Answer:**
-- Use multi-AZ architecture with <span style="color:blue">Auto Scaling groups</span>, <span style="color:blue">Elastic Load Balancers (ELB)</span>, and <span style="color:blue">Amazon RDS</span> with Multi-AZ deployment.
-- Deploy <span style="color:blue">EC2 instances</span> in at least two <span style="color:blue">Availability Zones</span> behind an <span style="color:blue">Application Load Balancer (ALB)</span> to distribute traffic.
-- Use <span style="color:blue">Auto Scaling</span> to adjust instance count based on CPU utilization or request count.
-- For the database, configure <span style="color:blue">Amazon RDS</span> with Multi-AZ for automatic failover.
-- Implement <span style="color:blue">Route 53</span> for DNS with health checks to route traffic away from unhealthy instances.
-- This ensures 99.9% uptime by eliminating single points of failure.
+- Use multi-AZ architecture with **Auto Scaling groups**, **Elastic Load Balancers (ELB)**, and **Amazon RDS** with Multi-AZ deployment.
+- Deploy **EC2 instances** in at least two **Availability Zones** behind an **Application Load Balancer (ALB)** to distribute traffic.
+- Use **Auto Scaling** to adjust instance count based on CPU utilization or request count.
+- For the database, configure **Amazon RDS** with Multi-AZ for automatic failover.
+- Implement **Route 53** for DNS with health checks to route traffic away from unhealthy instances.
+- This ensures <u>99.9% uptime</u> by eliminating single points of failure.
 
-**Example:** In a gaming application, if one AZ fails due to a power outage, the ALB automatically routes traffic to healthy instances in other AZs, and RDS fails over seamlessly, minimizing downtime.
+*Example:* In a gaming application, if one AZ fails due to a power outage, the ALB automatically routes traffic to healthy instances in other AZs, and RDS fails over seamlessly, minimizing downtime.
 
 **Diagram:**
 
@@ -43,13 +43,13 @@ graph TD
 ### 2. Explain how to architect a serverless application using AWS Lambda and API Gateway.
 
 **Answer:**
-- Use <span style="color:blue">AWS Lambda</span> for compute, <span style="color:blue">API Gateway</span> for API management, and <span style="color:blue">DynamoDB</span> for storage.
-- <span style="color:blue">API Gateway</span> acts as the entry point, triggering <span style="color:blue">Lambda functions</span> based on HTTP requests.
-- <span style="color:blue">Lambda functions</span> are stateless and scale automatically.
-- Use <span style="color:blue">CloudWatch</span> for monitoring and <span style="color:blue">X-Ray</span> for tracing.
-- Implement <span style="color:blue">IAM roles</span> for least-privilege access.
+- Use **AWS Lambda** for compute, **API Gateway** for API management, and **DynamoDB** for storage.
+- **API Gateway** acts as the entry point, triggering **Lambda functions** based on HTTP requests.
+- **Lambda functions** are stateless and scale automatically.
+- Use **CloudWatch** for monitoring and **X-Ray** for tracing.
+- Implement **IAM roles** for least-privilege access.
 
-**Example:** A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
+*Example:* A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
 
 **Diagram:**
 
@@ -70,20 +70,20 @@ graph TD
 ### 3. How do you handle data migration from on-premises to AWS?
 
 **Answer:**
-- Use <span style="color:blue">AWS Database Migration Service (DMS)</span> for homogeneous migrations or <span style="color:blue">AWS Snowball</span> for large datasets.
+- Use **AWS Database Migration Service (DMS)** for homogeneous migrations or **AWS Snowball** for large datasets.
 - Assess data dependencies, plan cutover windows, and perform dry runs.
-- For minimal downtime, use change data capture (CDC) in <span style="color:blue">DMS</span> to replicate ongoing changes.
+- For minimal downtime, use change data capture (CDC) in **DMS** to replicate ongoing changes.
 
-**Example:** Migrating a 10TB database: Use Snowball to transfer initial data, then DMS with CDC to sync changes, ensuring the application switches to AWS with less than 1 hour downtime.
+*Example:* Migrating a 10TB database: Use Snowball to transfer initial data, then DMS with CDC to sync changes, ensuring the application switches to AWS with less than 1 hour downtime.
 
 ### 4. Describe architecting a microservices-based application on AWS.
 
 **Answer:**
-- Use <span style="color:blue">ECS</span> or <span style="color:blue">EKS</span> for container orchestration, <span style="color:blue">API Gateway</span> for service communication, and <span style="color:blue">EventBridge</span> for event-driven architecture.
-- Each microservice runs in its own container, with service discovery via <span style="color:blue">Cloud Map</span>.
-- Implement circuit breakers with <span style="color:blue">AWS App Mesh</span> for resilience.
+- Use **ECS** or **EKS** for container orchestration, **API Gateway** for service communication, and **EventBridge** for event-driven architecture.
+- Each microservice runs in its own container, with service discovery via **Cloud Map**.
+- Implement circuit breakers with **AWS App Mesh** for resilience.
 
-**Example:** An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
+*Example:* An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
 
 **Diagram:**
 
@@ -109,13 +109,13 @@ graph TD
 ### 5. How do you secure an AWS architecture?
 
 **Answer:**
-- Implement the principle of least privilege with <span style="color:blue">IAM</span>.
-- Use <span style="color:blue">VPC</span> with security groups and <span style="color:blue">NACLs</span>.
-- Enable encryption with <span style="color:blue">KMS</span>.
-- Deploy <span style="color:blue">WAF</span> for web applications.
-- Use <span style="color:blue">AWS Config</span> and <span style="color:blue">GuardDuty</span> for compliance monitoring.
+- Implement the principle of least privilege with **IAM**.
+- Use **VPC** with security groups and **NACLs**.
+- Enable encryption with **KMS**.
+- Deploy **WAF** for web applications.
+- Use **AWS Config** and **GuardDuty** for compliance monitoring.
 
-**Example:** For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
+*Example:* For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
 
 **Diagram:**
 
@@ -141,10 +141,10 @@ graph TD
 
 **Answer:**
 - Use a multi-region strategy with pilot light or warm standby.
-- Replicate data with <span style="color:blue">Cross-Region Replication (CRR)</span> for <span style="color:blue">S3</span> and <span style="color:blue">Global Tables</span> for <span style="color:blue">DynamoDB</span>.
-- Automate recovery with <span style="color:blue">CloudFormation</span> and <span style="color:blue">Route 53</span> failover.
+- Replicate data with **Cross-Region Replication (CRR)** for **S3** and **Global Tables** for **DynamoDB**.
+- Automate recovery with **CloudFormation** and **Route 53** failover.
 
-**Example:** In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
+*Example:* In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
 
 **Diagram:**
 
@@ -166,20 +166,20 @@ graph TD
 ### 7. How do you optimize network performance in AWS?
 
 **Answer:**
-- Use <span style="color:blue">CloudFront</span> for global distribution.
-- <span style="color:blue">VPC endpoints</span> for private access to AWS services.
-- <span style="color:blue">Transit Gateway</span> for multi-VPC connectivity.
-- Monitor with <span style="color:blue">VPC Flow Logs</span> and optimize instance types for network throughput.
+- Use **CloudFront** for global distribution.
+- **VPC endpoints** for private access to AWS services.
+- **Transit Gateway** for multi-VPC connectivity.
+- Monitor with **VPC Flow Logs** and optimize instance types for network throughput.
 
-**Example:** A video streaming service uses CloudFront to cache content at edge locations, reducing latency from 500ms to 50ms for users worldwide.
+*Example:* A video streaming service uses CloudFront to cache content at edge locations, reducing latency from 500ms to 50ms for users worldwide.
 
 ### 8. Describe architecting a data lake on AWS.
 
 **Answer:**
-- Use <span style="color:blue">S3</span> as the storage layer, <span style="color:blue">Glue</span> for ETL, <span style="color:blue">Athena</span> for querying, and <span style="color:blue">Lake Formation</span> for governance.
-- Ingest data via <span style="color:blue">Kinesis</span> or <span style="color:blue">DMS</span>, catalog with <span style="color:blue">Glue Catalog</span>.
+- Use **S3** as the storage layer, **Glue** for ETL, **Athena** for querying, and **Lake Formation** for governance.
+- Ingest data via **Kinesis** or **DMS**, catalog with **Glue Catalog**.
 
-**Example:** For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
+*Example:* For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
 
 **Diagram:**
 
@@ -200,7 +200,7 @@ graph TD
 
 **Answer:** For a serverless application, use AWS Lambda for compute, API Gateway for API management, and DynamoDB for storage. API Gateway acts as the entry point, triggering Lambda functions based on HTTP requests. Lambda functions are stateless and scale automatically. Use CloudWatch for monitoring and X-Ray for tracing. Implement IAM roles for least-privilege access.
 
-**Example:** A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
+*Example:* A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
 
 **Diagram:**
 
@@ -222,13 +222,13 @@ graph TD
 
 **Answer:** Use AWS Database Migration Service (DMS) for homogeneous migrations or AWS Snowball for large datasets. Assess data dependencies, plan cutover windows, and perform dry runs. For minimal downtime, use change data capture (CDC) in DMS to replicate ongoing changes.
 
-**Example:** Migrating a 10TB database: Use Snowball to transfer initial data, then DMS with CDC to sync changes, ensuring the application switches to AWS with less than 1 hour downtime.
+*Example:* Migrating a 10TB database: Use Snowball to transfer initial data, then DMS with CDC to sync changes, ensuring the application switches to AWS with less than 1 hour downtime.
 
 ### 4. Describe architecting a microservices-based application on AWS.
 
 **Answer:** Use ECS or EKS for container orchestration, API Gateway for service communication, and EventBridge for event-driven architecture. Each microservice runs in its own container, with service discovery via Cloud Map. Implement circuit breakers with AWS App Mesh for resilience.
 
-**Example:** An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
+*Example:* An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
 
 **Diagram:**
 
@@ -255,7 +255,7 @@ graph TD
 
 **Answer:** Implement the principle of least privilege with IAM, use VPC with security groups and NACLs, enable encryption with KMS, and deploy WAF for web applications. Use AWS Config and GuardDuty for compliance monitoring.
 
-**Example:** For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
+*Example:* For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
 
 **Diagram:**
 
@@ -281,7 +281,7 @@ graph TD
 
 **Answer:** Use a multi-region strategy with pilot light or warm standby. Replicate data with Cross-Region Replication (CRR) for S3 and Global Tables for DynamoDB. Automate recovery with CloudFormation and Route 53 failover.
 
-**Example:** In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
+*Example:* In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
 
 **Diagram:**
 
@@ -304,13 +304,13 @@ graph TD
 
 **Answer:** Use CloudFront for global distribution, VPC endpoints for private access to AWS services, and Transit Gateway for multi-VPC connectivity. Monitor with VPC Flow Logs and optimize instance types for network throughput.
 
-**Example:** A video streaming service uses CloudFront to cache content at edge locations, reducing latency from 500ms to 50ms for users worldwide.
+*Example:* A video streaming service uses CloudFront to cache content at edge locations, reducing latency from 500ms to 50ms for users worldwide.
 
 ### 8. Describe architecting a data lake on AWS.
 
 **Answer:** Use S3 as the storage layer, Glue for ETL, Athena for querying, and Lake Formation for governance. Ingest data via Kinesis or DMS, catalog with Glue Catalog.
 
-**Example:** For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
+*Example:* For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
 
 **Diagram:**
 
@@ -335,7 +335,7 @@ graph TD
 - Use cloud-agnostic tools like Terraform for IaC, Kubernetes for orchestration across clouds, and DNS-based failover.
 - Replicate data with tools like Velero for backups.
 
-**Example:** Deploy an app on AWS and Azure; if AWS region fails, update DNS to route to Azure, ensuring continuity.
+*Example:* Deploy an app on AWS and Azure; if AWS region fails, update DNS to route to Azure, ensuring continuity.
 
 **Diagram:**
 
@@ -366,7 +366,7 @@ graph TD
   - Implement hybrid networking with VPNs
   - Monitor with multi-cloud tools like Datadog
 
-**Example:** Managing costs by using spot instances on AWS and preemptible VMs on GCP, monitored via a unified dashboard.
+*Example:* Managing costs by using spot instances on AWS and preemptible VMs on GCP, monitored via a unified dashboard.
 
 ### 11. How do you handle data consistency across multiple clouds?
 
@@ -374,7 +374,7 @@ graph TD
 - Use eventual consistency models, tools like Apache Kafka for data streaming, or database federation.
 - Implement conflict resolution strategies.
 
-**Example:** User data synced between AWS DynamoDB and Azure Cosmos DB using Kafka, with last-write-wins for conflicts.
+*Example:* User data synced between AWS DynamoDB and Azure Cosmos DB using Kafka, with last-write-wins for conflicts.
 
 ### 12. Describe migrating workloads between clouds.
 
@@ -382,46 +382,46 @@ graph TD
 - Assess dependencies, use tools like AWS Migration Hub or Azure Migrate.
 - Perform phased migrations with testing.
 
-**Example:** Migrating VMs from AWS to GCP using Velero for Kubernetes apps, ensuring zero data loss.
+*Example:* Migrating VMs from AWS to GCP using Velero for Kubernetes apps, ensuring zero data loss.
 
 ### 13. How do you ensure security in a multi-cloud environment?
 
 **Answer:**
 - Use consistent IAM policies, encrypt data in transit with TLS, and deploy unified security tools like CrowdStrike.
 
-**Example:** Implementing SSO with Okta across AWS and Azure, with encrypted VPC peering.
+*Example:* Implementing SSO with Okta across AWS and Azure, with encrypted VPC peering.
 
 ### 14. Explain cost optimization in multi-cloud setups.
 
 **Answer:**
 - Use reserved instances where possible, monitor with tools like CloudHealth, and right-size resources dynamically.
 
-**Example:** Running compute-intensive tasks on GCP's cheaper instances and storage on AWS S3, saving 20% monthly.
+*Example:* Running compute-intensive tasks on GCP's cheaper instances and storage on AWS S3, saving 20% monthly.
 
 ### 15. How do you monitor multi-cloud applications?
 
 **Answer:**
 - Use tools like Prometheus with multi-cloud exporters or commercial solutions like New Relic for unified monitoring.
 
-**Example:** Alerting on latency spikes in either cloud via a single dashboard.
+*Example:* Alerting on latency spikes in either cloud via a single dashboard.
 
 ### 16. Describe disaster recovery in multi-cloud.
 
 **Answer:**
 - Implement active-active or active-passive setups with automated failover scripts.
 
-**Example:** If AWS fails, Terraform provisions resources on Azure automatically.
+*Example:* If AWS fails, Terraform provisions resources on Azure automatically.
 
 ## Reliability
 
 ### 17. How do you define and measure reliability in SRE?
 
 **Answer:**
-- Measured by <span style="color:blue">SLIs</span>: uptime, latency, error rates.
-- <span style="color:blue">SLOs</span> set targets, e.g., 99.9% uptime.
-- <span style="color:blue">SLAs</span> define consequences.
+- Measured by **SLIs**: uptime, latency, error rates.
+- **SLOs** set targets, e.g., 99.9% uptime.
+- **SLAs** define consequences.
 
-**Example:** For a game server, SLI is successful logins per minute; SLO is 99.95% success rate.
+*Example:* For a game server, SLI is successful logins per minute; SLO is 99.95% success rate.
 
 ### 18. Explain implementing chaos engineering in AWS.
 
@@ -429,21 +429,21 @@ graph TD
 - Use AWS Fault Injection Simulator (FIS) to inject failures like instance terminations.
 - Monitor impact and improve resilience.
 
-**Example:** Simulating AZ failure to ensure auto-scaling kicks in within 5 minutes.
+*Example:* Simulating AZ failure to ensure auto-scaling kicks in within 5 minutes.
 
 ### 19. How do you handle incident response?
 
 **Answer:**
 - Follow a structured process: detect via monitoring, assess impact, contain, eradicate, recover, and learn via post-mortems.
 
-**Example:** During a DDoS attack, use Shield and WAF to mitigate, then analyze logs for prevention.
+*Example:* During a DDoS attack, use Shield and WAF to mitigate, then analyze logs for prevention.
 
 ### 20. Describe building resilient microservices.
 
 **Answer:**
 - Implement retries, circuit breakers with Hystrix, and bulkheads to isolate failures.
 
-**Example:** If a downstream service fails, circuit breaker prevents cascading failures.
+*Example:* If a downstream service fails, circuit breaker prevents cascading failures.
 
 ### 21. How do you ensure database reliability?
 
@@ -451,7 +451,7 @@ graph TD
 - Use Multi-AZ RDS, backups, and read replicas.
 - Monitor with CloudWatch.
 
-**Example:** Automatic failover during maintenance minimizes downtime.
+*Example:* Automatic failover during maintenance minimizes downtime.
 
 ### 22. Explain error budgeting in SRE.
 
@@ -459,21 +459,21 @@ graph TD
 - Error budget is the acceptable failure rate, e.g., 0.1% downtime.
 - Track against SLOs to balance reliability and innovation.
 
-**Example:** If budget is exceeded, halt feature releases to focus on stability.
+*Example:* If budget is exceeded, halt feature releases to focus on stability.
 
 ### 23. How do you automate reliability testing?
 
 **Answer:**
 - Use tools like Gremlin for chaos testing and Jenkins for CI/CD integrated reliability checks.
 
-**Example:** Automated tests simulate high load and failures before deployment.
+*Example:* Automated tests simulate high load and failures before deployment.
 
 ### 24. Describe handling cascading failures.
 
 **Answer:**
 - Implement timeouts, rate limiting, and dependency isolation.
 
-**Example:** In a service mesh, isolate failing pods to prevent cluster-wide outage.
+*Example:* In a service mesh, isolate failing pods to prevent cluster-wide outage.
 
 ## Scalability
 
@@ -482,7 +482,7 @@ graph TD
 **Answer:**
 - Use Auto Scaling groups with ELB, triggered by CloudWatch metrics like CPU >70%.
 
-**Example:** During peak gaming hours, scale from 10 to 100 instances automatically.
+*Example:* During peak gaming hours, scale from 10 to 100 instances automatically.
 
 ### 26. Explain vertical vs. horizontal scaling.
 
@@ -495,7 +495,7 @@ graph TD
 
 - Prefer horizontal for most cases.
 
-**Example:** For a database, use read replicas (horizontal) over larger instances (vertical).
+*Example:* For a database, use read replicas (horizontal) over larger instances (vertical).
 
 ### 27. How do you handle stateful application scaling?
 
@@ -503,42 +503,42 @@ graph TD
 - Use EFS for shared storage or DynamoDB for state.
 - Avoid sticky sessions.
 
-**Example:** User sessions stored in ElastiCache, allowing seamless scaling.
+*Example:* User sessions stored in ElastiCache, allowing seamless scaling.
 
 ### 28. Describe scaling databases on AWS.
 
 **Answer:**
 - Use Aurora Serverless for auto-scaling, or provisioned with read replicas.
 
-**Example:** During high traffic, Aurora scales storage and compute automatically.
+*Example:* During high traffic, Aurora scales storage and compute automatically.
 
 ### 29. How do you optimize for global scalability?
 
 **Answer:**
 - Use CloudFront, Route 53 latency-based routing, and multi-region deployments.
 
-**Example:** Global users access content from nearest edge location, reducing latency.
+*Example:* Global users access content from nearest edge location, reducing latency.
 
 ### 30. Explain load testing for scalability.
 
 **Answer:**
 - Use tools like JMeter or Artillery to simulate traffic, monitor with CloudWatch.
 
-**Example:** Test 10x traffic increase to ensure no bottlenecks.
+*Example:* Test 10x traffic increase to ensure no bottlenecks.
 
 ### 31. How do you scale serverless applications?
 
 **Answer:**
 - Lambda scales automatically; use provisioned concurrency for cold starts.
 
-**Example:** API Gateway routes to Lambda, handling millions of requests.
+*Example:* API Gateway routes to Lambda, handling millions of requests.
 
 ### 32. Describe caching strategies for scalability.
 
 **Answer:**
 - Use CloudFront for static content, ElastiCache for dynamic data.
 
-**Example:** Cache user profiles in Redis, reducing DB load by 50%.
+*Example:* Cache user profiles in Redis, reducing DB load by 50%.
 
 ## Observability
 
@@ -548,7 +548,7 @@ graph TD
 - Use CloudWatch for metrics, X-Ray for tracing, and CloudTrail for auditing.
 - Centralize logs with CloudWatch Logs.
 
-**Example:** Trace a request from API Gateway through Lambda to DynamoDB.
+*Example:* Trace a request from API Gateway through Lambda to DynamoDB.
 
 ### 34. Explain the three pillars of observability.
 
@@ -557,49 +557,49 @@ graph TD
 - Metrics: quantitative data
 - Traces: request paths
 
-**Example:** Logs show errors, metrics track latency, traces identify bottlenecks.
+*Example:* Logs show errors, metrics track latency, traces identify bottlenecks.
 
 ### 35. How do you monitor microservices?
 
 **Answer:**
 - Use service mesh like App Mesh for metrics, and distributed tracing with X-Ray.
 
-**Example:** Visualize service dependencies and latency in X-Ray.
+*Example:* Visualize service dependencies and latency in X-Ray.
 
 ### 36. Describe setting up alerts.
 
 **Answer:**
 - Define thresholds in CloudWatch, e.g., CPU >80% triggers scaling or alerts.
 
-**Example:** Alert on error rate >5% for immediate investigation.
+*Example:* Alert on error rate >5% for immediate investigation.
 
 ### 37. How do you handle log aggregation?
 
 **Answer:**
 - Use CloudWatch Logs, Kinesis for streaming, and Elasticsearch for analysis.
 
-**Example:** Aggregate logs from multiple EC2 instances for anomaly detection.
+*Example:* Aggregate logs from multiple EC2 instances for anomaly detection.
 
 ### 38. Explain distributed tracing.
 
 **Answer:**
 - Tools like X-Ray track requests across services, identifying latency sources.
 
-**Example:** Trace shows 90% latency in DB query, prompting optimization.
+*Example:* Trace shows 90% latency in DB query, prompting optimization.
 
 ### 39. How do you measure user experience?
 
 **Answer:**
 - Use Real User Monitoring (RUM) with CloudWatch Synthetics.
 
-**Example:** Simulate user journeys to detect frontend issues.
+*Example:* Simulate user journeys to detect frontend issues.
 
 ### 40. Describe anomaly detection.
 
 **Answer:**
 - Use CloudWatch Insights or ML-based tools to detect unusual patterns.
 
-**Example:** Alert on sudden traffic drop indicating outage.
+*Example:* Alert on sudden traffic drop indicating outage.
 
 ## Cost Optimization
 
@@ -608,56 +608,56 @@ graph TD
 **Answer:**
 - Use reserved instances, right-size resources, leverage spot instances, and monitor with Cost Explorer.
 
-**Example:** Switch to reserved EC2 for predictable workloads, saving 30%.
+*Example:* Switch to reserved EC2 for predictable workloads, saving 30%.
 
 ### 42. Explain spot instances and their use.
 
 **Answer:**
 - Spot instances are unused capacity at lower prices, suitable for fault-tolerant workloads.
 
-**Example:** Use for batch processing, saving 70% vs. on-demand.
+*Example:* Use for batch processing, saving 70% vs. on-demand.
 
 ### 43. How do you manage data storage costs?
 
 **Answer:**
 - Use S3 lifecycle policies to move data to cheaper tiers, like Glacier for archives.
 
-**Example:** Move old logs to S3 IA, reducing costs by 50%.
+*Example:* Move old logs to S3 IA, reducing costs by 50%.
 
 ### 44. Describe cost allocation tags.
 
 **Answer:**
 - Tag resources by department or project, then use Cost Allocation Reports for tracking.
 
-**Example:** Tag EC2 by team, identify high-cost areas.
+*Example:* Tag EC2 by team, identify high-cost areas.
 
 ### 45. How do you optimize for reserved instances?
 
 **Answer:**
 - Analyze usage patterns with Cost Explorer, purchase for steady-state workloads.
 
-**Example:** Reserve 50% of EC2 capacity for base load.
+*Example:* Reserve 50% of EC2 capacity for base load.
 
 ### 46. Explain serverless cost benefits.
 
 **Answer:**
 - Pay only for execution time, no idle costs.
 
-**Example:** Lambda for infrequent tasks saves vs. always-on EC2.
+*Example:* Lambda for infrequent tasks saves vs. always-on EC2.
 
 ### 47. How do you monitor and control costs?
 
 **Answer:**
 - Set budgets in AWS Budgets, alerts on thresholds.
 
-**Example:** Alert if monthly spend exceeds 10% of budget.
+*Example:* Alert if monthly spend exceeds 10% of budget.
 
 ### 48. Describe optimizing network costs.
 
 **Answer:**
 - Use VPC endpoints, compress data, minimize cross-region transfers.
 
-**Example:** VPC endpoint for S3 avoids NAT gateway costs.
+*Example:* VPC endpoint for S3 avoids NAT gateway costs.
 
 ## Behavioral Questions
 
@@ -666,56 +666,56 @@ graph TD
 **Answer:**
 - Coordinated with the team, implemented failover, and conducted a post-mortem to prevent recurrence.
 
-**Example:** Restored service in 20 minutes, identified root cause as misconfiguration.
+*Example:* Restored service in 20 minutes, identified root cause as misconfiguration.
 
 ### 50. How do you balance reliability and feature delivery?
 
 **Answer:**
 - Use error budgets; if exceeded, prioritize fixes over new features.
 
-**Example:** Paused releases to improve uptime from 99% to 99.9%.
+*Example:* Paused releases to improve uptime from 99% to 99.9%.
 
 ### 51. Tell us about collaborating with other teams.
 
 **Answer:**
 - Worked with developers to implement monitoring early, reducing incidents by 40%.
 
-**Example:** Joint design reviews ensured scalable architecture.
+*Example:* Joint design reviews ensured scalable architecture.
 
 ### 52. How do you stay updated with technology?
 
 **Answer:**
 - Read AWS blogs, attend conferences, experiment with new services.
 
-**Example:** Implemented X-Ray after learning at re:Invent, improving debugging.
+*Example:* Implemented X-Ray after learning at re:Invent, improving debugging.
 
 ### 53. Describe handling conflicting priorities.
 
 **Answer:**
 - Prioritize based on business impact, communicate trade-offs.
 
-**Example:** Delayed feature for critical security patch.
+*Example:* Delayed feature for critical security patch.
 
 ### 54. How do you mentor junior engineers?
 
 **Answer:**
 - Pair programming, code reviews, knowledge sharing sessions.
 
-**Example:** Helped junior SRE reduce on-call incidents through training.
+*Example:* Helped junior SRE reduce on-call incidents through training.
 
 ### 55. Tell us about a failure and what you learned.
 
 **Answer:**
 - Misconfigured auto-scaling caused outage; learned to test configurations thoroughly.
 
-**Example:** Implemented automated tests for IaC.
+*Example:* Implemented automated tests for IaC.
 
 ### 56. How do you approach problem-solving?
 
 **Answer:**
 - Break down problems, gather data, propose solutions, iterate.
 
-**Example:** Debugged latency by tracing requests, optimized queries.
+*Example:* Debugged latency by tracing requests, optimized queries.
 
 ## Incident and Problem Management
 
@@ -742,7 +742,7 @@ graph TD
   4. Learn (RCA)
 - Example actions: In a database outage, isolate affected services, failover to backup, and analyze logs to prevent recurrence.
 
-**Example:** During a DDoS attack on a gaming platform, I activated our incident playbook, scaled up WAF rules, and communicated ETA to users, resolving in 15 minutes with minimal data loss.
+*Example:* During a DDoS attack on a gaming platform, I activated our incident playbook, scaled up WAF rules, and communicated ETA to users, resolving in 15 minutes with minimal data loss.
 
 **Diagram:**
 
@@ -770,7 +770,7 @@ flowchart TD
 
 **Detailed Explanation:** Use tools like ELK stack for log analysis or Datadog for metric correlation. Ensure actions are preventive, like adding circuit breakers or improving monitoring.
 
-**Example:** For a service degradation, traced to a memory leak in a microservice; fixed by optimizing code and adding heap monitoring, reducing future incidents by 50%.
+*Example:* For a service degradation, traced to a memory leak in a microservice; fixed by optimizing code and adding heap monitoring, reducing future incidents by 50%.
 
 ### 59. How do you implement and mature incident management frameworks?
 
@@ -780,7 +780,7 @@ flowchart TD
 
 **Detailed Explanation:** Use PagerDuty for on-call rotation, Slack for communication, and tools like FireHydrant for incident tracking. Mature by measuring MTTR and MTTD, aiming for continuous improvement.
 
-**Example:** Implemented automated rollback scripts in our CI pipeline, reducing manual toil and improving recovery time from hours to minutes.
+*Example:* Implemented automated rollback scripts in our CI pipeline, reducing manual toil and improving recovery time from hours to minutes.
 
 ## Leadership and Mentorship
 
@@ -792,7 +792,7 @@ flowchart TD
 
 **Detailed Explanation:** As a senior SRE, influence architecture decisions, mentor juniors, and collaborate with product teams to embed SRE principles early in SDLC.
 
-**Example:** Led the adoption of Kubernetes in our stack, training the team and reducing deployment times by 70%.
+*Example:* Led the adoption of Kubernetes in our stack, training the team and reducing deployment times by 70%.
 
 ### 61. Describe mentoring junior engineers.
 
@@ -801,7 +801,7 @@ flowchart TD
 
 **Detailed Explanation:** Focus on soft skills like incident handling and hard skills like IaC. Track progress and celebrate achievements.
 
-**Example:** Mentored a new hire on AWS architecture, resulting in them leading a migration project independently.
+*Example:* Mentored a new hire on AWS architecture, resulting in them leading a migration project independently.
 
 ### 62. How do you promote SRE culture across teams?
 
@@ -809,7 +809,7 @@ flowchart TD
 
 **Detailed Explanation:** Work with DevOps and QA to implement shared ownership, using tools like SLO dashboards visible to all.
 
-**Example:** Introduced error budgets, leading to teams prioritizing reliability alongside features, improving overall uptime.
+*Example:* Introduced error budgets, leading to teams prioritizing reliability alongside features, improving overall uptime.
 
 ## Service Level Management
 
@@ -822,7 +822,7 @@ flowchart TD
 
 **Detailed Explanation:** Use the Four Golden Signals: Latency, Traffic, Errors, Saturation. Track with Prometheus and Grafana, alerting when budgets are depleted.
 
-**Example:** For a game API, set SLO at 99.95%, monitored via success rate; when breached, paused features to fix issues.
+*Example:* For a game API, set SLO at 99.95%, monitored via success rate; when breached, paused features to fix issues.
 
 **Diagram:**
 
@@ -853,7 +853,7 @@ graph TD
 
 **Detailed Explanation:** Use histograms for latency percentiles, counters for traffic, and gauges for saturation.
 
-**Example:** Detected high saturation during peak load, auto-scaled instances to prevent errors.
+*Example:* Detected high saturation during peak load, auto-scaled instances to prevent errors.
 
 ## Documentation and Knowledge Sharing
 
@@ -865,7 +865,7 @@ graph TD
 
 **Detailed Explanation:** Document as code, version control docs, and automate generation where possible.
 
-**Example:** Created a knowledge base for incident response, reducing resolution time for recurring issues.
+*Example:* Created a knowledge base for incident response, reducing resolution time for recurring issues.
 
 ### 66. Describe facilitating learning through technical sessions.
 
@@ -874,7 +874,7 @@ graph TD
 
 **Detailed Explanation:** Encourage participation, record sessions for remote teams.
 
-**Example:** A session on chaos engineering led to implementing game days, improving resilience.
+*Example:* A session on chaos engineering led to implementing game days, improving resilience.
 
 ## Strategic Technology and Continuous Improvement
 
@@ -886,7 +886,7 @@ graph TD
 
 **Detailed Explanation:** Evaluate tools like adopting Istio for service mesh or Terraform for IaC at scale.
 
-**Example:** Proposed and led migration to multi-cloud, reducing vendor lock-in and costs.
+*Example:* Proposed and led migration to multi-cloud, reducing vendor lock-in and costs.
 
 ### 68. How do you evaluate and adopt new technologies?
 
@@ -896,7 +896,7 @@ graph TD
 
 **Detailed Explanation:** Use RFCs for proposals, involve stakeholders.
 
-**Example:** Adopted Prometheus over Nagios, improving alerting granularity and reducing false positives.
+*Example:* Adopted Prometheus over Nagios, improving alerting granularity and reducing false positives.
 
 ## Security and Compliance
 
@@ -907,7 +907,7 @@ graph TD
 
 **Detailed Explanation:** Ensure DevSecOps by automating scans in CI/CD.
 
-**Example:** Implemented encrypted secrets management, preventing data breaches.
+*Example:* Implemented encrypted secrets management, preventing data breaches.
 
 ### 70. Describe implementing secure configuration baselines.
 
@@ -916,7 +916,7 @@ graph TD
 
 **Detailed Explanation:** Regularly audit and remediate vulnerabilities.
 
-**Example:** Hardened EC2 instances, reducing security incidents by 60%.
+*Example:* Hardened EC2 instances, reducing security incidents by 60%.
 
 ## Strategic Leadership and Stakeholder Management
 
@@ -927,7 +927,7 @@ graph TD
 
 **Detailed Explanation:** Build relationships, translate technical terms to business impact.
 
-**Example:** Convinced leadership to invest in observability, leading to better decision-making.
+*Example:* Convinced leadership to invest in observability, leading to better decision-making.
 
 ### 72. Describe representing SRE in governance forums.
 
@@ -936,7 +936,7 @@ graph TD
 
 **Detailed Explanation:** Participate in architecture reviews, audits.
 
-**Example:** Influenced a design change to include redundancy, avoiding future outages.
+*Example:* Influenced a design change to include redundancy, avoiding future outages.
 
 ## Technical Expertise Deep Dive
 
@@ -947,7 +947,7 @@ graph TD
 
 **Detailed Explanation:** Handle patching, log rotation, and security hardening.
 
-**Example:** Automated OS updates across 1000 servers, reducing downtime.
+*Example:* Automated OS updates across 1000 servers, reducing downtime.
 
 ### 74. Explain containerization and orchestration with Docker and Kubernetes.
 
@@ -957,7 +957,7 @@ graph TD
 
 **Detailed Explanation:** Manage pods, services, ingresses; implement HPA for auto-scaling.
 
-**Example:** Deployed a microservice on EKS, scaling from 10 to 100 pods during load.
+*Example:* Deployed a microservice on EKS, scaling from 10 to 100 pods during load.
 
 **Diagram:**
 
@@ -983,7 +983,7 @@ graph TD
 
 **Detailed Explanation:** Configure virtual services, destination rules.
 
-**Example:** Implemented blue-green deployments, reducing release risks.
+*Example:* Implemented blue-green deployments, reducing release risks.
 
 ### 76. How do you use monitoring stacks like Prometheus and Grafana?
 
@@ -993,7 +993,7 @@ graph TD
 
 **Detailed Explanation:** Use exporters for custom metrics.
 
-**Example:** Created dashboards for game server latency, alerting on thresholds.
+*Example:* Created dashboards for game server latency, alerting on thresholds.
 
 ### 77. Explain IaC with Terraform.
 
@@ -1002,7 +1002,7 @@ graph TD
 
 **Detailed Explanation:** Use modules for reusability, state management.
 
-**Example:** Provisioned a VPC with subnets and security groups in minutes.
+*Example:* Provisioned a VPC with subnets and security groups in minutes.
 
 ### 78. How do you handle networking and load balancing?
 
@@ -1011,7 +1011,7 @@ graph TD
 
 **Detailed Explanation:** Implement health checks, sticky sessions.
 
-**Example:** Balanced traffic across regions, improving global performance.
+*Example:* Balanced traffic across regions, improving global performance.
 
 ## Operational Excellence
 
@@ -1022,7 +1022,7 @@ graph TD
 
 **Detailed Explanation:** Use auto-scaling policies, reserve instances.
 
-**Example:** Predicted holiday traffic spike, pre-scaled resources, avoiding outages.
+*Example:* Predicted holiday traffic spike, pre-scaled resources, avoiding outages.
 
 ### 80. How do you design for disaster recovery?
 
@@ -1031,7 +1031,7 @@ graph TD
 
 **Detailed Explanation:** Use RTO/RPO metrics.
 
-**Example:** Recovered from AZ failure in 10 minutes, minimizing impact.
+*Example:* Recovered from AZ failure in 10 minutes, minimizing impact.
 
 ## Soft Skills and Experience
 
@@ -1042,7 +1042,7 @@ graph TD
 
 **Detailed Explanation:** Tailor communication to audience: technical for engineers, high-level for execs.
 
-**Example:** Kept users informed via status page during outage.
+*Example:* Kept users informed via status page during outage.
 
 ### 82. Describe your experience with cross-functional collaboration.
 
@@ -1051,7 +1051,7 @@ graph TD
 
 **Detailed Explanation:** Use agile practices, shared backlogs.
 
-**Example:** Co-developed a feature with dev team, ensuring reliability from start.
+*Example:* Co-developed a feature with dev team, ensuring reliability from start.
 
 ### 83. How do you balance technical depth with leadership?
 
@@ -1060,7 +1060,7 @@ graph TD
 
 **Detailed Explanation:** Allocate time for coding and strategy.
 
-**Example:** Led a project while fixing critical bugs.
+*Example:* Led a project while fixing critical bugs.
 
 ### 84. Tell us about a time you drove automation to reduce toil.
 
@@ -1069,7 +1069,7 @@ graph TD
 
 **Detailed Explanation:** Identify repetitive tasks, use Python/Bash.
 
-**Example:** Built a dashboard for on-call metrics, improving visibility.
+*Example:* Built a dashboard for on-call metrics, improving visibility.
 
 ### 85. How do you ensure continuous improvement in your role?
 
@@ -1078,7 +1078,7 @@ graph TD
 
 **Detailed Explanation:** Participate in communities, attend conferences.
 
-**Example:** Implemented chaos engineering, uncovering hidden failures.
+*Example:* Implemented chaos engineering, uncovering hidden failures.
 
 ## Advanced AWS Scenarios
 
@@ -1091,7 +1091,7 @@ graph TD
 
 **Detailed Explanation:** Involves canary releases, feature flags, and automated testing. Monitor with CloudWatch during cutover.
 
-**Example:** For a game update, deployed to blue environment, validated with 1% traffic, then full switch, ensuring no player disruption.
+*Example:* For a game update, deployed to blue environment, validated with 1% traffic, then full switch, ensuring no player disruption.
 
 ### 87. How do you handle database scaling in AWS for high-write workloads?
 
@@ -1101,7 +1101,7 @@ graph TD
 
 **Detailed Explanation:** Monitor with Performance Insights, use auto-scaling for replicas.
 
-**Example:** Scaled a leaderboard service from 1000 to 10,000 writes/sec by adding replicas and partitioning.
+*Example:* Scaled a leaderboard service from 1000 to 10,000 writes/sec by adding replicas and partitioning.
 
 ### 88. Explain architecting for edge computing on AWS.
 
@@ -1111,7 +1111,7 @@ graph TD
 
 **Detailed Explanation:** Reduces latency for global users, integrates with API Gateway.
 
-**Example:** Personalized game content delivered via Lambda@Edge, cutting response time by 40%.
+*Example:* Personalized game content delivered via Lambda@Edge, cutting response time by 40%.
 
 ### 89. How do you implement chaos engineering on AWS?
 
@@ -1121,7 +1121,7 @@ graph TD
 
 **Detailed Explanation:** Run experiments in non-prod, analyze impact on SLOs.
 
-**Example:** Simulated AZ failure, discovered weak points in failover, improved RTO.
+*Example:* Simulated AZ failure, discovered weak points in failover, improved RTO.
 
 **Diagram:**
 
@@ -1145,7 +1145,7 @@ flowchart TD
 
 **Detailed Explanation:** Rotate keys regularly, use ACM for certificates.
 
-**Example:** Encrypted user data in S3, preventing breaches during a hack attempt.
+*Example:* Encrypted user data in S3, preventing breaches during a hack attempt.
 
 ## Multi-Cloud Advanced
 
@@ -1157,7 +1157,7 @@ flowchart TD
 
 **Detailed Explanation:** Ensure consistent security and monitoring across environments.
 
-**Example:** Extended AWS to on-prem data center for low-latency gaming.
+*Example:* Extended AWS to on-prem data center for low-latency gaming.
 
 ### 92. Explain federated identity in multi-cloud.
 
@@ -1167,7 +1167,7 @@ flowchart TD
 
 **Detailed Explanation:** Avoid password sprawl, enable SSO.
 
-**Example:** Single login for AWS and GCP resources.
+*Example:* Single login for AWS and GCP resources.
 
 ### 93. How do you optimize inter-cloud data transfer costs?
 
@@ -1177,7 +1177,7 @@ flowchart TD
 
 **Detailed Explanation:** Choose regions wisely, use CDN for static assets.
 
-**Example:** Reduced egress costs by 30% by compressing logs before transfer.
+*Example:* Reduced egress costs by 30% by compressing logs before transfer.
 
 ## Reliability Deep Dive
 
@@ -1189,7 +1189,7 @@ flowchart TD
 
 **Detailed Explanation:** Use dashboards to visualize, communicate to teams.
 
-**Example:** Team paused releases when budget hit 80%, fixed issues to restore.
+*Example:* Team paused releases when budget hit 80%, fixed issues to restore.
 
 **Diagram:**
 
@@ -1214,7 +1214,7 @@ graph TD
 
 **Detailed Explanation:** Follow CAP theorem trade-offs.
 
-**Example:** In a microservice failure, circuit breaker prevented cascade, maintaining 99% uptime.
+*Example:* In a microservice failure, circuit breaker prevented cascade, maintaining 99% uptime.
 
 **Diagram:**
 
@@ -1245,7 +1245,7 @@ graph TD
 
 **Detailed Explanation:** Measure toil hours, prioritize automation.
 
-**Example:** Automated certificate renewals, saving 10 hours/week.
+*Example:* Automated certificate renewals, saving 10 hours/week.
 
 ## Scalability Scenarios
 
@@ -1257,7 +1257,7 @@ graph TD
 
 **Detailed Explanation:** Implement sharding, read/write splitting.
 
-**Example:** Scaled a session store from 1 to 10 nodes with Redis Cluster.
+*Example:* Scaled a session store from 1 to 10 nodes with Redis Cluster.
 
 **Diagram:**
 
@@ -1285,7 +1285,7 @@ graph TD
 
 **Detailed Explanation:** Monitor with custom metrics, alert on thresholds.
 
-**Example:** During launch, scaled from 100k to 1M users seamlessly.
+*Example:* During launch, scaled from 100k to 1M users seamlessly.
 
 ### 99. How do you optimize for low-latency in global apps?
 
@@ -1294,7 +1294,7 @@ graph TD
 
 **Detailed Explanation:** Measure P95 latency, optimize queries.
 
-**Example:** Reduced ping from 200ms to 20ms with CloudFront.
+*Example:* Reduced ping from 200ms to 20ms with CloudFront.
 
 ## Observability Mastery
 
@@ -1306,7 +1306,7 @@ graph TD
 
 **Detailed Explanation:** Trace requests end-to-end, identify bottlenecks.
 
-**Example:** Traced a slow API call to a DB query, optimized index.
+*Example:* Traced a slow API call to a DB query, optimized index.
 
 **Diagram:**
 
@@ -1338,7 +1338,7 @@ sequenceDiagram
 
 **Detailed Explanation:** Reduce false positives, focus on true anomalies.
 
-**Example:** Detected unusual CPU spike, prevented outage by scaling.
+*Example:* Detected unusual CPU spike, prevented outage by scaling.
 
 **Diagram:**
 
@@ -1363,7 +1363,7 @@ flowchart TD
 
 **Detailed Explanation:** Integrate with vendor APIs.
 
-**Example:** Monitored payment gateway, switched providers on failure.
+*Example:* Monitored payment gateway, switched providers on failure.
 
 ## Cost Optimization Advanced
 
@@ -1375,7 +1375,7 @@ flowchart TD
 
 **Detailed Explanation:** Use AWS Cost Explorer, optimize RI purchases.
 
-**Example:** Identified idle instances, saved $50k/year.
+*Example:* Identified idle instances, saved $50k/year.
 
 ### 104. Describe rightsizing resources.
 
@@ -1384,7 +1384,7 @@ flowchart TD
 
 **Detailed Explanation:** Use recommendations from Trusted Advisor.
 
-**Example:** Downgraded over-provisioned DB, cut costs by 25%.
+*Example:* Downgraded over-provisioned DB, cut costs by 25%.
 
 ### 105. How do you handle spot instance usage safely?
 
@@ -1393,7 +1393,7 @@ flowchart TD
 
 **Detailed Explanation:** Monitor spot interruptions, use ASG with mixed instances.
 
-**Example:** Ran batch jobs on spot, saving 70% vs on-demand.
+*Example:* Ran batch jobs on spot, saving 70% vs on-demand.
 
 ## Incident Management Scenarios
 
@@ -1404,7 +1404,7 @@ flowchart TD
 
 **Detailed Explanation:** Use timeline, assign roles.
 
-**Example:** Database corruption: restored from backup, communicated impact.
+*Example:* Database corruption: restored from backup, communicated impact.
 
 **Diagram:**
 
@@ -1429,7 +1429,7 @@ flowchart TD
 
 **Detailed Explanation:** Prioritize critical alerts.
 
-**Example:** Reduced alerts by 50% by aggregating similar ones.
+*Example:* Reduced alerts by 50% by aggregating similar ones.
 
 ### 108. Describe a blameless post-mortem.
 
@@ -1439,7 +1439,7 @@ flowchart TD
 
 **Detailed Explanation:** Include all involved, action items.
 
-**Example:** After outage, improved monitoring, no recurrence.
+*Example:* After outage, improved monitoring, no recurrence.
 
 ## Leadership and Culture
 
@@ -1450,7 +1450,7 @@ flowchart TD
 
 **Detailed Explanation:** Use OKRs, regular feedback.
 
-**Example:** Team improved MTTR by 40% through training.
+*Example:* Team improved MTTR by 40% through training.
 
 ### 110. Explain influencing without authority.
 
@@ -1459,7 +1459,7 @@ flowchart TD
 
 **Detailed Explanation:** Use persuasion, demonstrate value.
 
-**Example:** Convinced dev team to adopt SRE practices via pilots.
+*Example:* Convinced dev team to adopt SRE practices via pilots.
 
 ### 111. How do you handle team conflicts?
 
@@ -1468,7 +1468,7 @@ flowchart TD
 
 **Detailed Explanation:** Use active listening.
 
-**Example:** Resolved disagreement on tooling by testing both.
+*Example:* Resolved disagreement on tooling by testing both.
 
 ## Security Integration
 
@@ -1479,7 +1479,7 @@ flowchart TD
 
 **Detailed Explanation:** Integrate with IAM, monitor logs.
 
-**Example:** Prevented lateral movement in breach.
+*Example:* Prevented lateral movement in breach.
 
 **Diagram:**
 
@@ -1503,7 +1503,7 @@ graph TD
 
 **Detailed Explanation:** Regular assessments.
 
-**Example:** Achieved PCI compliance for payment data.
+*Example:* Achieved PCI compliance for payment data.
 
 ### 114. How do you manage secrets in production?
 
@@ -1512,7 +1512,7 @@ graph TD
 
 **Detailed Explanation:** Avoid hardcoding, audit access.
 
-**Example:** Rotated API keys, blocked unauthorized access.
+*Example:* Rotated API keys, blocked unauthorized access.
 
 ## Networking Expertise
 
@@ -1523,7 +1523,7 @@ graph TD
 
 **Detailed Explanation:** Check security groups, route tables.
 
-**Example:** Fixed connectivity by updating NACLs.
+*Example:* Fixed connectivity by updating NACLs.
 
 **Diagram:**
 
@@ -1549,7 +1549,7 @@ flowchart TD
 
 **Detailed Explanation:** Health checks, cross-zone balancing.
 
-**Example:** Balanced game servers, reduced latency variance.
+*Example:* Balanced game servers, reduced latency variance.
 
 ### 117. How do you secure network traffic?
 
@@ -1559,7 +1559,7 @@ flowchart TD
 
 **Detailed Explanation:** Encrypt all traffic.
 
-**Example:** Mitigated DDoS with Shield, uptime maintained.
+*Example:* Mitigated DDoS with Shield, uptime maintained.
 
 ## Automation and IaC
 
@@ -1570,7 +1570,7 @@ flowchart TD
 
 **Detailed Explanation:** Test changes in dev.
 
-**Example:** Rolled back misconfig via Git revert.
+*Example:* Rolled back misconfig via Git revert.
 
 ### 119. Describe CI/CD for infrastructure.
 
@@ -1580,7 +1580,7 @@ flowchart TD
 
 **Detailed Explanation:** Blue-green for safety.
 
-**Example:** Automated VPC creation, reduced setup time.
+*Example:* Automated VPC creation, reduced setup time.
 
 **Diagram:**
 
@@ -1604,7 +1604,7 @@ flowchart TD
 
 **Detailed Explanation:** Prevent manual changes.
 
-**Example:** Detected drift, reapplied config.
+*Example:* Detected drift, reapplied config.
 
 ## Performance Tuning
 
@@ -1615,7 +1615,7 @@ flowchart TD
 
 **Detailed Explanation:** Monitor with APM tools.
 
-**Example:** Cached frequent queries, improved response by 50%.
+*Example:* Cached frequent queries, improved response by 50%.
 
 **Diagram:**
 
@@ -1638,7 +1638,7 @@ flowchart TD
 
 **Detailed Explanation:** Use EXPLAIN plans.
 
-**Example:** Added index, reduced query time from 5s to 0.5s.
+*Example:* Added index, reduced query time from 5s to 0.5s.
 
 ### 123. How do you handle memory leaks?
 
@@ -1647,7 +1647,7 @@ flowchart TD
 
 **Detailed Explanation:** Implement GC tuning.
 
-**Example:** Fixed leak in Java app, stabilized memory.
+*Example:* Fixed leak in Java app, stabilized memory.
 
 ## Behavioral and Experience
 
@@ -1658,7 +1658,7 @@ flowchart TD
 
 **Detailed Explanation:** Shared learnings with team.
 
-**Example:** Improved testing, no repeat.
+*Example:* Improved testing, no repeat.
 
 ### 125. How do you prioritize tasks?
 
@@ -1667,7 +1667,7 @@ flowchart TD
 
 **Detailed Explanation:** Align with business goals.
 
-**Example:** Fixed critical bug before feature release.
+*Example:* Fixed critical bug before feature release.
 
 ### 126. Tell us about scaling a team.
 
@@ -1676,7 +1676,7 @@ flowchart TD
 
 **Detailed Explanation:** Maintained quality.
 
-**Example:** Grew team from 5 to 15, productivity increased.
+*Example:* Grew team from 5 to 15, productivity increased.
 
 ### 127. How do you handle remote work challenges?
 
@@ -1685,7 +1685,7 @@ flowchart TD
 
 **Detailed Explanation:** Foster inclusion.
 
-**Example:** Maintained collaboration across time zones.
+*Example:* Maintained collaboration across time zones.
 
 ### 128. Describe your approach to learning.
 
@@ -1694,7 +1694,7 @@ flowchart TD
 
 **Detailed Explanation:** Stay current.
 
-**Example:** Learned Kubernetes via projects, applied at work.
+*Example:* Learned Kubernetes via projects, applied at work.
 
 ### 129. How do you give feedback?
 
@@ -1703,7 +1703,7 @@ flowchart TD
 
 **Detailed Explanation:** Use SBI model.
 
-**Example:** Helped junior improve coding standards.
+*Example:* Helped junior improve coding standards.
 
 ### 130. Tell us about a successful project.
 
@@ -1712,7 +1712,7 @@ flowchart TD
 
 **Detailed Explanation:** Overcame challenges.
 
-**Example:** Zero downtime migration, cost savings.
+*Example:* Zero downtime migration, cost savings.
 
 ## Gaming-Specific Scenarios (EA Context)
 
@@ -1723,7 +1723,7 @@ flowchart TD
 
 **Detailed Explanation:** Use chaos for testing.
 
-**Example:** Handled 2x traffic during tournament without issues.
+*Example:* Handled 2x traffic during tournament without issues.
 
 **Diagram:**
 
@@ -1746,7 +1746,7 @@ graph TD
 
 **Detailed Explanation:** Implement data minimization.
 
-**Example:** Secured user profiles, avoided fines.
+*Example:* Secured user profiles, avoided fines.
 
 ### 133. How do you monitor game server performance?
 
@@ -1755,7 +1755,7 @@ graph TD
 
 **Detailed Explanation:** Alert on degradation.
 
-**Example:** Detected lag, optimized code.
+*Example:* Detected lag, optimized code.
 
 **Diagram:**
 
@@ -1778,7 +1778,7 @@ graph TD
 
 **Detailed Explanation:** Coordinate with marketing.
 
-**Example:** Supported 10M concurrent players.
+*Example:* Supported 10M concurrent players.
 
 **Diagram:**
 
@@ -1800,7 +1800,7 @@ graph TD
 **Answer:**
 - Redundant checks, monitor false positives.
 
-**Example:** Maintained fair play during events.
+*Example:* Maintained fair play during events.
 
 ## Real Interview Questions from Past EA SRE Candidates
 
@@ -1812,7 +1812,7 @@ graph TD
 - SREs aim to automate toil to focus on engineering improvements.
 - Measured by time spent on operational tasks vs. innovative work.
 
-**Example:** In an AWS environment, automating EC2 instance scaling with Lambda reduced manual intervention from 2 hours daily to 10 minutes, allowing the team to focus on optimizing DynamoDB performance for game leaderboards.
+*Example:* In an AWS environment, automating EC2 instance scaling with Lambda reduced manual intervention from 2 hours daily to 10 minutes, allowing the team to focus on optimizing DynamoDB performance for game leaderboards.
 
 ### 137. What is the importance of monitoring and observability in SRE?
 
@@ -1822,7 +1822,7 @@ graph TD
 - Together, they enable proactive problem-solving and faster incident response.
 - Use tools like CloudWatch for metrics and X-Ray for tracing.
 
-**Example:** At EA, monitoring game server latency with CloudWatch alerted us to a 20% spike during peak hours, allowing us to scale ECS tasks automatically and prevent downtime for millions of players.
+*Example:* At EA, monitoring game server latency with CloudWatch alerted us to a 20% spike during peak hours, allowing us to scale ECS tasks automatically and prevent downtime for millions of players.
 
 ### 138. How do you ensure high availability in a system?
 
@@ -1832,7 +1832,7 @@ graph TD
 - Design for fault tolerance with circuit breakers.
 - Regularly test failover scenarios.
 
-**Example:** For EA's matchmaking service on AWS, deploying across three AZs with Route 53 health checks ensured 99.99% uptime, as traffic automatically routed away from a failing AZ during a simulated outage.
+*Example:* For EA's matchmaking service on AWS, deploying across three AZs with Route 53 health checks ensured 99.99% uptime, as traffic automatically routed away from a failing AZ during a simulated outage.
 
 ### 139. What does a playbook refer to in the context of SRE?
 
@@ -1842,7 +1842,7 @@ graph TD
 - Ensures consistent responses and reduces mean time to resolution (MTTR).
 - Updated after post-mortems.
 
-**Example:** EA's DDoS attack playbook outlines using AWS Shield and WAF, with automated scripts to block malicious IPs, resolving a recent attack in under 15 minutes and minimizing player disconnections.
+*Example:* EA's DDoS attack playbook outlines using AWS Shield and WAF, with automated scripts to block malicious IPs, resolving a recent attack in under 15 minutes and minimizing player disconnections.
 
 ### 140. Define what chaos engineering is.
 
@@ -1852,7 +1852,7 @@ graph TD
 - Follows principles like starting small and automating experiments.
 - Tools like AWS Fault Injection Simulator (FIS) are used.
 
-**Example:** Simulating AZ failures in EA's game backend with FIS revealed a single point of failure in RDS, leading to multi-AZ configuration that improved reliability during actual regional outages.
+*Example:* Simulating AZ failures in EA's game backend with FIS revealed a single point of failure in RDS, leading to multi-AZ configuration that improved reliability during actual regional outages.
 
 ### 141. What is the role of automation in SRE?
 
@@ -1862,7 +1862,7 @@ graph TD
 - Uses IaC tools like Terraform and CI/CD pipelines.
 - Frees SREs for strategic work like capacity planning.
 
-**Example:** Automating Kubernetes deployments with Helm and Jenkins at EA cut release times from 4 hours to 30 minutes, while auto-scaling Lambda functions handled traffic spikes for new game launches without manual intervention.
+*Example:* Automating Kubernetes deployments with Helm and Jenkins at EA cut release times from 4 hours to 30 minutes, while auto-scaling Lambda functions handled traffic spikes for new game launches without manual intervention.
 
 ### 142. What is capacity planning and why is it important?
 
@@ -1872,7 +1872,7 @@ graph TD
 - Involves analyzing metrics and predicting peaks.
 - Prevents outages and optimizes costs.
 
-**Example:** Forecasting player load for EA's holiday events using CloudWatch metrics led to pre-provisioning additional EC2 instances, avoiding 99.9% uptime breaches during a 3x traffic increase.
+*Example:* Forecasting player load for EA's holiday events using CloudWatch metrics led to pre-provisioning additional EC2 instances, avoiding 99.9% uptime breaches during a 3x traffic increase.
 
 ### 143. How do you manage software deployments to minimize the risk?
 
@@ -1882,7 +1882,7 @@ graph TD
 - Automate testing and rollback procedures.
 - Monitor closely during deployment windows.
 
-**Example:** Deploying game updates via blue-green ECS services allowed EA to switch traffic instantly if issues arose, minimizing downtime and ensuring seamless player experiences during major patches.
+*Example:* Deploying game updates via blue-green ECS services allowed EA to switch traffic instantly if issues arose, minimizing downtime and ensuring seamless player experiences during major patches.
 
 ### 144. What is the importance of postmortems in SRE?
 
@@ -1892,7 +1892,7 @@ graph TD
 - Lead to process improvements and preventive measures.
 - Documented in shared knowledge bases.
 
-**Example:** After a database outage at EA, a postmortem identified misconfigured auto-scaling, resulting in updated runbooks and training that reduced similar incidents by 40%.
+*Example:* After a database outage at EA, a postmortem identified misconfigured auto-scaling, resulting in updated runbooks and training that reduced similar incidents by 40%.
 
 ### 145. How do you handle on-call responsibilities?
 
@@ -1902,7 +1902,7 @@ graph TD
 - Document response procedures and have backup support.
 - Focus on quick triage and communication.
 
-**Example:** EA's on-call SREs use PagerDuty for alerts on CloudWatch anomalies, ensuring 24/7 coverage and resolving game server issues within 10 minutes, maintaining high player satisfaction.
+*Example:* EA's on-call SREs use PagerDuty for alerts on CloudWatch anomalies, ensuring 24/7 coverage and resolving game server issues within 10 minutes, maintaining high player satisfaction.
 
 ### 146. How do you prioritize reliability improvements against new feature development?
 
@@ -1912,7 +1912,7 @@ graph TD
 - Collaborate with product teams on trade-offs.
 - Track SLOs to guide decisions.
 
-**Example:** When EA's error budget hit 90% due to frequent deployments, the team paused new features for a week to optimize API response times, restoring budget and improving overall game performance.
+*Example:* When EA's error budget hit 90% due to frequent deployments, the team paused new features for a week to optimize API response times, restoring budget and improving overall game performance.
 
 ### 147. What is a blameless culture, and why is it important in SRE?
 
@@ -1922,7 +1922,7 @@ graph TD
 - Builds trust and fosters continuous improvement.
 - Reduces fear of repercussions during incidents.
 
-**Example:** At EA, blameless postmortems after a service outage led to shared learnings on multi-region failover, implemented across teams and preventing future global disruptions.
+*Example:* At EA, blameless postmortems after a service outage led to shared learnings on multi-region failover, implemented across teams and preventing future global disruptions.
 
 ### 148. How do you manage secrets and sensitive data in your systems?
 
@@ -1932,7 +1932,7 @@ graph TD
 - Implement least-privilege access and rotation policies.
 - Audit access logs regularly.
 
-**Example:** Storing player authentication keys in AWS Secrets Manager with automatic rotation ensured secure access to DynamoDB tables, preventing data breaches during EA's user database migrations.
+*Example:* Storing player authentication keys in AWS Secrets Manager with automatic rotation ensured secure access to DynamoDB tables, preventing data breaches during EA's user database migrations.
 
 ### 149. How do you remain updated on all the findings and trends in SRE technologies?
 
@@ -1942,7 +1942,7 @@ graph TD
 - Experiment with new tools in side projects.
 - Read books and take certifications.
 
-**Example:** Staying updated on AWS innovations via re:Invent sessions allowed EA's SRE team to adopt Lambda@Edge for global CDN optimizations, reducing latency by 30% for international players.
+*Example:* Staying updated on AWS innovations via re:Invent sessions allowed EA's SRE team to adopt Lambda@Edge for global CDN optimizations, reducing latency by 30% for international players.
 
 ### 150. What is the difference between DevOps and SRE?
 
@@ -1952,4 +1952,4 @@ graph TD
 - DevOps emphasizes CI/CD, while SRE uses SLOs and error budgets.
 - SRE is more operations-focused, DevOps broader.
 
-**Example:** While DevOps at EA streamlined code deployments, SRE ensured game services met 99.95% uptime SLOs through chaos testing and automated failover, complementing each other for reliable releases.
+*Example:* While DevOps at EA streamlined code deployments, SRE ensured game services met 99.95% uptime SLOs through chaos testing and automated failover, complementing each other for reliable releases.
