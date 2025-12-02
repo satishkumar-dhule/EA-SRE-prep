@@ -14,11 +14,46 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** In a gaming application, if one AZ fails due to a power outage, the ALB automatically routes traffic to healthy instances in other AZs, and RDS fails over seamlessly, minimizing downtime.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    User[User] --> Route53[Route 53 DNS]
+    Route53 --> ALB[Application Load Balancer]
+    ALB --> ASG1[Auto Scaling Group AZ1]
+    ALB --> ASG2[Auto Scaling Group AZ2]
+    ASG1 --> EC21[EC2 Instance 1]
+    ASG1 --> EC22[EC2 Instance 2]
+    ASG2 --> EC23[EC2 Instance 3]
+    ASG2 --> EC24[EC2 Instance 4]
+    EC21 --> RDS[RDS Multi-AZ Database]
+    EC22 --> RDS
+    EC23 --> RDS
+    EC24 --> RDS
+    RDS --> RDSStandby[RDS Standby in AZ2]
+```
+
 ### 2. Explain how to architect a serverless application using AWS Lambda and API Gateway.
 
 **Answer:** For a serverless application, use AWS Lambda for compute, API Gateway for API management, and DynamoDB for storage. API Gateway acts as the entry point, triggering Lambda functions based on HTTP requests. Lambda functions are stateless and scale automatically. Use CloudWatch for monitoring and X-Ray for tracing. Implement IAM roles for least-privilege access.
 
 **Example:** A mobile app backend where user authentication triggers a Lambda function to query DynamoDB for user data. If traffic spikes during a game launch, Lambda scales to handle thousands of concurrent requests without manual intervention.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Client[Client App] --> API_GW[API Gateway]
+    API_GW --> Lambda1[Lambda Function - Auth]
+    API_GW --> Lambda2[Lambda Function - Data Retrieval]
+    Lambda1 --> DynamoDB[DynamoDB Table]
+    Lambda2 --> DynamoDB
+    Lambda1 --> CloudWatch[CloudWatch Logs]
+    Lambda2 --> CloudWatch
+    API_GW --> XRay[X-Ray for Tracing]
+    Lambda1 --> IAM[IAM Role for Permissions]
+    Lambda2 --> IAM
+```
 
 ### 3. How do you handle data migration from on-premises to AWS?
 
@@ -32,17 +67,75 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** An e-commerce platform with separate services for user management, inventory, and payments. If the payment service fails, App Mesh routes traffic to a fallback, preventing full system outage.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    Client[Client] --> API_GW[API Gateway]
+    API_GW --> Service1[User Service - ECS Task]
+    API_GW --> Service2[Inventory Service - ECS Task]
+    API_GW --> Service3[Payment Service - ECS Task]
+    Service1 --> DB1[DynamoDB]
+    Service2 --> DB2[RDS]
+    Service3 --> DB3[External Payment API]
+    Service1 --> EventBridge[EventBridge]
+    Service2 --> EventBridge
+    Service3 --> EventBridge
+    EventBridge --> Lambda[Lambda for Event Processing]
+    API_GW --> AppMesh[AWS App Mesh for Service Mesh]
+    AppMesh --> Service1
+    AppMesh --> Service2
+    AppMesh --> Service3
+```
+
 ### 5. How would you secure an AWS architecture?
 
 **Answer:** Implement the principle of least privilege with IAM, use VPC with security groups and NACLs, enable encryption with KMS, and deploy WAF for web applications. Use AWS Config and GuardDuty for compliance monitoring.
 
 **Example:** For a financial app, restrict EC2 access to specific IP ranges via security groups, encrypt S3 buckets with SSE-KMS, and use WAF to block SQL injection attacks.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    VPC[VPC] --> Subnet1[Public Subnet]
+    VPC --> Subnet2[Private Subnet]
+    Subnet1 --> IGW[Internet Gateway]
+    Subnet1 --> ALB[ALB with WAF]
+    ALB --> ASG[Auto Scaling Group]
+    ASG --> EC2[EC2 Instances]
+    EC2 --> SecurityGroup[Security Groups - Least Privilege]
+    Subnet2 --> NAT[NAT Gateway]
+    EC2 --> KMS[KMS for Encryption]
+    S3[S3 Bucket] --> SSE[SSE-KMS Encryption]
+    VPC --> Config[AWS Config Rules]
+    Config --> GuardDuty[AWS GuardDuty]
+    IAM[IAM Policies] --> EC2
+    IAM --> S3
+```
+
 ### 6. Explain designing for disaster recovery on AWS.
 
 **Answer:** Use a multi-region strategy with pilot light or warm standby. Replicate data with Cross-Region Replication (CRR) for S3 and Global Tables for DynamoDB. Automate recovery with CloudFormation and Route 53 failover.
 
 **Example:** In a global outage, Route 53 switches DNS to a backup region, and EC2 instances launch from pre-configured AMIs, restoring service within 30 minutes.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    PrimaryRegion[Primary Region] --> EC2_P[EC2 Instances]
+    PrimaryRegion --> RDS_P[RDS Database]
+    PrimaryRegion --> S3_P[S3 Bucket]
+    BackupRegion[Backup Region] --> EC2_B[Pilot Light EC2]
+    BackupRegion --> RDS_B[Warm Standby RDS]
+    BackupRegion --> S3_B[S3 with CRR]
+    Route53[Route 53] --> PrimaryRegion
+    Route53 --> BackupRegion
+    CloudFormation[CloudFormation] --> PrimaryRegion
+    CloudFormation --> BackupRegion
+    Note over Route53: Failover on Health Check Failure
+```
 
 ### 7. How do you optimize network performance in AWS?
 
@@ -56,6 +149,21 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** For analytics, raw game telemetry data is stored in S3, processed by Glue jobs into Parquet format, and queried via Athena for player behavior insights.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    DataSources[Data Sources - Game Servers, APIs] --> Kinesis[Kinesis Data Streams]
+    Kinesis --> S3[S3 Data Lake]
+    S3 --> Glue[Glue ETL Jobs]
+    Glue --> ProcessedS3[Processed Data in S3]
+    ProcessedS3 --> Athena[Athena for Querying]
+    Athena --> QuickSight[QuickSight Dashboards]
+    Glue --> GlueCatalog[Glue Data Catalog]
+    GlueCatalog --> LakeFormation[Lake Formation for Governance]
+    LakeFormation --> AccessControl[Fine-grained Access Control]
+```
+
 ## Multi-Cloud
 
 ### 9. How would you design a multi-cloud strategy for high availability?
@@ -63,6 +171,23 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Answer:** Use cloud-agnostic tools like Terraform for IaC, Kubernetes for orchestration across clouds, and DNS-based failover. Replicate data with tools like Velero for backups.
 
 **Example:** Deploy an app on AWS and Azure; if AWS region fails, update DNS to route to Azure, ensuring continuity.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    User[User] --> DNS[Global DNS - Route 53 or Cloudflare]
+    DNS --> AWS_LoadBalancer[AWS Load Balancer]
+    DNS --> Azure_LoadBalancer[Azure Load Balancer]
+    AWS_LoadBalancer --> AWS_K8s[Kubernetes Cluster on EKS]
+    Azure_LoadBalancer --> Azure_K8s[Kubernetes Cluster on AKS]
+    AWS_K8s --> AWS_DB[AWS RDS]
+    Azure_K8s --> Azure_DB[Azure SQL]
+    AWS_DB --> Replication[Data Replication Tool - e.g., Debezium]
+    Azure_DB --> Replication
+    Terraform[Terraform IaC] --> AWS_K8s
+    Terraform --> Azure_K8s
+```
 
 ### 10. Explain challenges in multi-cloud management and solutions.
 
@@ -366,6 +491,21 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** During a DDoS attack on a gaming platform, I activated our incident playbook, scaled up WAF rules, and communicated ETA to users, resolving in 15 minutes with minimal data loss.
 
+**Diagram:**
+
+```mermaid
+flowchart TD
+    A[Alert Triggered] --> B[Assemble Incident Response Team]
+    B --> C[Assess Impact and Scope]
+    C --> D[Contain the Issue - Isolate Affected Systems]
+    D --> E[Eradicate Root Cause - Implement Fix]
+    E --> F[Recover - Restore Service]
+    F --> G[Communicate Resolution to Stakeholders]
+    G --> H[Conduct Post-Mortem and RCA]
+    H --> I[Implement Preventive Measures]
+    I --> J[Document and Share Learnings]
+```
+
 ### 58. Describe conducting a root cause analysis (RCA).
 
 **Answer:** RCA involves gathering evidence from logs, metrics, and timelines, identifying the root cause using techniques like the 5 Whys, and implementing corrective actions. Document findings in a post-mortem report shared across teams.
@@ -417,6 +557,23 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Use the Four Golden Signals: Latency, Traffic, Errors, Saturation. Track with Prometheus and Grafana, alerting when budgets are depleted.
 
 **Example:** For a game API, set SLO at 99.95%, monitored via success rate; when breached, paused features to fix issues.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    SLO[SLO: 99.9% Uptime] --> SLI1[SLI: Request Success Rate]
+    SLO --> SLI2[SLI: Latency < 100ms]
+    SLO --> SLI3[SLI: Error Rate < 0.1%]
+    SLO --> SLI4[SLI: Saturation < 80%]
+    SLI1 --> Prometheus[Prometheus Metrics]
+    SLI2 --> Prometheus
+    SLI3 --> Prometheus
+    SLI4 --> Prometheus
+    Prometheus --> Grafana[Grafana Dashboard]
+    Grafana --> Alert[Alert if Error Budget Depleted]
+    Alert --> Action[Pause Releases / Fix Issues]
+```
 
 ### 64. Explain applying the Four Golden Signals.
 
@@ -515,6 +672,21 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Manage pods, services, ingresses; implement HPA for auto-scaling.
 
 **Example:** Deployed a microservice on EKS, scaling from 10 to 100 pods during load.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Dockerfile[Dockerfile] --> DockerImage[Docker Image]
+    DockerImage --> Registry[Docker Registry]
+    Registry --> K8sPod[Kubernetes Pod]
+    K8sPod --> Deployment[Kubernetes Deployment]
+    Deployment --> Service[Kubernetes Service]
+    Service --> Ingress[Kubernetes Ingress]
+    Deployment --> HPA[Horizontal Pod Autoscaler]
+    HPA --> Metrics[Metrics Server]
+    Metrics --> Scale[Scale Pods Based on CPU/Memory]
+```
 
 ### 75. Describe service mesh like Istio.
 
@@ -642,6 +814,19 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Simulated AZ failure, discovered weak points in failover, improved RTO.
 
+**Diagram:**
+
+```mermaid
+flowchart TD
+    A[Define Experiment - e.g., Terminate EC2] --> B[Set Up FIS Template]
+    B --> C[Run in Staging Environment]
+    C --> D[Monitor with CloudWatch/X-Ray]
+    D --> E[Measure Impact on SLOs]
+    E --> F[Analyze Results - Identify Weaknesses]
+    F --> G[Implement Fixes - e.g., Improve Redundancy]
+    G --> H[Repeat Experiments Periodically]
+```
+
 ### 90. Describe securing data at rest and in transit on AWS.
 
 **Answer:** Use KMS for encryption at rest, TLS 1.3 for transit. Implement S3 SSE, RDS encryption.
@@ -686,6 +871,20 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Team paused releases when budget hit 80%, fixed issues to restore.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    SLO[SLO: 99.9% Availability] --> ErrorBudget[Error Budget: 0.1%]
+    ErrorBudget --> BurnRate[Track Burn Rate Over Time]
+    BurnRate --> Dashboard[Grafana Dashboard]
+    Dashboard --> Alert[Alert at 50% and 80% Burn]
+    Alert --> Action1[At 50%: Warn Team]
+    Alert --> Action2[At 80%: Halt Feature Releases]
+    Action2 --> Fix[Focus on Reliability Fixes]
+    Fix --> Reset[Reset Budget Monthly]
+```
+
 ### 95. How do you design for fault tolerance in distributed systems?
 
 **Answer:** Implement redundancy, circuit breakers, retries with exponential backoff. Use leader election for consistency.
@@ -693,6 +892,26 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Follow CAP theorem trade-offs.
 
 **Example:** In a microservice failure, circuit breaker prevented cascade, maintaining 99% uptime.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Client[Client] --> LoadBalancer[Load Balancer]
+    LoadBalancer --> Service1[Service Instance 1]
+    LoadBalancer --> Service2[Service Instance 2]
+    LoadBalancer --> Service3[Service Instance 3]
+    Service1 --> CircuitBreaker[Circuit Breaker]
+    Service2 --> CircuitBreaker
+    Service3 --> CircuitBreaker
+    CircuitBreaker --> Downstream[Downstream Service]
+    Downstream --> Retry[Retry with Backoff]
+    Retry --> Failover[Failover to Backup]
+    Service1 --> HealthCheck[Health Checks]
+    Service2 --> HealthCheck
+    Service3 --> HealthCheck
+    HealthCheck --> Remove[Remove Unhealthy Instances]
+```
 
 ### 96. Explain the concept of toil and how to eliminate it.
 
@@ -711,6 +930,23 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Implement sharding, read/write splitting.
 
 **Example:** Scaled a session store from 1 to 10 nodes with Redis Cluster.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Client[Client] --> Proxy[Proxy Layer - e.g., HAProxy]
+    Proxy --> Shard1[Shard 1 - Redis Node 1]
+    Proxy --> Shard2[Shard 2 - Redis Node 2]
+    Proxy --> Shard3[Shard 3 - Redis Node 3]
+    Shard1 --> PV1[Persistent Volume 1]
+    Shard2 --> PV2[Persistent Volume 2]
+    Shard3 --> PV3[Persistent Volume 3]
+    Shard1 --> Replica1[Replica Node 1]
+    Shard2 --> Replica2[Replica Node 2]
+    Shard3 --> Replica3[Replica Node 3]
+    Note over Proxy: Routes based on Key Hash
+```
 
 ### 98. Describe handling traffic spikes in gaming.
 
@@ -738,6 +974,27 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Traced a slow API call to a DB query, optimized index.
 
+**Diagram:**
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API_GW
+    participant Service1
+    participant Service2
+    participant DB
+
+    Client->>API_GW: Request with Trace ID
+    API_GW->>Service1: Forward with Span
+    Service1->>Service2: Call with Child Span
+    Service2->>DB: Query with Span
+    DB-->>Service2: Response
+    Service2-->>Service1: Response
+    Service1-->>API_GW: Response
+    API_GW-->>Client: Response
+    Note over API_GW,DB: X-Ray/Jaeger collects spans for visualization
+```
+
 ### 101. Explain anomaly detection in monitoring.
 
 **Answer:** Use statistical methods or ML in tools like Datadog. Set dynamic thresholds.
@@ -745,6 +1002,20 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Reduce false positives, focus on true anomalies.
 
 **Example:** Detected unusual CPU spike, prevented outage by scaling.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    Metrics[Collect Metrics - CPU, Memory, etc.] --> Baseline[Establish Baseline]
+    Baseline --> Threshold[Set Dynamic Thresholds]
+    Threshold --> Monitor[Continuous Monitoring]
+    Monitor --> Detect[Detect Deviations]
+    Detect --> Alert[Alert on Anomalies]
+    Alert --> Investigate[Investigate Root Cause]
+    Investigate --> Action[Take Action - Scale or Fix]
+    Action --> Feedback[Update Baseline]
+```
 
 ### 102. How do you monitor third-party services?
 
@@ -789,6 +1060,20 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Use timeline, assign roles.
 
 **Example:** Database corruption: restored from backup, communicated impact.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    Alert[Alert Received] --> Acknowledge[Acknowledge and Page Team]
+    Acknowledge --> Assemble[Assemble War Room - Zoom/Slack]
+    Assemble --> Assess[Assess Severity and Impact]
+    Assess --> Mitigate[Mitigate - Isolate, Fix, Rollback]
+    Mitigate --> Communicate[Communicate to Stakeholders]
+    Communicate --> Resolve[Confirm Resolution]
+    Resolve --> PostMortem[Conduct Post-Mortem]
+    PostMortem --> Document[Document and Improve]
+```
 
 ### 107. How do you prevent alert fatigue?
 
@@ -842,6 +1127,21 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Prevented lateral movement in breach.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    User[User] --> MFA[MFA Verification]
+    MFA --> AccessRequest[Access Request]
+    AccessRequest --> PolicyEngine[Policy Engine - Check Context]
+    PolicyEngine --> Allow[Allow Access]
+    PolicyEngine --> Deny[Deny Access]
+    Allow --> Resource[Resource - e.g., Server]
+    Resource --> Monitor[Continuous Monitoring]
+    Monitor --> Revoke[Revoke on Anomaly]
+    Deny --> Log[Log and Alert]
+```
+
 ### 113. Describe handling compliance in cloud.
 
 **Answer:** Use frameworks like SOC 2, automate audits with Config.
@@ -867,6 +1167,21 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Check security groups, route tables.
 
 **Example:** Fixed connectivity by updating NACLs.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    Issue[Network Issue Detected] --> Logs[Check VPC Flow Logs]
+    Logs --> Analyzer[Use Reachability Analyzer]
+    Analyzer --> Packet[Capture Packets with tcpdump]
+    Packet --> SG[Verify Security Groups]
+    SG --> RT[Check Route Tables]
+    RT --> NACL[Inspect NACLs]
+    NACL --> Resolve[Apply Fix - e.g., Update Rules]
+    Resolve --> Test[Test Connectivity]
+    Test --> Monitor[Monitor for Recurrence]
+```
 
 ### 116. Explain load balancing strategies.
 
@@ -902,6 +1217,20 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Automated VPC creation, reduced setup time.
 
+**Diagram:**
+
+```mermaid
+flowchart TD
+    Code[Commit IaC Code to Git] --> Lint[Lint with TFLint]
+    Lint --> Test[Test with Terratest]
+    Test --> Plan[Terraform Plan]
+    Plan --> Apply[Terraform Apply to Staging]
+    Apply --> Validate[Validate with Checks]
+    Validate --> Deploy[Deploy to Production]
+    Deploy --> Monitor[Monitor with CloudWatch]
+    Monitor --> Rollback[Rollback if Issues]
+```
+
 ### 120. How do you handle IaC drift?
 
 **Answer:** Use drift detection in Terraform, reconcile manually or auto.
@@ -919,6 +1248,19 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Monitor with APM tools.
 
 **Example:** Cached frequent queries, improved response by 50%.
+
+**Diagram:**
+
+```mermaid
+flowchart TD
+    Identify[Identify Bottleneck - e.g., High Latency] --> Profile[Profile Code with APM]
+    Profile --> Query[Analyze DB Queries]
+    Query --> Cache[Implement Caching Layer]
+    Cache --> Optimize[Optimize Code - e.g., Algorithms]
+    Optimize --> Test[Test Performance]
+    Test --> Monitor[Monitor Metrics]
+    Monitor --> Iterate[Iterate Improvements]
+```
 
 ### 122. Explain database performance tuning.
 
@@ -1004,6 +1346,19 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Handled 2x traffic during tournament without issues.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    Event[Live Event Announcement] --> PreScale[Pre-Scale Resources - ASG, DB]
+    PreScale --> Monitor[Real-Time Monitoring - Dashboards]
+    Monitor --> Alert[Alert on Thresholds]
+    Alert --> Scale[Auto-Scale or Manual Boost]
+    Scale --> Rollback[Prepare Rollback Plan]
+    Rollback --> PostEvent[Post-Event Analysis]
+    PostEvent --> Improve[Improve for Next Event]
+```
+
 ### 132. Describe handling player data privacy.
 
 **Answer:** Comply with GDPR, encrypt data, audit access.
@@ -1020,6 +1375,19 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 
 **Example:** Detected lag, optimized code.
 
+**Diagram:**
+
+```mermaid
+graph TD
+    GameServer[Game Server] --> Metrics[Custom Metrics - Latency, FPS, Players]
+    Metrics --> Prometheus[Prometheus]
+    Prometheus --> Grafana[Grafana Dashboard]
+    Grafana --> Alert[Alert on High Latency]
+    Alert --> Investigate[Investigate - Logs, Traces]
+    Investigate --> Optimize[Optimize - Code, Resources]
+    Optimize --> Monitor[Continue Monitoring]
+```
+
 ### 134. Explain scaling for global game launches.
 
 **Answer:** Use multi-region, CDN, auto-scaling.
@@ -1027,6 +1395,20 @@ SREs at this level are expected to design, implement, and maintain highly reliab
 **Detailed Explanation:** Coordinate with marketing.
 
 **Example:** Supported 10M concurrent players.
+
+**Diagram:**
+
+```mermaid
+graph TD
+    Players[Global Players] --> CloudFront[CloudFront CDN]
+    CloudFront --> RegionalLB[Regional Load Balancer]
+    RegionalLB --> ASG[Auto Scaling Group]
+    ASG --> GameServers[Game Server Instances]
+    GameServers --> DB[Global Database - Aurora Global]
+    DB --> ReadReplicas[Read Replicas in Regions]
+    ASG --> Monitor[CloudWatch Monitoring]
+    Monitor --> Scale[Scale Based on Player Count]
+```
 
 ### 135. How do you handle anti-cheat system reliability?
 
