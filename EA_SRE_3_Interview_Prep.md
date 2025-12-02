@@ -1800,6 +1800,156 @@ graph TD
 **Answer:**
 - Redundant checks, monitor false positives.
 
-**Detailed Explanation:** Integrate with game engine.
-
 **Example:** Maintained fair play during events.
+
+## Real Interview Questions from Past EA SRE Candidates
+
+### 136. Explain the concept of Toil in SRE.
+
+**Answer:**
+- Toil is repetitive, manual work that does not add long-term value.
+- It includes tasks like manual log checking or routine server reboots.
+- SREs aim to automate toil to focus on engineering improvements.
+- Measured by time spent on operational tasks vs. innovative work.
+
+**Example:** In an AWS environment, automating EC2 instance scaling with Lambda reduced manual intervention from 2 hours daily to 10 minutes, allowing the team to focus on optimizing DynamoDB performance for game leaderboards.
+
+### 137. What is the importance of monitoring and observability in SRE?
+
+**Answer:**
+- Monitoring tracks system health and alerts on issues.
+- Observability provides insights into why issues occur.
+- Together, they enable proactive problem-solving and faster incident response.
+- Use tools like CloudWatch for metrics and X-Ray for tracing.
+
+**Example:** At EA, monitoring game server latency with CloudWatch alerted us to a 20% spike during peak hours, allowing us to scale ECS tasks automatically and prevent downtime for millions of players.
+
+### 138. How do you ensure high availability in a system?
+
+**Answer:**
+- Implement redundancy across multiple AZs or regions.
+- Use load balancers and auto-scaling groups.
+- Design for fault tolerance with circuit breakers.
+- Regularly test failover scenarios.
+
+**Example:** For EA's matchmaking service on AWS, deploying across three AZs with Route 53 health checks ensured 99.99% uptime, as traffic automatically routed away from a failing AZ during a simulated outage.
+
+### 139. What does a playbook refer to in the context of SRE?
+
+**Answer:**
+- A playbook is a documented set of procedures for handling incidents or tasks.
+- Includes steps for diagnosis, mitigation, and recovery.
+- Ensures consistent responses and reduces mean time to resolution (MTTR).
+- Updated after post-mortems.
+
+**Example:** EA's DDoS attack playbook outlines using AWS Shield and WAF, with automated scripts to block malicious IPs, resolving a recent attack in under 15 minutes and minimizing player disconnections.
+
+### 140. Define what chaos engineering is.
+
+**Answer:**
+- Chaos engineering involves intentionally injecting failures to test system resilience.
+- Helps identify weaknesses before they cause real issues.
+- Follows principles like starting small and automating experiments.
+- Tools like AWS Fault Injection Simulator (FIS) are used.
+
+**Example:** Simulating AZ failures in EA's game backend with FIS revealed a single point of failure in RDS, leading to multi-AZ configuration that improved reliability during actual regional outages.
+
+### 141. What is the role of automation in SRE?
+
+**Answer:**
+- Automation reduces toil and human error in repetitive tasks.
+- Enables faster deployments, scaling, and incident response.
+- Uses IaC tools like Terraform and CI/CD pipelines.
+- Frees SREs for strategic work like capacity planning.
+
+**Example:** Automating Kubernetes deployments with Helm and Jenkins at EA cut release times from 4 hours to 30 minutes, while auto-scaling Lambda functions handled traffic spikes for new game launches without manual intervention.
+
+### 142. What is capacity planning and why is it important?
+
+**Answer:**
+- Capacity planning forecasts resource needs based on usage trends.
+- Ensures systems can handle growth without performance degradation.
+- Involves analyzing metrics and predicting peaks.
+- Prevents outages and optimizes costs.
+
+**Example:** Forecasting player load for EA's holiday events using CloudWatch metrics led to pre-provisioning additional EC2 instances, avoiding 99.9% uptime breaches during a 3x traffic increase.
+
+### 143. How do you manage software deployments to minimize the risk?
+
+**Answer:**
+- Use canary or blue-green deployments to test changes incrementally.
+- Implement feature flags for gradual rollouts.
+- Automate testing and rollback procedures.
+- Monitor closely during deployment windows.
+
+**Example:** Deploying game updates via blue-green ECS services allowed EA to switch traffic instantly if issues arose, minimizing downtime and ensuring seamless player experiences during major patches.
+
+### 144. What is the importance of postmortems in SRE?
+
+**Answer:**
+- Postmortems analyze incidents to find root causes and lessons learned.
+- Promote a blameless culture to encourage reporting.
+- Lead to process improvements and preventive measures.
+- Documented in shared knowledge bases.
+
+**Example:** After a database outage at EA, a postmortem identified misconfigured auto-scaling, resulting in updated runbooks and training that reduced similar incidents by 40%.
+
+### 145. How do you handle on-call responsibilities?
+
+**Answer:**
+- Rotate on-call duties to avoid burnout.
+- Use alerting tools with escalation paths.
+- Document response procedures and have backup support.
+- Focus on quick triage and communication.
+
+**Example:** EA's on-call SREs use PagerDuty for alerts on CloudWatch anomalies, ensuring 24/7 coverage and resolving game server issues within 10 minutes, maintaining high player satisfaction.
+
+### 146. How do you prioritize reliability improvements against new feature development?
+
+**Answer:**
+- Use error budgets to balance innovation and stability.
+- If budget is depleted, shift focus to reliability fixes.
+- Collaborate with product teams on trade-offs.
+- Track SLOs to guide decisions.
+
+**Example:** When EA's error budget hit 90% due to frequent deployments, the team paused new features for a week to optimize API response times, restoring budget and improving overall game performance.
+
+### 147. What is a blameless culture, and why is it important in SRE?
+
+**Answer:**
+- Blameless culture focuses on learning from failures, not punishing individuals.
+- Encourages open reporting and honest postmortems.
+- Builds trust and fosters continuous improvement.
+- Reduces fear of repercussions during incidents.
+
+**Example:** At EA, blameless postmortems after a service outage led to shared learnings on multi-region failover, implemented across teams and preventing future global disruptions.
+
+### 148. How do you manage secrets and sensitive data in your systems?
+
+**Answer:**
+- Use dedicated tools like AWS Secrets Manager or Vault.
+- Encrypt data at rest and in transit.
+- Implement least-privilege access and rotation policies.
+- Audit access logs regularly.
+
+**Example:** Storing player authentication keys in AWS Secrets Manager with automatic rotation ensured secure access to DynamoDB tables, preventing data breaches during EA's user database migrations.
+
+### 149. How do you remain updated on all the findings and trends in SRE technologies?
+
+**Answer:**
+- Follow industry blogs, attend conferences like SREcon.
+- Participate in online communities and webinars.
+- Experiment with new tools in side projects.
+- Read books and take certifications.
+
+**Example:** Staying updated on AWS innovations via re:Invent sessions allowed EA's SRE team to adopt Lambda@Edge for global CDN optimizations, reducing latency by 30% for international players.
+
+### 150. What is the difference between DevOps and SRE?
+
+**Answer:**
+- DevOps focuses on cultural and process integration between dev and ops.
+- SRE applies engineering to ensure system reliability and scalability.
+- DevOps emphasizes CI/CD, while SRE uses SLOs and error budgets.
+- SRE is more operations-focused, DevOps broader.
+
+**Example:** While DevOps at EA streamlined code deployments, SRE ensured game services met 99.95% uptime SLOs through chaos testing and automated failover, complementing each other for reliable releases.
