@@ -3,15 +3,30 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Foundational SRE Concepts](#foundational-sre-concepts)
 - [AWS Architecture](#aws-architecture)
+- [Multi-Cloud](#multi-cloud)
+- [Reliability](#reliability)
 - [Scalability](#scalability)
 - [Observability](#observability)
 - [Cost Optimization](#cost-optimization)
-- [Multi-Cloud](#multi-cloud)
-- [Advanced SRE](#advanced-sre)
 - [Behavioral Questions](#behavioral-questions)
-- [Scenario-Based Questions](#scenario-based-questions)
+- [Incident and Problem Management](#incident-and-problem-management)
+- [Leadership and Mentorship](#leadership-and-mentorship)
+- [Service Level Management](#service-level-management)
+- [Documentation and Knowledge Sharing](#documentation-and-knowledge-sharing)
+- [Strategic Technology and Continuous Improvement](#strategic-technology-and-continuous-improvement)
+- [Security and Compliance](#security-and-compliance)
+- [Strategic Leadership and Stakeholder Management](#strategic-leadership-and-stakeholder-management)
+- [Technical Expertise Deep Dive](#technical-expertise-deep-dive)
+- [Operational Excellence](#operational-excellence)
+- [Soft Skills and Experience](#soft-skills-and-experience)
+- [Advanced AWS Scenarios](#advanced-aws-scenarios)
+- [Multi-Cloud Advanced](#multi-cloud-advanced)
+- [Reliability Deep Dive](#reliability-deep-dive)
+- [Scalability Scenarios](#scalability-scenarios)
+- [Observability Mastery](#observability-mastery)
+- [Cost Optimization Advanced](#cost-optimization-advanced)
+- [Incident Management Scenarios](#incident-management-scenarios)
 
 ## Introduction
 
@@ -1544,7 +1559,7 @@ graph TD
 
 *Example:* Created dashboards for game server latency, alerting on thresholds.
 
-### 77. Explain IaC with Terraform.
+### Explain IaC with Terraform
 
 **Answer:**
 - Define infrastructure as code, version control, and apply changes predictably.
@@ -1553,7 +1568,7 @@ graph TD
 
 *Example:* Provisioned a VPC with subnets and security groups in minutes.
 
-### 78. How do you handle networking and load balancing?
+### How do you handle networking and load balancing
 
 **Answer:**
 - Use ALB/NLB for L4/L7 balancing, configure VPC peering, optimize with CloudFront.
@@ -1564,7 +1579,7 @@ graph TD
 
 ## Operational Excellence
 
-### 79. Describe capacity planning for enterprise scale.
+### Describe capacity planning for enterprise scale
 
 **Answer:**
 - Monitor usage trends, forecast with tools like CloudWatch, plan for peaks.
@@ -1573,7 +1588,7 @@ graph TD
 
 *Example:* Predicted holiday traffic spike, pre-scaled resources, avoiding outages.
 
-### 80. How do you design for disaster recovery?
+### How do you design for disaster recovery
 
 **Answer:**
 - Implement backup and restore, multi-site replication, test DR drills.
@@ -1584,7 +1599,7 @@ graph TD
 
 ## Soft Skills and Experience
 
-### 81. How do you handle stakeholder communication during incidents?
+### How do you handle stakeholder communication during incidents
 
 **Answer:**
 - Be transparent, provide regular updates, use simple language.
@@ -1593,7 +1608,7 @@ graph TD
 
 *Example:* Kept users informed via status page during outage.
 
-### 82. Describe your experience with cross-functional collaboration.
+### Describe your experience with cross-functional collaboration
 
 **Answer:**
 - Worked with dev, QA, ops to integrate monitoring early.
@@ -1602,7 +1617,7 @@ graph TD
 
 *Example:* Co-developed a feature with dev team, ensuring reliability from start.
 
-### 83. How do you balance technical depth with leadership?
+### How do you balance technical depth with leadership
 
 **Answer:**
 - Stay hands-on while delegating, mentor to build team capabilities.
@@ -1611,7 +1626,7 @@ graph TD
 
 *Example:* Led a project while fixing critical bugs.
 
-### 84. Tell us about a time you drove automation to reduce toil.
+### Tell us about a time you drove automation to reduce toil
 
 **Answer:**
 - Automated log parsing with scripts, saving hours weekly.
@@ -1620,7 +1635,7 @@ graph TD
 
 *Example:* Built a dashboard for on-call metrics, improving visibility.
 
-### 85. How do you ensure continuous improvement in your role?
+### How do you ensure continuous improvement in your role
 
 **Answer:**
 - Review metrics quarterly, adopt best practices, learn from industry.
@@ -1631,7 +1646,7 @@ graph TD
 
 ## Advanced AWS Scenarios
 
-### 86. Design a zero-downtime deployment strategy for a monolithic app on AWS.
+### Design a zero-downtime deployment strategy for a monolithic app on AWS
 
 **Answer:**
 - Use blue-green deployments with Elastic Beanstalk or ECS.
@@ -1646,7 +1661,7 @@ graph TD
 
 *Example:* For a game update, deployed to blue environment, validated with 1% traffic, then full switch, ensuring no player disruption.
 
-### 87. How do you handle database scaling in AWS for high-write workloads?
+### How do you handle database scaling in AWS for high-write workloads
 
 **Answer:**
 - Use Aurora with read replicas for reads, DynamoDB for NoSQL, or RDS with sharding.
@@ -1661,7 +1676,7 @@ graph TD
 
 *Example:* Scaled a leaderboard service from 1000 to 10,000 writes/sec by adding replicas and partitioning.
 
-### 88. Explain architecting for edge computing on AWS.
+### Explain architecting for edge computing on AWS
 
 **Answer:**
 - Use CloudFront with Lambda@Edge for compute at edge locations.
@@ -1675,7 +1690,7 @@ graph TD
 
 *Example:* Personalized game content delivered via Lambda@Edge, cutting response time by 40%.
 
-### 89. How do you implement chaos engineering on AWS?
+### How do you implement chaos engineering on AWS
 
 **Answer:**
 - Use AWS Fault Injection Simulator (FIS) to inject failures like instance termination or network latency.
@@ -1699,7 +1714,7 @@ flowchart TD
     G --> H[Repeat Experiments Periodically]
 ```
 
-### 90. Describe securing data at rest and in transit on AWS.
+### Describe securing data at rest and in transit on AWS
 
 **Answer:**
 - Use KMS for encryption at rest, TLS 1.3 for transit.
@@ -1716,7 +1731,7 @@ flowchart TD
 
 ## Multi-Cloud Advanced
 
-### 91. How do you manage hybrid cloud deployments?
+### How do you manage hybrid cloud deployments
 
 **Answer:**
 - Use AWS Outposts or Azure Arc for on-prem extensions.
@@ -1726,7 +1741,7 @@ flowchart TD
 
 *Example:* Extended AWS to on-prem data center for low-latency gaming.
 
-### 92. Explain federated identity in multi-cloud.
+### Explain federated identity in multi-cloud
 
 **Answer:**
 - Use SAML/OIDC with providers like Okta.
@@ -1736,7 +1751,7 @@ flowchart TD
 
 *Example:* Single login for AWS and GCP resources.
 
-### 93. How do you optimize inter-cloud data transfer costs?
+### How do you optimize inter-cloud data transfer costs
 
 **Answer:**
 - Use peering, compress data, schedule transfers off-peak.
@@ -1748,7 +1763,7 @@ flowchart TD
 
 ## Reliability Deep Dive
 
-### 94. What is an error budget, and how do you manage it?
+### What is an error budget, and how do you manage it
 
 **Answer:**
 - Error budget is 100% - SLO (e.g., 0.1% for 99.9%).
@@ -1773,7 +1788,7 @@ graph TD
     Fix --> Reset[Reset Budget Monthly]
 ```
 
-### 95. How do you design for fault tolerance in distributed systems?
+### How do you design for fault tolerance in distributed systems
 
 **Answer:**
 - Implement redundancy, circuit breakers, retries with exponential backoff.
@@ -1804,7 +1819,7 @@ graph TD
     HealthCheck --> Remove[Remove Unhealthy Instances]
 ```
 
-### 96. Explain the concept of toil and how to eliminate it.
+### Explain the concept of toil and how to eliminate it
 
 **Answer:**
 - Toil is manual, repetitive work.
@@ -1816,7 +1831,7 @@ graph TD
 
 ## Scalability Scenarios
 
-### 97. How do you scale a stateful application?
+### How do you scale a stateful application
 
 **Answer:**
 - Use persistent volumes in Kubernetes, database clustering.
@@ -1844,7 +1859,7 @@ graph TD
     Note over Proxy: Routes based on Key Hash
 ```
 
-### 98. Describe handling traffic spikes in gaming.
+### Describe handling traffic spikes in gaming
 
 **Answer:**
 - Use auto-scaling, CDN, and rate limiting.
@@ -1854,7 +1869,7 @@ graph TD
 
 *Example:* During launch, scaled from 100k to 1M users seamlessly.
 
-### 99. How do you optimize for low-latency in global apps?
+### How do you optimize for low-latency in global apps
 
 **Answer:**
 - Deploy in multiple regions, use Global Accelerator, cache at edge.
@@ -1865,7 +1880,7 @@ graph TD
 
 ## Observability Mastery
 
-### 100. How do you set up distributed tracing?
+### How do you set up distributed tracing
 
 **Answer:**
 - Use X-Ray or Jaeger.
@@ -1897,7 +1912,7 @@ sequenceDiagram
     Note over API_GW,DB: X-Ray/Jaeger collects spans for visualization
 ```
 
-### 101. Explain anomaly detection in monitoring.
+### Explain anomaly detection in monitoring
 
 **Answer:**
 - Use statistical methods or ML in tools like Datadog.
@@ -1922,7 +1937,7 @@ flowchart TD
     Action --> Feedback[Update Baseline]
 ```
 
-### 102. How do you monitor third-party services?
+### How do you monitor third-party services
 
 **Answer:**
 - Use synthetic monitoring, health checks, and SLAs.
@@ -1934,7 +1949,7 @@ flowchart TD
 
 ## Cost Optimization Advanced
 
-### 103. How do you implement FinOps practices?
+### How do you implement FinOps practices
 
 **Answer:**
 - Tag resources, use cost allocation tags, set budgets with alerts.
@@ -1944,7 +1959,7 @@ flowchart TD
 
 *Example:* Identified idle instances, saved $50k/year.
 
-### 104. Describe rightsizing resources.
+### Describe rightsizing resources
 
 **Answer:**
 - Analyze usage with CloudWatch, resize instances or use Graviton for cost.
@@ -1953,7 +1968,7 @@ flowchart TD
 
 *Example:* Downgraded over-provisioned DB, cut costs by 25%.
 
-### 105. How do you handle spot instance usage safely?
+### How do you handle spot instance usage safely
 
 **Answer:**
 - Use for stateless workloads, implement graceful shutdown, fall back to on-demand.
@@ -1964,14 +1979,14 @@ flowchart TD
 
 ## Incident Management Scenarios
 
-### 106. Walk through responding to a P0 incident.
+### Walk through responding to a P0 incident
 
 **Answer:**
 - Acknowledge alert, assemble team, assess, mitigate, communicate, post-mortem.
 
 **Detailed Explanation:** Use timeline, assign roles.
 
-### 107. How do you design and execute chaos experiments using AWS Fault Injection Simulator (FIS)?
+### How do you design and execute chaos experiments using AWS Fault Injection Simulator (FIS)
 
 **Answer:**
 - Define experiments to simulate failures like network latency or instance termination.
