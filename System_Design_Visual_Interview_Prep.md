@@ -51,6 +51,16 @@
 - [48. Design an Ad Server](#48-design-an-ad-server)
 - [49. Design a Matching System (like Uber/Lyft rider-driver matching)](#49-design-a-matching-system-like-uberlyft-rider-driver-matching)
 - [50. Design a Recommendation System for Live Events](#50-design-a-recommendation-system-for-live-events)
+- [51. Design a Content Moderation System](#51-design-a-content-moderation-system)
+- [52. Design a Recommendation System for E-commerce Products](#52-design-a-recommendation-system-for-e-commerce-products)
+- [53. Design a Real-time Fraud Detection System](#53-design-a-real-time-fraud-detection-system)
+- [54. Design a Distributed Counter](#54-design-a-distributed-counter)
+- [55. Design a Distributed Scheduler with High Availability](#55-design-a-distributed-scheduler-with-high-availability)
+- [56. Design a Distributed Web Scraper](#56-design-a-distributed-web-scraper)
+- [57. Design a Multi-tenant SaaS Platform](#57-design-a-multi-tenant-saas-platform)
+- [58. Design a System for Processing IoT Sensor Data](#58-design-a-system-for-processing-iot-sensor-data)
+- [59. Design an Online Code Editor](#59-design-an-online-code-editor)
+- [60. Design a Feature Flag System](#60-design-a-feature-flag-system)
 
 ---
 
@@ -470,7 +480,7 @@ graph TD
     subgraph "Offline Processing (Batch / ML Training)"
         Data[📊 User Activity Data<br>(clicks, purchases, ratings)] --> DataPipeline[🔄 ETL/Spark Jobs]
         DataPipeline --> FeatureStore[🗄️ Feature Store]
-        FeatureStore --> ModelTraining[🧠 Model Training (e.g., Collaborative Filtering)]
+        FeatureStore --> ModelTraining[🧠 ML Model<br>(e.g., Collaborative Filtering)]
         ModelTraining --> TrainedModel[🤖 Trained Model]
         TrainedModel -- "Generates recommendations" --> RecsDB[(💎 Recommendations DB<br>user_id -> [item1, item2, ...])]
     end
@@ -487,16 +497,17 @@ graph TD
 **Core Components & Concepts:**
 - 📊 **Data Collection**: The system needs to collect massive amounts of user interaction data: clicks, views, purchases, ratings, time spent on an item, etc. This is typically fed into a data lake or event stream like Kafka.
 - 🔄 **Offline Data Processing (ETL/Spark)**: Batch jobs (e.g., using Apache Spark) run periodically to process the raw data, clean it, and transform it into features that can be used for model training.
-- 🧠 **Model Training**: This is where the core machine learning happens.
+- 🧠 **ML Model**:
     - **Collaborative Filtering**: A common technique. It finds users with similar tastes to you ("neighbors") and recommends items that they liked but you haven't seen yet.
-    - **Content-Based Filtering**: Recommends items that are similar to other items you've liked. For example, if you watch a lot of action movies, it will recommend more action movies.
-    - **Hybrid Models**: Most modern systems use a hybrid of these and other approaches (like deep learning).
+    - **Item-to-Item Filtering**: "P1 is similar to P2 based on attributes/user behavior."
+    - **Content-Based Filtering**: Based on product attributes (e.g., category, brand, description).
+    - **Deep Learning Models**: For more complex patterns.
 - 💎 **Recommendations Database**: The output of the offline model training is a set of pre-computed recommendations for each user. This is often stored in a key-value store like Redis or Cassandra, where the key is the `user_id` and the value is a ranked list of `item_ids`.
 - 💡 **Recommendation Service**: A lightweight API service that serves the recommendations. When a user requests recommendations, this service:
-    1.  Fetches the pre-computed list of `item_ids` for that user from the Recommendations DB.
-    2.  Performs any real-time filtering (e.g., remove items the user has already purchased or explicitly disliked).
-    3.  Optionally, performs some light re-ranking based on real-time context.
-    4.  Returns the final list to the user.
+    - Retrieves relevant pre-computed recommendations from the **RecsDB**.
+    - Applies real-time filtering (e.g., remove out-of-stock items, already purchased items).
+    - Reranks results based on current context (e.g., time of day, current sale).
+    - Returns the final list to the user.
 
 **System Properties:**
 - **Batch vs. Real-time**: The heavy-duty model training is done offline in batch. The serving of recommendations needs to be a low-latency, real-time service.
@@ -1013,7 +1024,7 @@ graph TD
 A **Publish/Subscribe (Pub/Sub)** system allows messages to be broadcast to a variable number of consumers (subscribers) that are interested in specific types of messages (topics). Publishers don't know who consumes their messages, and subscribers don't know who publishes them; they only interact with the message broker.
 
 **Core Components:**
-- 📝 **Publisher**: The component that creates and sends messages to the message broker. It "publishes" messages to a specific `topic`.
+- 📝 **Publisher**: The component that creates and sends messages to the message broker. It "publish-es" messages to a specific `topic`.
 - 🔖 **Topic**: A named channel or feed to which publishers send messages and from which subscribers receive messages. Topics categorize messages.
 - 🔄 **Message Broker**: The central component responsible for:
     - Receiving messages from publishers.
@@ -2550,3 +2561,557 @@ graph TD
 - **Cold Start**: For new users or new events, use content-based methods or popular default recommendations.
 - **Location-Awareness**: Integrate geospatial querying for local events.
 - **Serendipity**: Balance recommending highly relevant items with introducing new, unexpected events.
+
+---
+
+### 51. Design a Content Moderation System
+Design a system to automatically detect and flag inappropriate content (text, images, video) on a large-scale platform.
+
+```mermaid
+graph TD
+    User[👩‍💻 User] -- 1. Upload Content --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Content Ingestion & Processing"
+        IngestAPI -- "2. Store Raw Content" --> ContentStorage[💾 Content Storage (S3)]
+        IngestAPI -- "3. Trigger Processing Event" --> ContentQueue[🔄 Content Queue (Kafka)]
+    end
+
+    subgraph "Moderation Pipeline"
+        ContentQueue -- "4. Consume Event" --> TextModeration[📜 Text Analysis Service<br>(NLP, ML)]
+        ContentQueue -- "4. Consume Event" --> ImageModeration[🖼️ Image Analysis Service<br>(CV, ML)]
+        ContentQueue -- "4. Consume Event" --> VideoModeration[🎥 Video Analysis Service<br>(CV, ML)]
+        ContentQueue -- "4. Consume Event" --> UserReputation[👥 User Reputation Service]
+    end
+
+    TextModeration -- "5. Flagged Text" --> ReviewQueue[🧐 Review Queue (Manual/Human)]
+    ImageModeration -- "5. Flagged Image" --> ReviewQueue
+    VideoModeration -- "5. Flagged Video" --> ReviewQueue
+    UserReputation -- "5. User History" --> ReviewQueue
+
+    ReviewQueue -- "6. Human Review" --> Moderator[🧑‍⚖️ Human Moderator]
+    Moderator -- "7. Decision (Approve/Reject)" --> DecisionService[✅ Decision Service]
+    DecisionService -- "8. Update Content Status" --> ContentDB[(🗄️ Content Metadata DB)]
+    DecisionService -- "9. Notify User" --> NotificationService[📣 Notification Service]
+```
+
+**Core Problem**: Scalably and accurately identify a wide range of inappropriate content while minimizing false positives and providing efficient human review.
+
+**Core Components & Concepts:**
+- 🌐 **Ingest API**: Receives user-uploaded content.
+- 💾 **Content Storage**: Stores raw and processed content (e.g., S3).
+- 🔄 **Content Queue**: Decouples ingestion from processing, handling bursts of uploads.
+- **Moderation Pipeline Services**:
+    - 📜 **Text Analysis Service**: Uses Natural Language Processing (NLP) and Machine Learning (ML) for sentiment analysis, keyword detection, and offensive language recognition.
+    - 🖼️ **Image Analysis Service**: Uses Computer Vision (CV) and ML for object recognition, nudity detection, and brand logo detection.
+    - 🎥 **Video Analysis Service**: Combines image analysis (per frame) and audio analysis (speech-to-text, sound patterns).
+    - 👥 **User Reputation Service**: Incorporates user history (past violations, reporting accuracy) to prioritize content for review.
+- 🧐 **Review Queue**: A prioritized queue for content that needs human review (e.g., high-confidence flags, appeals).
+- 🧑‍⚖️ **Human Moderator**: The final decision-maker for flagged content.
+- ✅ **Decision Service**: Records the moderator's decision and updates content status.
+- 🗄️ **Content Metadata DB**: Stores information about content and its moderation status.
+
+**Workflow:**
+1.  User uploads content.
+2.  Content is stored, and an event is queued.
+3.  Automated moderation services consume the event, analyze the content, and flag it if necessary.
+4.  Flagged content enters a review queue, prioritized by severity.
+5.  Human moderators review the flagged content and make a decision.
+6.  The decision is recorded, content status is updated, and the user is notified.
+
+**Scalability & Considerations:**
+- **ML Models**: Continuously train and update ML models with human moderation decisions to improve accuracy.
+- **Hybrid Approach**: Combine automated detection with human review.
+- **Cost**: Human moderation is expensive; optimize automation to reduce the load on human reviewers.
+- **Real-time vs. Batch**: Some moderation (e.g., text) can be near real-time, while complex video analysis might be batched.
+
+---
+
+### 52. Design a Recommendation System for E-commerce Products
+Design a system like Amazon's product recommendations ("Customers who viewed this also viewed...").
+
+```mermaid
+graph TD
+    User[👩‍💻 User] -- 1. Views Product P1 --> Frontend[🌐 Website/App]
+    Frontend -- 2. Event (View P1) --> EventStream[🔄 Event Stream (Kafka)]
+
+    subgraph "Offline Processing (Batch / ML Training)"
+        EventStream -- "3. Historical Data" --> DataLake[📊 Data Lake]
+        DataLake -- "4. ETL / Spark Jobs" --> FeatureStore[🗄️ Feature Store]
+        FeatureStore -- "5. Model Training" --> MLModel[🧠 ML Model<br>(e.g., Collaborative Filtering, Item-Item)]
+        MLModel -- "6. Generates Recs" --> RecsDB[(💎 Recommendations DB<br>user_id -> [p_id, ...], p_id -> [p_id, ...])]
+    end
+
+    subgraph "Online Serving (Real-time)"
+        Frontend -- "7. Request Recs (User ID, Current Product P1)" --> RecService[💡 Recommendation Service]
+        RecService -- "8. Get pre-computed recs" --> RecsDB
+        RecsDB -- "Filter, Rank" --> RecService
+        RecService -- "9. Return Recs" --> Frontend
+    end
+```
+
+**Core Problem**: Suggest highly relevant products to users based on their behavior, product attributes, and similarity between products, driving engagement and sales.
+
+**Core Components & Concepts:**
+- 🔄 **Event Stream**: Collects real-time user interactions (product views, purchases, searches, adds to cart).
+- 📊 **Data Lake**: Stores all raw historical event data.
+- 🗄️ **Feature Store**: Stores engineered features (e.g., user embeddings, product embeddings, interaction vectors) for ML models.
+- 🧠 **ML Model**:
+    - **Collaborative Filtering**: "Users who liked P1 also liked P2."
+    - **Item-to-Item Filtering**: "P1 is similar to P2 based on attributes/user behavior."
+    - **Content-Based Filtering**: Based on product attributes (e.g., category, brand, description).
+    - **Deep Learning Models**: For more complex patterns.
+- 💎 **Recommendations DB**: Stores pre-computed recommendations. This can be:
+    - `user_id` -> list of `product_ids` (for personalized recommendations).
+    - `product_id` -> list of `product_ids` (for "also viewed/bought" recommendations).
+- 💡 **Recommendation Service**: Serves recommendations with low latency.
+
+**Workflow:**
+1.  User interacts with the website (e.g., views a product). This action generates an event sent to the **Event Stream**.
+2.  **Offline Processing**: Historical event data from the **Data Lake** is used to train and re-train **ML Models**. These models generate pre-computed recommendations stored in the **Recommendations DB**.
+3.  **Online Serving**: When the user requests recommendations (e.g., on a product page), the **RecService**:
+    - Retrieves relevant pre-computed recommendations from the **RecsDB**.
+    - Applies real-time filtering (e.g., remove out-of-stock items, already purchased items).
+    - Reranks results based on current context (e.g., time of day, current sale).
+    - Returns the top N recommendations.
+
+**Key Challenges & Solutions:**
+- **Cold Start**: For new users or new products, use content-based recommendations or popular items.
+- **Data Freshness**: Recommendations need to be updated frequently, often using daily or even hourly batch jobs.
+- **Scalability**: Handle massive event streams and serve recommendations at low latency.
+- **A/B Testing**: Crucial for evaluating and iterating on recommendation algorithms.
+
+---
+
+### 53. Design a Real-time Fraud Detection System
+Design a system to detect fraudulent transactions or user activities in real-time.
+
+```mermaid
+graph TD
+    UserAction[👩‍💻 User Action<br>(Login, Transaction)] --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Real-time Fraud Detection Pipeline"
+        IngestAPI -- "1. Send Event" --> EventStream[🔄 Event Stream (Kafka)]
+        EventStream -- "2. Stream Processing" --> RuleEngine[⚙️ Rule Engine<br>(Complex Event Processing)]
+        EventStream -- "2. Stream Processing" --> MLModel[🧠 ML Model<br>(Anomaly Detection)]
+    end
+
+    subgraph "Contextual Data"
+        UserProfileDB[(🗄️ User Profile DB)]
+        GeoIPService[🌍 GeoIP Service]
+        DeviceFingerprintDB[(🗄️ Device Fingerprint DB)]
+    end
+
+    RuleEngine -- "3. Check against Rules" --> UserProfileDB
+    RuleEngine -- "3. Check against Rules" --> GeoIPService
+    MLModel -- "4. Score Transaction" --> UserProfileDB
+    MLModel -- "4. Score Transaction" --> DeviceFingerprintDB
+
+    RuleEngine -- "5. If Flagged" --> FraudQueue[🚨 Fraud Alert Queue]
+    MLModel -- "5. If High Score" --> FraudQueue
+
+    FraudQueue -- "6. Send Alert" --> Alerting[📣 Alerting System<br>(Email/SMS/Dashboard)]
+    FraudQueue -- "7. Block Transaction (if critical)" --> TransactionService[💳 Transaction Service]
+```
+
+**Core Problem**: Identify and flag suspicious activities as they happen, minimizing false positives and reacting quickly to prevent financial losses or security breaches.
+
+**Core Components & Concepts:**
+- 🌐 **Ingest API**: Receives all user actions/transactions as events.
+- 🔄 **Event Stream (Kafka)**: A high-throughput, fault-tolerant message queue to ingest and distribute events to various processing components.
+- ⚙️ **Stream Processing Engine (e.g., Flink, Spark Streaming)**: Consumes events from the stream and routes them to different detection mechanisms.
+- **Detection Mechanisms**:
+    - ⚙️ **Rule Engine**: Processes events against a set of predefined rules (e.g., "Transaction > $1000 from new device," "Login from multiple countries within 5 minutes"). This is often implemented with Complex Event Processing (CEP).
+    - 🧠 **ML Model**: Uses machine learning for anomaly detection. Models are trained on historical data to identify patterns of normal and fraudulent behavior.
+- **Contextual Data Services**: Provide additional information for fraud analysis:
+    - 🗄️ **User Profile DB**: User's history, typical spending patterns, registered devices.
+    - 🌍 **GeoIP Service**: Maps IP addresses to geographical locations.
+    - 🗄️ **Device Fingerprint DB**: Identifies unique device characteristics.
+- 🚨 **Fraud Alert Queue**: Collects flagged events for human review or automated response.
+- 📣 **Alerting System**: Notifies security teams or triggers automated responses (e.g., blocking a transaction).
+- 💳 **Transaction Service**: Can receive commands to block or reverse transactions.
+
+**Workflow:**
+1.  User performs an action (e.g., a transaction). An event is sent to the **Ingest API**.
+2.  The event goes into the **Event Stream**.
+3.  **Stream Processing** directs the event to the **Rule Engine** and **ML Model** in parallel.
+4.  Both detection mechanisms enrich the event with contextual data and evaluate it.
+5.  If fraud is detected (high-confidence rule match or high ML score), an alert is sent to the **Fraud Alert Queue**.
+6.  The **Alerting System** notifies relevant parties, and potentially the **Transaction Service** takes action (e.g., blocks the transaction).
+
+**Key Challenges & Solutions:**
+- **Low Latency**: Decisions must be made in milliseconds. In-memory processing and fast data stores are critical.
+- **High Throughput**: Must handle massive volumes of events.
+- **False Positives/Negatives**: Balance detection rate with user experience. ML models need continuous refinement.
+- **Model Drift**: Fraud patterns change rapidly; models need frequent retraining.
+
+---
+
+### 54. Design a Distributed Counter
+Design a highly available and eventually consistent distributed counter for tracking events at scale (e.g., website page views).
+
+```mermaid
+graph TD
+    Client[👩‍💻 User Action<br>(Page View)] --> LoadBalancer[⚖️ Load Balancer]
+    LoadBalancer --> WriteAPI[🌐 Write API (Counter Service)]
+    
+    subgraph "Distributed Counter System"
+        ShardedRedis[⚡ Sharded Redis Cluster<br>(Counters)]
+        BatchProcessor[⚙️ Batch Processor<br>(Hourly/Daily)]
+        FinalDB[(🗄️ Analytics DB)]
+    end
+
+    WriteAPI -- "1. Increment Counter (Key: page_id)" --> ShardedRedis
+    
+    BatchProcessor -- "2. Periodically read/sum counters" --> ShardedRedis
+    BatchProcessor -- "3. Aggregate to Final Value" --> FinalDB
+```
+
+**Core Problem**: Increment a counter by large amounts across many servers, ensuring high availability and eventual consistency, suitable for scenarios where occasional inaccuracies are acceptable in favor of performance and availability.
+
+**Naive Approaches (and why they fail):**
+- **Single Database Row**: Becomes a massive bottleneck.
+- **Distributed Lock**: Too slow for high-throughput increments.
+
+**Solution: Sharded In-Memory Counters + Batch Aggregation:**
+- 🌐 **Write API (Counter Service)**: Receives increment requests.
+- ⚡ **Sharded Redis Cluster**: The core of the counter. Instead of a single counter, use many smaller counters:
+    - **Strategy 1 (Sharded Keys)**: If counting page views for `page_id=X`, instead of `INCR page_id:X`, randomly pick a shard: `INCR page_id:X:shard:Y`. When reading, sum up all shards.
+    - **Strategy 2 (Time-based Shards)**: `INCR page_id:X:minute:Z`.
+    - Each increment is a fast, local operation on a Redis instance.
+- ⚙️ **Batch Processor**: Periodically (e.g., every hour or day) reads all the partial counters from Redis, sums them up, and writes the final aggregated value to a persistent database.
+- 🗄️ **Analytics DB**: Stores the final, eventually consistent count.
+
+**Benefits:**
+- **High Write Throughput**: Redis can handle millions of increments per second.
+- **High Availability**: Redis cluster is highly available. If a Redis node fails, its replicas can take over.
+- **Eventual Consistency**: The final count in the Analytics DB is eventually consistent.
+
+**Considerations:**
+- **Accuracy vs. Performance**: The real-time counter in Redis will be eventually consistent. If absolute real-time accuracy is needed, this approach might not be suitable (requires stronger consistency guarantees, which sacrifices scale).
+- **Time Window**: Define the granularity of temporary counters (e.g., per minute, per hour) to manage memory usage in Redis.
+- **Redis vs. Database**: Use Redis for the transient, high-velocity increments, and a robust database for the final, aggregated, persistent value.
+
+---
+
+### 55. Design a Distributed Scheduler with High Availability
+Design a system to execute scheduled tasks across a cluster of machines reliably, even if some nodes fail (e.g., a distributed cron system).
+
+```mermaid
+graph TD
+    User[👩‍💻 User/Service] -- "1. Define Scheduled Job" --> JobAPI[🌐 Job API]
+    JobAPI -- "2. Store Job Config" --> MetadataDB[(🗄️ Job Metadata DB)]
+    
+    subgraph "Scheduler Cluster"
+        Leader[🌟 Active Scheduler (Leader)]
+        Follower1[🤝 Standby Scheduler 1]
+        Follower2[🤝 Standby Scheduler 2]
+    end
+
+    subgraph "Coordination Service"
+        ZK[🗄️ ZooKeeper/etcd]
+    end
+
+    Leader -- "3. Elect Leader" --> ZK
+    Follower1 -- "3. Monitor Leader" --> ZK
+    Follower2 -- "3. Monitor Leader" --> ZK
+
+    Leader -- "4. Periodically Scan Jobs" --> MetadataDB
+    Leader -- "5. If Job Due, Trigger" --> TaskQueue[🔄 Task Queue (Kafka/SQS)]
+
+    TaskQueue -- "6. Distribute Tasks" --> WorkerCluster[⚙️ Worker Cluster]
+    WorkerCluster -- "7. Execute Tasks" --> WorkerCluster
+    WorkerCluster -- "8. Report Status" --> MetadataDB
+
+    Leader -- "9. If Leader Fails" --> ZK
+    ZK -- "10. Elect New Leader" --> Follower1[🌟 New Leader]
+```
+
+**Core Problem**: Reliably execute tasks at specified times across multiple machines, ensuring that each task runs exactly once and is retried if the executing node fails.
+
+**Core Components & Concepts:**
+- 🌐 **Job API**: Interface for defining, modifying, and viewing scheduled jobs.
+- 🗄️ **Job Metadata DB**: Stores all scheduled job configurations (cron expressions, task details).
+- 🌟 **Scheduler Cluster**: A group of nodes where one acts as the **Leader** and others are **Standby**.
+- 🗄️ **Coordination Service (ZooKeeper/etcd)**: Used for robust **Leader Election** and storing shared state about the scheduler cluster.
+- 🔄 **Task Queue**: Buffers tasks for execution by workers.
+- ⚙️ **Worker Cluster**: Executes the actual tasks.
+
+**Workflow:**
+1.  **Job Definition**: Users define jobs via the **Job API**, which stores them in the **Metadata DB**.
+2.  **Leader Election**: Schedulers participate in **Leader Election** via **ZooKeeper**. One becomes the **Active Scheduler (Leader)**, others are **Standby**.
+3.  **Task Triggering**: The **Leader Scheduler** periodically scans the **Metadata DB** for due jobs.
+4.  When a job is due, the Leader places a corresponding task message onto the **Task Queue**.
+5.  **Task Execution**: **Workers** consume tasks from the queue and execute them.
+6.  **Status Reporting**: Workers report job status back to the **Metadata DB**.
+7.  **Leader Failover**: If the Leader Scheduler fails, the **Coordination Service** detects it, and a new leader is automatically elected from the standby schedulers. The new leader then takes over triggering jobs.
+
+**Key Challenges & Solutions:**
+- **"Exactly-Once" Execution**: Crucial for scheduled jobs. Achieved through idempotent tasks and robust task queues with acknowledgment mechanisms.
+- **Leader Election**: Prevents multiple schedulers from triggering the same job.
+- **Fault Tolerance**: The entire system must be resilient to node failures.
+- **Time Synchronization**: All nodes should have synchronized clocks (e.g., NTP) for accurate scheduling.
+
+---
+
+### 56. Design a Distributed Web Scraper
+Design a scalable and fault-tolerant system to crawl websites and extract structured data.
+
+```mermaid
+graph TD
+    SeedURLs[🔗 Seed URLs] --> URLFrontier[🧭 URL Frontier<br>(Prioritized Queue)]
+    
+    subgraph "Distributed Scraper"
+        Fetcher[🕷️ Fetcher Workers<br>(Rate-limited HTTP)]
+        Parser[📄 Parser Workers<br>(Data Extraction)]
+        Storage[💾 Storage Workers<br>(DB/Object Store)]
+    end
+
+    URLFrontier -- "1. Get URL" --> Fetcher
+    Fetcher -- "2. Download Page" --> Parser
+    Parser -- "3. Extract Data & Links" --> ExtractedData[📊 Extracted Data]
+    ExtractedData -- "4. Store Data" --> Storage
+    ExtractedData -- "5. Add New Links" --> URLFrontier
+    
+    Storage -- "6. Persist to Final DB" --> FinalDB[(🗄️ Structured Data DB)]
+```
+
+**Core Problem**: Efficiently and reliably extract specific information from a large number of web pages, handling website variations, anti-bot measures, and ensuring data quality.
+
+**Core Components & Concepts:**
+- 🔗 **URL Frontier**: A prioritized queue of URLs to be scraped. New URLs discovered are added here. It often incorporates deduplication and politeness filters.
+- 🕷️ **Fetcher Workers**: A distributed fleet of workers responsible for downloading web pages.
+    - **Rate Limiting**: Crucial to avoid being blocked by websites. Implements delays between requests to the same domain.
+    - **User-Agent Management**: Rotates user agents to mimic real user behavior.
+    - **Proxy Rotation**: Uses proxy servers to hide IP addresses and bypass IP-based blocking.
+- 📄 **Parser Workers**: Processes the downloaded HTML content.
+    - **Data Extraction**: Uses XPath, CSS selectors, or machine learning models to extract specific structured data.
+    - **Link Extraction**: Identifies new URLs and sends them back to the URL Frontier.
+- 💾 **Storage Workers**: Processes extracted data and stores it.
+- 🗄️ **Structured Data DB**: The final destination for the extracted data (e.g., PostgreSQL, MongoDB).
+
+**Key Challenges & Solutions:**
+- **Website Changes**: Websites frequently change their structure. Parsers need to be adaptable (e.g., using AI-powered extraction or resilient selectors).
+- **Anti-Bot Measures**: Captchas, IP blocking, user-agent blocking. Proxies, rotating user agents, and browser automation tools (e.g., Puppeteer) can help.
+- **Data Quality**: Ensuring extracted data is accurate and complete. Validation and human review processes may be needed.
+- **Scalability**: All components must scale horizontally.
+- **Politeness**: Always respect `robots.txt` and avoid overloading websites.
+
+---
+
+### 57. Design a Multi-tenant SaaS Platform
+Design a software-as-a-service (SaaS) platform that securely and efficiently serves multiple independent customers (tenants) from a single application instance.
+
+```mermaid
+graph TD
+    TenantA[👩‍💻 Tenant A User] -- "1. Login" --> AuthProxy[🔒 Auth Proxy/API Gateway]
+    TenantB[👨‍💻 Tenant B User] -- "1. Login" --> AuthProxy
+    
+    subgraph "Multi-Tenant Application"
+        Application[⚙️ Application Logic]
+        Database[🗄️ Database]
+        SharedServices[📦 Shared Infrastructure/Services]
+    end
+
+    AuthProxy -- "2. Authenticate & Authorize" --> Application
+    Application -- "3. Tenant-Aware Logic" --> Database
+    Application -- "4. Tenant-Aware Storage" --> SharedServices
+
+    subgraph "Tenant Isolation Strategies"
+        TenantPartitioning[✂️ Tenant ID in all queries]
+        SchemaPerTenant[📄 Schema per Tenant]
+        DBPerTenant[🗄️ Database per Tenant]
+    end
+
+    Database -- "Data partitioned by tenant_id" --> TenantPartitioning
+    Database -- "Separate schemas for tenants" --> SchemaPerTenant
+    Database -- "Dedicated DB for each tenant" --> DBPerTenant
+```
+
+**Core Problem**: Provide a single software application to multiple customers, each having their own isolated data, configurations, and user base, while optimizing resource usage and ensuring security.
+
+**Core Concepts:**
+- **Tenant**: An independent customer of the SaaS platform.
+- **Tenant Isolation**: Crucial for security and data privacy. Ensures one tenant's data or operations do not affect another's.
+- **Authentication/Authorization Proxy**: Verifies user identity and tenant context, ensuring users only access their own tenant's resources.
+
+**Tenant Isolation Strategies (for data):**
+1.  **Separate Databases per Tenant**: Each tenant gets its own dedicated database.
+    - **Pros**: Highest isolation, easiest for backup/restore per tenant.
+    - **Cons**: Most expensive, highest operational overhead.
+2.  **Separate Schemas per Tenant**: All tenants share the same database server, but each has their own database schema.
+    - **Pros**: Good isolation, less expensive than separate DBs.
+    - **Cons**: Still some operational overhead, schema management can be complex.
+3.  **Shared Database, Separate Tables (Tenant ID in all tables)**: All tenants share the same database and tables, but each table has a `tenant_id` column. All queries must include `WHERE tenant_id = current_tenant_id`.
+    - **Pros**: Most cost-effective, lowest operational overhead.
+    - **Cons**: Requires strict application-level enforcement of tenant ID, lower data isolation.
+
+**Other Considerations:**
+- **Customization**: How do you allow tenants to customize features, UI, or workflows without breaking multi-tenancy? (Configuration per tenant).
+- **Billing/Metering**: Track resource usage per tenant for billing.
+- **Scalability**: Design for horizontal scalability, understanding that tenants can have vastly different usage patterns.
+- **Security**: Strict access control, data encryption, regular security audits.
+
+---
+
+### 58. Design a System for Processing IoT Sensor Data
+Design a scalable and real-time system for ingesting, processing, and analyzing data from millions of IoT devices.
+
+```mermaid
+graph TD
+    Sensors[🌡️ IoT Sensors<br>(Millions of devices)] -- "1. Publish Data (MQTT/HTTP)" --> IngestGateway[🌐 Ingest Gateway<br>(MQTT Broker/HTTP API)]
+    
+    subgraph "Data Processing Pipeline"
+        IngestGateway -- "2. Push to Stream" --> EventStream[🔄 Event Stream<br>(Kafka/Kinesis)]
+        EventStream -- "3. Stream Processing" --> RealtimeProcessor[⚙️ Real-time Processor<br>(Flink/Spark Streaming)]
+        EventStream -- "3. Archive Raw Data" --> ColdStorage[💾 Cold Storage<br>(S3/Blob)]
+    end
+
+    subgraph "Data Storage & Analytics"
+        RealtimeProcessor -- "4. Store Processed Data" --> TimeSeriesDB[📈 Time-Series DB<br>(InfluxDB/Prometheus)]
+        RealtimeProcessor -- "4. Store Processed Data" --> HotStorage[🗄️ Hot Storage<br>(NoSQL/SQL)]
+        RealtimeProcessor -- "4. Trigger Alerts" --> AlertingService[🚨 Alerting Service]
+    end
+
+    AlertingService -- "5. Notify Users/Systems" --> User[👩‍💻 Operators]
+    User -- "6. Monitor/Analyze" --> Dashboard[💻 Analytics Dashboard]
+    Dashboard -- "7. Query Data" --> TimeSeriesDB
+```
+
+**Core Problem**: Ingest vast volumes of small, frequent data points from geographically dispersed and potentially unreliable devices, process them in real-time, and provide insights and alerts.
+
+**Core Components & Concepts:**
+- 🌡️ **IoT Sensors**: The edge devices generating data.
+- 🌐 **Ingest Gateway**: The entry point for device data.
+    - **MQTT Broker**: Lightweight messaging protocol often used for IoT.
+    - **HTTP API**: For devices capable of making HTTP requests.
+    - Provides authentication/authorization for devices.
+- 🔄 **Event Stream (Kafka/Kinesis)**: A highly scalable and durable message queue to buffer and distribute raw sensor data.
+- ⚙️ **Real-time Processor (Stream Processing Engine)**: Consumes data from the event stream. It performs:
+    - **Data Validation & Cleaning**: Ensures data quality.
+    - **Transformation**: Converts raw data into a usable format.
+    - **Aggregation**: Calculates averages, sums, anomalies over time windows.
+    - **Alerting**: Triggers alerts based on predefined thresholds.
+- 📈 **Time-Series DB**: Optimized for storing and querying time-stamped sensor data (e.g., InfluxDB, Prometheus, TimescaleDB).
+- 🗄️ **Hot Storage**: For data requiring frequent access (e.g., NoSQL DB for device state).
+- 💾 **Cold Storage**: For long-term archiving of raw or aggregated data (e.g., S3).
+- 🚨 **Alerting Service**: Notifies users or other systems of critical events.
+- 💻 **Analytics Dashboard**: Visualizes real-time and historical sensor data.
+
+**Key Challenges & Solutions:**
+- **Device Reliability**: Devices can go offline, send duplicate data, or have unreliable network connections. Implement robust retry mechanisms and data deduplication.
+- **Data Volume**: Millions of devices generate enormous data volumes. Leverage highly scalable stream processing and time-series databases.
+- **Real-time Processing**: Critical for alerts and immediate insights.
+- **Security**: Device authentication, data encryption, and secure communication channels.
+
+---
+
+### 59. Design an Online Code Editor
+Design a real-time, collaborative online code editor like Google Docs but for code (e.g., VS Code Online, CodeSandbox).
+
+```mermaid
+graph TD
+    ClientA[👩‍💻 User A<br>Browser] -- "1. Edits Code" --> WebSocketA[⚡ WebSocket]
+    ClientB[👨‍💻 User B<br>Browser] -- "1. Edits Code" --> WebSocketB[⚡ WebSocket]
+    
+    subgraph "Backend Services"
+        WSServer[🌐 WebSocket Server]
+        CRDTService[⚙️ CRDT/Operational Transformation Service]
+        CodeStorage[💾 Code Storage (Git/DB)]
+        CompilationService[💻 Compilation/Execution Service]
+        AuthService[🔒 Authentication/Authorization]
+    end
+
+    WebSocketA -- "2. Send Deltas/Ops" --> WSServer
+    WebSocketB -- "2. Send Deltas/Ops" --> WSServer
+
+    WSServer -- "3. Forward to CRDT Service" --> CRDTService
+    CRDTService -- "4. Merge Operations" --> CodeState[📝 Merged Code State]
+    CodeState -- "5. Persist to Storage" --> CodeStorage
+    
+    CRDTService -- "6. Broadcast Merged Deltas" --> WSServer
+    WSServer -- "7. Push Updates" --> WebSocketA
+    WSServer -- "7. Push Updates" --> WebSocketB
+
+    Frontend[🌐 Frontend (Browser)] -- "Request Run" --> CompilationService
+    CompilationService -- "Execute Code" --> Output[📜 Output/Errors]
+```
+
+**Core Problem**: Enable multiple users to simultaneously edit the same codebase in real-time, ensuring eventual consistency without conflicts, while providing code-specific functionalities like compilation and execution.
+
+**Core Components & Concepts:**
+- ⚡ **WebSocket Server**: Maintains persistent, bidirectional communication channels with all connected clients for real-time updates.
+- ⚙️ **CRDT/Operational Transformation (OT) Service**: The core of collaborative editing.
+    - **Operational Transformation (OT)**: A classic approach where operations are transformed before being applied to ensure consistency across replicas. Complex to implement correctly.
+    - **Conflict-free Replicated Data Types (CRDTs)**: A newer approach where data structures are designed such that concurrent updates can be merged automatically without conflicts, making consistency easier to achieve.
+- 💾 **Code Storage**: Stores the canonical version of the codebase (e.g., a Git repository for version control, a persistent database).
+- 💻 **Compilation/Execution Service**: Allows users to compile and run their code. Needs to be sandboxed for security.
+- 🔒 **Authentication/Authorization**: Secures access to code and editing sessions.
+
+**Workflow:**
+1.  **Real-time Collaboration**:
+    - Users A and B open the same file. Their clients establish WebSocket connections.
+    - When User A types, their client sends a small "delta" or "operation" (e.g., "insert 'a' at position X") over the WebSocket to the **WebSocket Server**.
+    - The **WebSocket Server** forwards this operation to the **CRDT/OT Service**.
+    - The **CRDT/OT Service** merges the operation with the current code state (potentially transforming it if another user made a concurrent change).
+    - The merged state is persisted to **Code Storage**.
+    - The **CRDT/OT Service** broadcasts the merged operation (or the resulting new state) back to all connected clients via the **WebSocket Server**.
+    - Clients apply the merged operation to their local copy, achieving eventual consistency.
+2.  **Code Execution**: Users can send code to the **Compilation/Execution Service**, which runs it in a secure sandbox and returns output/errors.
+
+**Key Challenges & Solutions:**
+- **Real-time Consistency**: CRDTs or OT are essential.
+- **Low Latency**: Operations must propagate quickly.
+- **Security**: Code execution needs sandboxing. Access to code must be strictly controlled.
+- **Version Control**: Integration with Git for managing code history.
+
+---
+
+### 60. Design a Feature Flag System
+Design a system that allows developers to toggle features on/off for specific users or groups without deploying new code.
+
+```mermaid
+graph TD
+    Admin[👩‍💻 Admin/Developer] -- "1. Define/Update Flag (e.g., 'NewUI' ON for Beta users)" --> Dashboard[💻 Feature Flag Dashboard]
+    Dashboard -- "2. Persist Flag Config" --> ConfigDB[(🗄️ Config DB)]
+    ConfigDB -- "3. Notify Sync" --> SyncService[🔄 Sync Service]
+
+    subgraph "Application Runtime"
+        App1[⚙️ App Instance 1]
+        App2[⚙️ App Instance 2]
+        AppN[⚙️ App Instance N]
+    end
+    
+    SyncService -- "4. Distribute Config" --> App1
+    SyncService -- "..." --> App2
+    SyncService -- "..." --> AppN
+    
+    App1 -- "5. Cache Local Config" --> LocalCache[⚡ Local Cache]
+    App2 -- "5. Cache Local Config" --> LocalCache
+    AppN -- "5. Cache Local Config" --> LocalCache
+
+    User[👨‍💻 User] -- "6. Request Feature (e.g., 'NewUI')" --> App1
+    App1 -- "7. Check Flag Status (for User)" --> LocalCache
+    LocalCache -- "8. Return ON/OFF" --> App1
+    App1 -- "9. Serve Feature / Old Feature" --> User
+```
+
+**Core Problem**: Enable dynamic control over application features (enabling/disabling, A/B testing, gradual rollouts) without requiring code deployments, enhancing agility and reducing risk.
+
+**Core Components & Concepts:**
+- 💻 **Feature Flag Dashboard**: A UI for administrators/developers to define, configure, and manage feature flags.
+- 🗄️ **Config DB**: Stores the definitions and current states of all feature flags.
+- 🔄 **Sync Service**: Monitors the Config DB for changes and distributes updated flag configurations to application instances. This can use a push model (e.g., WebSockets) or a pull model (applications polling).
+- ⚙️ **Application Instances**: Your running application servers.
+- ⚡ **Local Cache**: Each application instance caches the feature flag configurations locally to minimize latency for flag checks.
+- **Client-Side vs. Server-Side Evaluation**:
+    - **Server-Side**: The flag evaluation happens on the backend, ensuring consistency.
+    - **Client-Side**: The flag rules are pushed to the client, and the client evaluates them locally.
+
+**Flag Targeting & Rules:**
+- **User IDs**: Enable flags for specific users or a percentage of users.
+- **User Attributes**: Target users based on geography, device type, subscription plan, etc.
+- **Time/Date**: Enable/disable flags at specific times.
+- **Environment**: Different flag states for dev, staging, prod.
+
+**Workflow:**
+1.  **Admin/Developer** defines or updates a feature flag's rules (e.g., "Feature X is ON for 10% of
