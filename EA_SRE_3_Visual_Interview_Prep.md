@@ -1555,6 +1555,429 @@ graph TD
 
 ---
 
+## ⚔️ AWS Service Comparisons
+
+### 171. AWS Shield vs WAF
+```mermaid
+graph TD
+    Attack[🚨 Attack Traffic] --> Choice{🛡️ Protection Type}
+    Choice -->|Layer 3/4| Shield[AWS Shield]
+    Choice -->|Layer 7| WAF[WAF]
+    
+    Shield --> Automatic[⚡ Automatic Protection]
+    Shield --> Standard[📦 Standard Free]
+    Shield --> Advanced[💎 Advanced Paid]
+    
+    WAF --> Rules[📋 Custom Rules]
+    WAF --> Filtering[🔍 Request Filtering]
+    WAF --> RateLimit[🚦 Rate Limiting]
+```
+
+**Shield vs WAF Comparison:**
+| Feature | 🛡️ AWS Shield | 🔥 AWS WAF |
+|---------|----------------|------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Layer</span> | L3/L4 (Network) | L7 (Application) |
+| <span style="color: #4ECDC4; font-weight: bold;">Protection</span> | DDoS mitigation | SQLi, XSS, exploits |
+| <span style="color: #45B7D1; font-weight: bold;">Cost</span> | Free tier + $3,000/month | $5/million requests |
+| <span style="color: #96CEB4; font-weight: bold;">Setup</span> | Automatic | Manual rules |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Network attacks | Application attacks |
+
+### 172. CloudFront vs Global Accelerator
+```mermaid
+graph TD
+    Content[📦 Content Type] --> Decision{🎯 Choose Service}
+    Decision -->|Static Content| CF[CloudFront CDN]
+    Decision -->|Dynamic Content| GA[Global Accelerator]
+    
+    CF --> Edge[🌍 Edge Locations]
+    CF --> Cache[💾 Caching]
+    CF --> HTTP[🌐 HTTP/HTTPS]
+    
+    GA --> Backbone[🌐 AWS Backbone]
+    GA --> TCP[🔌 TCP/UDP]
+    GA --> StaticIP[📍 Static IPs]
+```
+
+**When to Use Which:**
+- 📦 <span style="color: #FF6B6B; font-weight: bold;">CloudFront</span>: Static content, images, videos, CSS/JS
+- 🚀 <span style="color: #4ECDC4; font-weight: bold;">Global Accelerator</span>: Dynamic content, gaming, APIs, real-time
+
+### 173. Application Load Balancer vs Network Load Balancer
+```mermaid
+graph TD
+    Traffic[🌐 Traffic Type] --> LB_Choice{⚖️ Load Balancer}
+    LB_Choice -->|HTTP/HTTPS| ALB[Application LB]
+    LB_Choice -->|TCP/UDP| NLB[Network LB]
+    
+    ALB --> L7[🔶 Layer 7 Features]
+    L7 --> Path[🛤️ Path Routing]
+    L7 --> Host[🏠 Host Routing]
+    L7 --> SSL[🔒 SSL Termination]
+    
+    NLB --> L4[🔷 Layer 4 Features]
+    L4 --> Performance[⚡ Ultra Low Latency]
+    L4 --> StaticIP[📍 Static IP Addresses]
+    L4 --> Millions[🔢 Millions of Connections]
+```
+
+**Key Differences:**
+| Feature | 🔶 Application LB | 🔷 Network LB |
+|---------|-------------------|----------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Protocol</span> | HTTP/HTTPS | TCP/UDP |
+| <span style="color: #4ECDC4; font-weight: bold;">Latency</span> | ~100ms | ~10ms |
+| <span style="color: #45B7D1; font-weight: bold;">Features</span> | Path-based routing | High throughput |
+| <span style="color: #96CEB4; font-weight: bold;">Use Case</span> | Web applications | Gaming/Streaming |
+
+### 174. RDS vs DynamoDB
+```mermaid
+graph TD
+    Database[🗄️ Database Need] --> DB_Choice{🎯 Database Type}
+    DB_Choice -->|Relational| RDS[Amazon RDS]
+    DB_Choice -->|NoSQL| DynamoDB[Amazon DynamoDB]
+    
+    RDS --> SQL[📊 SQL Support]
+    SQL --> MySQL[🐬 MySQL]
+    SQL --> PostgreSQL[🐘 PostgreSQL]
+    SQL --> Aurora[🌟 Aurora]
+    
+    DynamoDB --> NoSQL[📋 NoSQL Features]
+    NoSQL --> Key[🔑 Key-Value]
+    NoSQL --> Document[📄 Document]
+    NoSQL --> AutoScale[📈 Auto Scaling]
+```
+
+**Database Comparison:**
+| Feature | 🗄️ Amazon RDS | 📋 Amazon DynamoDB |
+|---------|----------------|-------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Type</span> | Relational | NoSQL |
+| <span style="color: #4ECDC4; font-weight: bold;">Scaling</span> | Vertical/Horizontal | Automatic |
+| <span style="color: #45B7D1; font-weight: bold;">Schema</span> | Fixed | Flexible |
+| <span style="color: #96CEB4; font-weight: bold;">Performance</span> | High | Single-digit ms |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Transactions | Real-time apps |
+
+### 175. EC2 vs Lambda
+```mermaid
+graph TD
+    Compute[💻 Compute Need] --> Compute_Choice{🎯 Compute Type}
+    Compute_Choice -->|Continuous| EC2[Amazon EC2]
+    Compute_Choice -->|Event-Driven| Lambda[AWS Lambda]
+    
+    EC2 --> Server[🖥️ Virtual Server]
+    Server --> Full[🔧 Full Control]
+    Server --> OS[💻 Operating System]
+    Server --> Pricing[⏰ Pay per Hour]
+    
+    Lambda --> Function[⚡ Function as Service]
+    Function --> Serverless[🚫 No Server Management]
+    Function --> Events[🎯 Event Triggered]
+    Function --> Billing[💰 Pay per Request]
+```
+
+**Compute Comparison:**
+| Feature | 🖥️ Amazon EC2 | ⚡ AWS Lambda |
+|---------|----------------|----------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Model</span> | IaaS | FaaS |
+| <span style="color: #4ECDC4; font-weight: bold;">Control</span> | Full OS access | Limited runtime |
+| <span style="color: #45B7D1; font-weight: bold;">Scaling</span> | Manual/Auto | Automatic |
+| <span style="color: #96CEB4; font-weight: bold;">Pricing</span> | Per hour | Per request |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Long-running | Event-driven |
+
+### 176. EKS vs ECS
+```mermaid
+graph TD
+    Containers[🐳 Container Need] --> Container_Choice{🎯 Container Service}
+    Container_Choice -->|Kubernetes| EKS[Amazon EKS]
+    Container_Choice -->|Native| ECS[Amazon ECS]
+    
+    EKS --> K8s[☸️ Kubernetes]
+    K8s --> Portable[🔄 Portable]
+    K8s --> Ecosystem[🌐 Rich Ecosystem]
+    K8s --> Complex[📚 Complex]
+    
+    ECS --> AWS[☁️ AWS Native]
+    AWS --> Simple[📝 Simple]
+    AWS --> Fargate[🚀 Fargate Support]
+    AWS --> Integrated[🔗 AWS Integration]
+```
+
+**Container Platform Comparison:**
+| Feature | ☸️ Amazon EKS | 🐳 Amazon ECS |
+|---------|----------------|----------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Orchestrator</span> | Kubernetes | AWS Proprietary |
+| <span style="color: #4ECDC4; font-weight: bold;">Portability</span> | Multi-cloud | AWS only |
+| <span style="color: #45B7D1; font-weight: bold;">Complexity</span> | Higher | Lower |
+| <span style="color: #96CEB4; font-weight: bold;">Ecosystem</span> | Rich | Limited |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Complex apps | Simple workloads |
+
+### 177. SQS vs SNS vs Kinesis
+```mermaid
+graph TD
+    Messaging[📨 Messaging Need] --> Message_Choice{🎯 Message Pattern}
+    Message_Choice -->|Queue| SQS[Amazon SQS]
+    Message_Choice -->|Pub/Sub| SNS[Amazon SNS]
+    Message_Choice -->|Streaming| Kinesis[Amazon Kinesis]
+    
+    SQS --> Queue[📋 Queue Features]
+    Queue --> Decouple[🔀 Decouple Services]
+    Queue --> AtLeastOnce[✅ At-Least-Once]
+    Queue --> Retention[⏰ 14 Days]
+    
+    SNS --> PubSub[📡 Pub/Sub Features]
+    PubSub --> FanOut[🌟 Fan-Out]
+    PubSub --> Push[📱 Push Notifications]
+    PubSub --> MultiProtocol[🔌 Multi-Protocol]
+    
+    Kinesis --> Stream[📊 Stream Features]
+    Stream --> RealTime[⚡ Real-Time]
+    Stream --> Ordering[🔢 Ordering]
+    Stream --> Retention365[⏰ 365 Days]
+```
+
+**Messaging Service Comparison:**
+| Feature | 📋 Amazon SQS | 📡 Amazon SNS | 📊 Amazon Kinesis |
+|---------|----------------|----------------|-------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Pattern</span> | Queue | Pub/Sub | Stream |
+| <span style="color: #4ECDC4; font-weight: bold;">Delivery</span> | Pull | Push | Pull |
+| <span style="color: #45B7D1; font-weight: bold;">Ordering</span> | No | No | Yes |
+| <span style="color: #96CEB4; font-weight: bold;">Retention</span> | 14 days | N/A | 365 days |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Decoupling | Notifications | Real-time analytics |
+
+### 178. API Gateway vs ALB
+```mermaid
+graph TD
+    API[🚪 API Need] --> API_Choice{🎯 Gateway Type}
+    API_Choice -->|Public APIs| APIGW[API Gateway]
+    API_Choice -->|Internal Apps| ALB[Application LB]
+    
+    APIGW --> Features[🔧 API Features]
+    Features --> Auth[🔐 Authentication]
+    Features --> Throttling[🚦 Rate Limiting]
+    Features --> Caching[💾 Response Caching]
+    Features --> Stages[🎭 Stage Management]
+    
+    ALB --> LB_Features[⚖️ LB Features]
+    LB_Features --> Path[🛤️ Path Routing]
+    LB_Features --> Host[🏠 Host Routing]
+    LB_Features --> Health[💚 Health Checks]
+```
+
+**API Gateway vs ALB:**
+| Feature | 🚪 API Gateway | ⚖️ Application LB |
+|---------|-----------------|-------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Purpose</span> | API management | Load balancing |
+| <span style="color: #4ECDC4; font-weight: bold;">Auth</span> | Built-in | External |
+| <span style="color: #45B7D1; font-weight: bold;">Caching</span> | Yes | No |
+| <span style="color: #96CEB4; font-weight: bold;">Pricing</span> | Per request | Per hour |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Public APIs | Internal apps |
+
+### 179. S3 Standard vs IA vs Glacier
+```mermaid
+graph TD
+    Storage[💾 Storage Need] --> Storage_Choice{🎯 Access Pattern}
+    Storage_Choice -->|Frequent| Standard[S3 Standard]
+    Storage_Choice -->|Infrequent| IA[S3 Infrequent Access]
+    Storage_Choice -->|Archive| Glacier[S3 Glacier]
+    
+    Standard --> Frequent[🔄 Frequent Access]
+    Frequent --> High[⚡ High Performance]
+    Frequent --> Cost[💰 Higher Cost]
+    
+    IA --> Infrequent[📅 Infrequent Access]
+    Infrequent --> Lower[💰 Lower Cost]
+    Infrequent --> Retrieval[⏱️ Retrieval Cost]
+    
+    Glacier --> Archive[📦 Archive Storage]
+    Archive --> Lowest[💰 Lowest Cost]
+    Archive --> Slow[🐌 Slow Retrieval]
+```
+
+**Storage Class Comparison:**
+| Feature | 🔄 S3 Standard | 📅 S3 IA | 📦 S3 Glacier |
+|---------|-----------------|------------|---------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Access</span> | Immediate | Immediate | Hours |
+| <span style="color: #4ECDC4; font-weight: bold;">Cost</span> | Higher | Medium | Lowest |
+| <span style="color: #45B7D1; font-weight: bold;">Min Storage</span> | 30 days | 30 days | 90 days |
+| <span style="color: #96CEB4; font-weight: bold;">Use Case</span> | Active data | Backup | Archive |
+
+### 180. CloudWatch vs CloudTrail vs Config
+```mermaid
+graph TD
+    Monitoring[👁️ Monitoring Need] --> Monitor_Choice{🎯 Monitoring Type}
+    Monitor_Choice -->|Metrics| CW[CloudWatch]
+    Monitor_Choice -->|Auditing| CT[CloudTrail]
+    Monitor_Choice -->|Compliance| Config[AWS Config]
+    
+    CW --> Metrics[📊 Metrics & Logs]
+    Metrics --> Alarms[🚨 Alarms]
+    Metrics --> Dashboards[📈 Dashboards]
+    
+    CT --> Audit[📋 API Auditing]
+    Audit --> Governance[🔍 Governance]
+    Audit --> Security[🛡️ Security]
+    
+    Config --> Compliance[📋 Compliance Tracking]
+    Compliance --> Rules[📜 Config Rules]
+    Compliance --> History[📚 Configuration History]
+```
+
+**Monitoring Service Comparison:**
+| Feature | 📊 CloudWatch | 📋 CloudTrail | 📜 AWS Config |
+|---------|----------------|----------------|----------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Purpose</span> | Metrics & logs | API auditing | Config tracking |
+| <span style="color: #4ECDC4; font-weight: bold;">Data</span> | Performance | API calls | Resource state |
+| <span style="color: #45B7D1; font-weight: bold;">Alerting</span> | Yes | No | Yes |
+| <span style="color: #96CEB4; font-weight: bold;">Retention</span> | Custom | 90 days | History |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Performance | Security | Compliance |
+
+### 181. VPC vs Subnet vs Security Group
+```mermaid
+graph TD
+    Network[🌐 Network Design] --> Network_Choice{🎯 Network Component}
+    Network_Choice -->|Isolation| VPC[VPC]
+    Network_Choice -->|Segmentation| Subnet[Subnet]
+    Network_Choice -->|Security| SG[Security Group]
+    
+    VPC --> Isolation[🔒 Network Isolation]
+    Isolation --> IP[📍 IP Range]
+    Isolation --> Peering[🔗 VPC Peering]
+    
+    Subnet --> Segmentation[📦 Subnet Segmentation]
+    Segmentation --> Public[🌍 Public Subnet]
+    Segmentation --> Private[🔒 Private Subnet]
+    
+    SG --> Firewall[🔥 Instance Firewall]
+    Firewall --> Inbound[📥 Inbound Rules]
+    Firewall --> Outbound[📤 Outbound Rules]
+```
+
+**Network Component Comparison:**
+| Feature | 🌐 VPC | 📦 Subnet | 🔥 Security Group |
+|---------|---------|-----------|------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Scope</span> | Regional | AZ level | Instance level |
+| <span style="color: #4ECDC4; font-weight: bold;">Purpose</span> | Isolation | Segmentation | Traffic control |
+| <span style="color: #45B7D1; font-weight: bold;">Type</span> | Network | Network | Firewall |
+| <span style="color: #96CEB4; font-weight: bold;">State</span> | N/A | N/A | Stateful |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Network boundary | Resource placement | Instance security |
+
+### 182. Reserved Instances vs Savings Plans vs Spot
+```mermaid
+graph TD
+    Pricing[💰 Pricing Strategy] --> Pricing_Choice{🎯 Cost Optimization}
+    Pricing_Choice -->|Predictable| Reserved[Reserved Instances]
+    Pricing_Choice -->|Flexible| Savings[Savings Plans]
+    Pricing_Choice -->|Flexible/Cheap| Spot[Spot Instances]
+    
+    Reserved --> Commitment[📅 1-3 Year Commitment]
+    Commitment --> Discount[💰 Up to 72% Off]
+    
+    Savings --> Flexibility[🔄 Usage Flexibility]
+    Flexibility --> Discount2[💰 Up to 66% Off]
+    
+    Spot --> Volatility[⚡ High Volatility]
+    Volatility --> Discount3[💰 Up to 90% Off]
+```
+
+**Pricing Model Comparison:**
+| Feature | 📅 Reserved | 💰 Savings Plans | ⚡ Spot Instances |
+|---------|--------------|------------------|-------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Discount</span> | Up to 72% | Up to 66% | Up to 90% |
+| <span style="color: #4ECDC4; font-weight: bold;">Commitment</span> | 1-3 years | 1-3 years | No commitment |
+| <span style="color: #45B7D1; font-weight: bold;">Flexibility</span> | Low | Medium | High |
+| <span style="color: #96CEB4; font-weight: bold;">Risk</span> | Low | Low | High |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Stable workloads | Variable workloads | Fault-tolerant apps |
+
+### 183. NAT Gateway vs NAT Instance vs VPC Endpoint
+```mermaid
+graph TD
+    Outbound[📤 Outbound Internet] --> Outbound_Choice{🎯 Outbound Method}
+    Outbound_Choice -->|Managed| NATGW[NAT Gateway]
+    Outbound_Choice -->|Self-Managed| NATInstance[NAT Instance]
+    Outbound_Choice -->|AWS Services| VPCEndpoint[VPC Endpoint]
+    
+    NATGW --> Managed[🔧 AWS Managed]
+    Managed --> High[⚡ High Availability]
+    Managed --> Bandwidth[📊 45 Gbps]
+    
+    NATInstance --> Self[👤 Self Managed]
+    Self --> Control[🎛️ Full Control]
+    Self --> Cost[💰 Lower Cost]
+    
+    VPCEndpoint --> Private[🔒 Private Access]
+    Private --> Secure[🛡️ Secure]
+    Private --> NoInternet[🚫 No Internet]
+```
+
+**Outbound Connectivity Comparison:**
+| Feature | 🔧 NAT Gateway | 👤 NAT Instance | 🔒 VPC Endpoint |
+|---------|----------------|------------------|------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Management</span> | AWS managed | Self managed | AWS managed |
+| <span style="color: #4ECDC4; font-weight: bold;">Availability</span> | High | Manual | High |
+| <span style="color: #45B7D1; font-weight: bold;">Bandwidth</span> | 45 Gbps | Instance limited | N/A |
+| <span style="color: #96CEB4; font-weight: bold;">Cost</span> | Higher | Lower | Per hour |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | Production | Development | AWS services |
+
+### 184. Direct Connect vs VPN vs Transit Gateway
+```mermaid
+graph TD
+    Connectivity[🔗 Connectivity Need] --> Connect_Choice{🎯 Connection Type}
+    Connect_Choice -->|Dedicated| Direct[Direct Connect]
+    Connect_Choice -->|Secure| VPN[Site-to-Site VPN]
+    Connect_Choice -->|Hub-Spoke| TGW[Transit Gateway]
+    
+    Direct --> Dedicated[🔒 Dedicated Connection]
+    Dedicated --> High[⚡ High Performance]
+    Dedicated --> Consistent[📊 Consistent Latency]
+    
+    VPN --> Secure[🔐 Encrypted Tunnel]
+    Secure --> Internet[🌐 Over Internet]
+    Secure --> Flexible[🔄 Flexible]
+    
+    TGW --> Hub[🎯 Central Hub]
+    Hub --> Many[📊 Many Connections]
+    Hub --> Simplify[📝 Simplify Management]
+```
+
+**Connectivity Comparison:**
+| Feature | 🔒 Direct Connect | 🔐 VPN | 🎯 Transit Gateway |
+|---------|------------------|---------|-------------------|
+| <span style="color: #FF6B6B; font-weight: bold;">Connection</span> | Dedicated | Over Internet | Hub-spoke |
+| <span style="color: #4ECDC4; font-weight: bold;">Performance</span> | High | Variable | High |
+| <span style="color: #45B7D1; font-weight: bold;">Security</span> | Private | Encrypted | Private |
+| <span style="color: #96CEB4; font-weight: bold;">Cost</span> | High | Low | Medium |
+| <span style="color: #9B59B6; font-weight: bold;">Use Case</span> | High throughput | Small sites | Many connections |
+
+### 185. ElastiCache vs RDS vs DynamoDB DAX
+```mermaid
+graph TD
+    Cache[💾 Caching Need] --> Cache_Choice{🎯 Cache Type}
+    Cache_Choice -->|In-Memory| ElastiCache[ElastiCache]
+    Cache_Choice -->|Database Cache| RDS[RDS Query Cache]
+    Cache_Choice -->|DynamoDB| DAX[DynamoDB DAX]
+    
+    ElastiCache --> Redis[🔴 Redis]
+    ElastiCache --> Memcached[🟡 Memcached]
+    Redis --> Persistence[💾 Persistence]
+    Memcached --> Simple[📝 Simple]
+    
+    RDS --> Query[📊 Query Cache]
+    Query --> Transparent[🔍 Transparent]
+    Query --> Limited[📏 Limited]
+    
+    DAX --> Dynamo[📋 DynamoDB Accelerator]
+    Dynamo --> Microseconds[⚡ Microsecond Latency]
+    Dynamo --> Seamless[🔗 Seamless Integration]
+```
+
+**Caching Solution Comparison:**
+| Feature | 💾 ElastiCache | 📊 RDS Cache | ⚡ DAX |
+|---------|----------------|--------------|---------|
+| <span style="color: #FF6B6B; font-weight: bold;">Type</span> | In-memory | Query cache | DynamoDB cache |
+| <span style="color: #4ECDC4; font-weight: bold;">Latency</span> | Microseconds | Milliseconds | Microseconds |
+| <span style="color: #45B7D1; font-weight: bold;">Management</span> | Self managed | Automatic | Automatic |
+| <span style="color: #96CEB4; font-weight: bold;">Use Case</span> | General caching | Query optimization | DynamoDB acceleration |
+
+---
+
 ## 📋 Quick Reference
 
 ### AWS Services Cheat Sheet
