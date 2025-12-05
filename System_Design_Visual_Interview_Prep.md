@@ -21,6 +21,26 @@
 - [18. Design an Authentication System](#18-design-an-authentication-system)
 - [19. Design a Content Delivery Network (CDN)](#19-design-a-content-delivery-network-cdn)
 - [20. Design a Pub/Sub System](#20-design-a-pubsub-system)
+- [21. Design a Distributed Key-Value Store](#21-design-a-distributed-key-value-store)
+- [22. Design a Distributed Message Queue](#22-design-a-distributed-message-queue)
+- [23. Design a Distributed File System (like HDFS)](#23-design-a-distributed-file-system-like-hdfs)
+- [24. Design a Distributed Transaction System](#24-design-a-distributed-transaction-system)
+- [25. Design a Distributed ID Generator](#25-design-a-distributed-id-generator)
+- [26. Design a Distributed Locking Service](#26-design-a-distributed-locking-service)
+- [27. Design a Distributed Consensus System (like Paxos or Raft)](#27-design-a-distributed-consensus-system-like-paxos-or-raft)
+- [28. Design a Distributed Log Storage (like Kafka)](#28-design-a-distributed-log-storage-like-kafka)
+- [29. Design a Real-time Analytics System](#29-design-a-real-time-analytics-system)
+- [30. Design a Write-Ahead Log (WAL)](#30-design-a-write-ahead-log-wal)
+- [31. Design an Anti-Entropy Protocol](#31-design-an-anti-entropy-protocol)
+- [32. Design a Global Load Balancer](#32-design-a-global-load-balancer)
+- [33. Design a Distributed Tracing System](#33-design-a-distributed-tracing-system)
+- [34. Design a Distributed Configuration Service](#34-design-a-distributed-configuration-service)
+- [35. Design a Distributed Logging System](#35-design-a-distributed-logging-system)
+- [36. Design a Leader Election Service](#36-design-a-leader-election-service)
+- [37. Design a Circuit Breaker Pattern](#37-design-a-circuit-breaker-pattern)
+- [38. Design an Asynchronous Task Queue](#38-design-an-asynchronous-task-queue)
+- [39. Design a Geo-Distributed Database](#39-design-a-geo-distributed-database)
+- [40. Design a Global Load Balancer (Redundant)](#40-design-a-global-load-balancer-redundant)
 
 ---
 
@@ -1049,491 +1069,552 @@ graph TD
 
 ---
 
-### 11. Design an E-commerce System
-Design a scalable e-commerce platform similar to Amazon.
+### 31. Design a Global Load Balancer
+Design a global load balancing system that distributes user requests across geographically dispersed data centers.
 
 ```mermaid
 graph TD
-    User[👩‍💻 User] -- 1. Browse/Search --> Frontend[🌐 Frontend App]
-    Frontend -- 2. API Requests --> APIGateway[⛩️ API Gateway]
-
-    subgraph "Backend Microservices"
-        ProductSvc[📦 Product Service]
-        SearchSvc[🔍 Search Service]
-        CartSvc[🛒 Cart Service]
-        OrderSvc[📝 Order Service]
-        PaymentSvc[💳 Payment Service]
-        UserSvc[👤 User Service]
+    User[👩‍💻 User] -- 1. DNS Query for app.example.com --> LocalDNS[🌐 Local DNS Resolver]
+    LocalDNS -- 2. Query Authoritative DNS --> GSLB[🌍 Global Server Load Balancer (GSLB)]
+    
+    subgraph "Data Centers"
+        DC1[🏢 Data Center 1<br>(US-East)]
+        DC2[🏢 Data Center 2<br>(EU-West)]
+        DC3[🏢 Data Center 3<br>(Asia-SE)]
     end
 
-    subgraph "Databases & Caches"
-        ProductDB[(🗄️ Product DB)]
-        SearchIdx[⚡ Search Index (Elasticsearch)]
-        CartCache[⚡ Cart Cache (Redis)]
-        OrderDB[(🗄️ Order DB)]
-        UserDB[(🗄️ User DB)]
-    end
-
-    APIGateway -- "Products" --> ProductSvc
-    APIGateway -- "Search" --> SearchSvc
-    APIGateway -- "Cart" --> CartSvc
-    APIGateway -- "Order" --> OrderSvc
-    APIGateway -- "Payment" --> PaymentSvc
-    APIGateway -- "User" --> UserSvc
-
-    ProductSvc -- "Reads" --> ProductDB
-    SearchSvc -- "Queries" --> SearchIdx
-    CartSvc -- "Reads/Writes" --> CartCache
-    OrderSvc -- "Reads/Writes" --> OrderDB
-    UserSvc -- "Reads/Writes" --> UserDB
-
-    ProductSvc -- "Updates" --> SearchIdx
-    OrderSvc -- "Notifies" --> PaymentSvc
-    PaymentSvc -- "Integrates with" --> ThirdPartyPayment[🏦 Third-Party Payment Gateway]
+    GSLB -- "3. Choose optimal DC (Latency, Health, Load)" --> DC1
+    GSLB -- "3. Returns IP of DC1 Load Balancer" --> LocalDNS
+    LocalDNS -- 4. Returns IP to User --> User
+    User -- 5. Request to DC1 --> AppLB1[⚖️ App Load Balancer (DC1)]
+    AppLB1 -- 6. Routes to App Server --> AppServer[⚙️ Application Server]
 ```
 
+**Core Problem**: Direct user traffic to the most appropriate data center or region, ensuring low latency, high availability, and efficient resource utilization.
+
 **Core Components & Concepts:**
-- 🌐 **Frontend App**: User interface for browsing, searching, and purchasing.
-- ⛩️ **API Gateway**: Entry point for all client requests, handles routing, authentication, and rate limiting.
-- **Backend Microservices**:
-    - 📦 **Product Service**: Manages product catalog, inventory, and details.
-    - 🔍 **Search Service**: Provides product search and indexing capabilities (e.g., using Elasticsearch).
-    - 🛒 **Cart Service**: Manages user shopping carts. Often uses an in-memory store like Redis for speed.
-    - 📝 **Order Service**: Handles order creation, processing, and status updates.
-    - 💳 **Payment Service**: Integrates with third-party payment gateways, handles transactions securely.
-    - 👤 **User Service**: Manages user accounts, authentication, and profiles.
-- **Databases & Caches**: Each microservice typically has its own dedicated database (polyglot persistence) and uses caching where appropriate.
-    - **Product DB**: SQL or NoSQL depending on complexity (e.g., PostgreSQL, MongoDB).
-    - **Search Index**: Elasticsearch for full-text search.
-    - **Cart Cache**: Redis for fast cart operations.
-    - **Order DB**: Often a transactional SQL database (e.g., MySQL, PostgreSQL).
-    - **User DB**: Relational database for user data.
+- 🌍 **Global Server Load Balancer (GSLB)**: The brain of the system. It sits at the DNS layer. When a user queries for `app.example.com`, the GSLB intercepts the request and, based on its intelligent routing policies, returns the IP address of the most suitable application load balancer in a specific data center.
+- **Data Centers (DCs)**: Geographically distributed physical or virtual locations where your application infrastructure resides.
+- ⚖️ **Application Load Balancer (App LB)**: Within each data center, a local load balancer distributes traffic to the application servers.
+- ⚙️ **Application Servers**: Host your application logic.
+
+**GSLB Routing Policies:**
+- **Geolocation**: Direct users to the data center geographically closest to them, minimizing latency.
+- **Latency-Based**: Measure the real-time latency between users and data centers and direct traffic to the lowest-latency option.
+- **Health Checks**: Continuously monitor the health of application load balancers and services in each data center. If a DC is unhealthy, traffic is automatically routed away.
+- **Weighted Round Robin/Load-Based**: Distribute traffic based on the capacity or current load of each data center.
+
+**Benefits & Considerations:**
+- **Disaster Recovery/High Availability**: If an entire data center fails, the GSLB can automatically redirect all traffic to healthy data centers.
+- **Improved User Experience**: Users connect to the closest, best-performing data center, resulting in lower latency.
+- **Traffic Management**: Efficiently distribute global traffic, preventing any single data center from becoming overloaded.
+- **DNS Caching**: GSLB decisions are often cached by local DNS resolvers, which can delay updates if a data center goes down. Low DNS TTL (Time-To-Live) values help mitigate this.
+
+---
+
+### 32. Design a Distributed Tracing System
+Design a system to track requests as they flow through a distributed microservices architecture.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Request] --> API_Gateway[⛩️ API Gateway]
+    API_Gateway -- "Adds Trace ID" --> ServiceA[📦 Service A]
+    ServiceA -- "Calls Service B, passes Trace ID" --> ServiceB[📦 Service B]
+    ServiceB -- "Calls Service C, passes Trace ID" --> ServiceC[📦 Service C]
+
+    subgraph "Tracing System"
+        AgentA[📈 Agent (Service A)]
+        AgentB[📈 Agent (Service B)]
+        AgentC[📈 Agent (Service C)]
+        Collector[📊 Collector]
+        Storage[🗄️ Trace Storage (Cassandra)]
+        UI[💻 UI (Jaeger/Zipkin)]
+    end
+
+    ServiceA -- "Sends Span to" --> AgentA
+    ServiceB -- "Sends Span to" --> AgentB
+    ServiceC -- "Sends Span to" --> AgentC
+
+    AgentA --> Collector
+    AgentB --> Collector
+    AgentC --> Collector
+
+    Collector -- "Aggregates Spans" --> Storage
+    Storage -- "Queries" --> UI
+```
+
+**Core Problem**: Understand the end-to-end flow of requests, identify performance bottlenecks, and debug failures in complex microservices environments where a single user action might touch dozens of services.
+
+**Core Concepts:**
+- **Trace**: Represents a single request's journey through the distributed system. A trace consists of multiple **Spans**.
+- **Span**: Represents a single operation within a trace (e.g., a function call, a database query, an HTTP request to another service). Each span has a name, a start time, an end time, and a set of key-value tags.
+- **Trace ID**: A unique identifier that links all spans belonging to the same trace. It's propagated through all service calls.
+- **Parent Span ID**: Each span (except the root span) references its parent span, creating a hierarchical relationship.
+- **Agent**: A small process running alongside each service that collects span data from the service and forwards it to a collector.
+- **Collector**: Receives span data from agents, aggregates it, and stores it in a persistent storage.
+- **Trace Storage**: A database optimized for storing time-series data and complex queries (e.g., Cassandra, Elasticsearch).
+- **UI**: A user interface (e.g., Jaeger, Zipkin, Grafana Tempo) for visualizing traces, searching, and analyzing performance.
+
+**Workflow:**
+1.  A client request hits the **API Gateway**. The gateway generates a unique **Trace ID** and a **Root Span**.
+2.  As the request propagates through **Service A**, it creates a new span, linking it to the Root Span as its parent. The Trace ID is passed along in the request headers (e.g., `X-B3-TraceId`).
+3.  **Service A** calls **Service B**, creating a new child span. The Trace ID and the current Span ID (from Service A) are passed to Service B.
+4.  Each service measures the duration of its operations and sends the span data (Trace ID, Span ID, Parent Span ID, start/end times, tags) to its local **Agent**.
+5.  Agents batch and send the span data to the **Collector**.
+6.  The **Collector** reconstructs the full trace from all the individual spans and stores it in the **Trace Storage**.
+7.  Developers can then use the **UI** to search for traces (e.g., by Trace ID, service name, duration) and visualize the entire request flow.
+
+**Benefits:**
+- **Root Cause Analysis**: Quickly pinpoint where latency or errors are occurring.
+- **Performance Optimization**: Identify bottlenecks and understand dependencies between services.
+- **Service Dependency Mapping**: Visualize the call graph of your microservices.
+
+---
+
+### 33. Design a Distributed Configuration Service
+Design a centralized service for managing and distributing configuration settings to a fleet of distributed applications.
+
+```mermaid
+graph TD
+    Admin[👨‍💻 Admin/CI-CD] -- "1. Update Config" --> ConfigEditor[💻 Config Editor UI/API]
+    ConfigEditor -- "2. Persist Config" --> ConfigDB[(🗄️ Configuration DB)]
+    ConfigDB -- "3. Notify Watcher" --> WatcherService[👀 Config Watcher Service]
+    
+    subgraph "Application Fleet"
+        App1[⚙️ App Instance 1]
+        App2[⚙️ App Instance 2]
+        AppN[⚙️ App Instance N]
+    end
+
+    WatcherService -- "4. Push Update / Long Poll" --> App1
+    WatcherService -- "..." --> App2
+    WatcherService -- "..." --> AppN
+
+    App1 -- "5. Fetch Config on Startup / Refresh" --> ConfigService[🌐 Configuration Service API]
+    ConfigService -- "6. Read Config" --> ConfigDB
+```
+
+**Core Problem**: Provide a centralized, versioned, and dynamic way for multiple distributed applications to get their configuration settings, enabling runtime updates without restarting applications.
+
+**Core Components & Concepts:**
+- 🗄️ **Configuration Database**: Stores all configuration settings. Should support versioning and possibly role-based access control. Examples: Git repository (for GitOps), etcd, Consul, Apache ZooKeeper, dedicated services like AWS AppConfig.
+- 💻 **Config Editor UI/API**: An interface for administrators or automated systems (CI/CD) to manage configuration.
+- 🌐 **Configuration Service API**: Applications query this API to fetch their configuration.
+- 👀 **Config Watcher Service**: Monitors the Configuration Database for changes and pushes updates to subscribing applications.
+
+**Configuration Delivery Mechanisms:**
+1.  **Pull Model (on startup/interval)**:
+    - Applications fetch their configuration from the Configuration Service API when they start up.
+    - They can also periodically poll the Configuration Service for updates.
+    - **Pros**: Simple to implement.
+    - **Cons**: Latency in applying updates, increased load on Config Service due to polling.
+
+2.  **Push Model (real-time updates)**:
+    - Applications establish a long-lived connection (e.g., WebSocket, long poll) with the Config Watcher Service.
+    - When configuration changes, the Watcher Service pushes the new configuration to all subscribed applications.
+    - **Pros**: Real-time updates, reduced polling overhead.
+    - **Cons**: More complex to implement and manage persistent connections.
+
+**Benefits & Considerations:**
+- **Centralized Management**: All configurations in one place.
+- **Dynamic Updates**: Change configuration without re-deploying or restarting applications.
+- **Version Control**: Track changes to configurations, allowing rollbacks.
+- **Security**: Implement strong access control to prevent unauthorized configuration changes.
+- **Availability**: The Configuration Service itself must be highly available and fault-tolerant.
+
+---
+
+### 34. Design a Distributed Logging System
+Design a centralized, scalable, and fault-tolerant system for collecting, storing, and analyzing logs from distributed applications.
+
+```mermaid
+graph TD
+    App1[⚙️ App 1] -- "Generates Logs" --> Agent1[📈 Log Agent (App 1)]
+    App2[⚙️ App 2] -- "Generates Logs" --> Agent2[📈 Log Agent (App 2)]
+    AppN[⚙️ App N] -- "Generates Logs" --> AgentN[📈 Log Agent (App N)]
+
+    subgraph "Logging Pipeline"
+        Agent1 -- "1. Collect & Forward" --> Shipper[📦 Log Shipper<br>(Fluentd/Logstash)]
+        Agent2 -- "..." --> Shipper
+        AgentN -- "..." --> Shipper
+        Shipper -- "2. Batch & Send" --> MQ[🔄 Message Queue<br>(Kafka)]
+        MQ -- "3. Ingest" --> Indexer[📊 Log Indexer<br>(Elasticsearch)]
+    end
+
+    Indexer -- "4. Store" --> Storage[🗄️ Log Storage<br>(Disk/S3)]
+    User[👨‍💻 Developer/SRE] -- "5. Search/Analyze" --> QueryUI[💻 Log Query UI<br>(Kibana/Grafana)]
+    QueryUI -- "6. Query" --> Indexer
+```
+
+**Core Problem**: Collect massive volumes of logs from diverse, distributed sources, centralize them, make them searchable, and analyze them to monitor system health, debug issues, and gain insights.
+
+**Core Components & Concepts:**
+- ⚙️ **Applications**: Generate various types of logs (application logs, access logs, error logs).
+- 📈 **Log Agent**: A lightweight process running on each application host (e.g., Fluentd, Filebeat, Logstash-forwarder) that:
+    - Collects logs from local files, stdout, or other sources.
+    - Tags logs with metadata (hostname, service name).
+    - Forwards logs to the Log Shipper.
+- 📦 **Log Shipper/Aggregator**: A central component (e.g., Fluentd, Logstash) that receives logs from agents, performs filtering, parsing, and transformations, and then sends them to the Message Queue.
+- 🔄 **Message Queue (Kafka)**: Acts as a buffer and decoupler. It provides:
+    - **Durability**: Logs are not lost if downstream components fail.
+    - **Scalability**: Can handle high ingestion rates.
+    - **Ordering**: Preserves log order (within partitions).
+- 📊 **Log Indexer (Elasticsearch)**: A distributed search engine optimized for full-text search and analytical queries. It indexes the parsed log data, making it fast to search.
+- 🗄️ **Log Storage**: Persistent storage for raw and/or indexed logs (e.g., local disk, S3). Elasticsearch typically stores its indices on local disk.
+- 💻 **Log Query UI (Kibana/Grafana)**: A web-based interface for searching, filtering, visualizing, and analyzing log data.
+
+**Workflow:**
+1.  Applications generate logs.
+2.  Log agents collect and forward logs to the shipper.
+3.  The shipper processes (parses, filters) logs and sends them to a message queue.
+4.  The log indexer (e.g., Elasticsearch) consumes from the message queue, indexes the logs, and stores them.
+5.  Users query and analyze logs through a UI.
 
 **Scalability & Considerations:**
-- **Asynchronous Communication**: Services can communicate asynchronously using message queues (e.g., Kafka) for events like "Order Placed" or "Inventory Updated."
-- **Caching**: Extensive caching at various levels (CDN, API Gateway, service-level) to reduce database load.
-- **Load Balancing**: Across all service instances and database replicas.
-- **Security**: Implement robust authentication (OAuth2, JWT), authorization (RBAC), and secure payment processing.
-- **Observability**: Centralized logging, monitoring, and tracing for a complex microservices architecture.
+- **Horizontal Scalability**: All components (agents, shippers, queue, indexer) can be scaled horizontally.
+- **Schema-on-Read vs. Schema-on-Write**: Elasticsearch uses a schema-on-write approach, meaning fields need to be defined for efficient indexing.
+- **Cost**: Storing and indexing large volumes of logs can be expensive. Implement retention policies.
+- **Centralized Clock**: Essential for correlating logs from different services. Use NTP.
 
 ---
 
-### 12. Design a Web Crawler
-Design a distributed web crawler that can collect and index web pages.
+### 35. Design a Leader Election Service
+Design a fault-tolerant service that elects a single leader among a group of distributed nodes and ensures leader handover upon failure.
 
 ```mermaid
 graph TD
-    SeedURLs[🔗 Seed URLs] --> URLFrontier[🧭 URL Frontier<br>(Queue)]
-    URLFrontier -- "1. Get URL" --> Fetcher[🕷️ Fetcher<br>(HTTP Client)]
-    Fetcher -- "2. Download Page" --> DNS[🌐 DNS Resolver]
-    Fetcher -- "3. Store Raw Page" --> RawStorage[💾 Raw Page Storage<br>(S3/HDFS)]
+    NodeA[⚙️ Node A]
+    NodeB[⚙️ Node B]
+    NodeC[⚙️ Node C]
+
+    subgraph "Consensus/Coordination Service (e.g., ZooKeeper)"
+        ZK1[🗄️ ZK Node 1]
+        ZK2[🗄️ ZK Node 2]
+        ZK3[🗄️ ZK Node 3]
+    end
+
+    NodeA -- "1. Create ephemeral-sequential ZNode / Request Vote" --> ZK1
+    NodeB -- "1. Create ephemeral-sequential ZNode / Request Vote" --> ZK1
+    NodeC -- "1. Create ephemeral-sequential ZNode / Request Vote" --> ZK1
+
+    ZK1 -- "2. Assign Smallest ID to Node B" --> NodeB[🌟 Leader]
+    ZK1 -- "3. Notify others of Leader B" --> NodeA
+    ZK1 -- "3. Notify others of Leader B" --> NodeC
     
-    RawStorage -- "4. Trigger Parser" --> Parser[📄 Parser<br>(Extract Links/Text)]
-    Parser -- "5. Extract Links" --> LinkExtractor[🔗 Link Extractor]
-    LinkExtractor -- "6. Add new links to frontier" --> URLFrontier
-    Parser -- "7. Extract Text/Metadata" --> Indexer[📇 Indexer]
-    Indexer -- "8. Update Search Index" --> SearchIdx[🔍 Search Index<br>(Elasticsearch)]
-```
-
-**Core Components & Concepts:**
-- 🔗 **URL Frontier**: A prioritized queue of URLs to be crawled. New URLs found during crawling are added here. Uses a database or message queue (e.g., Kafka, Redis List) for persistence.
-- 🕷️ **Fetcher (Crawler Worker)**: A distributed fleet of workers responsible for fetching web pages.
-    - Makes HTTP requests, handles redirects, retries, and honors `robots.txt` rules.
-    - Needs to manage concurrency and politeness towards websites (not overwhelming them).
-- 💾 **Raw Page Storage**: Stores the raw HTML content of crawled pages (e.g., S3, HDFS).
-- 📄 **Parser**: Processes the raw HTML to extract meaningful data.
-    - **Link Extractor**: Identifies all hyperlinks on the page and feeds new, unvisited URLs back to the URL Frontier.
-    - **Text/Metadata Extractor**: Extracts the main content, title, meta tags, etc., for indexing.
-- 📇 **Indexer**: Takes the extracted text and metadata and builds an inverted index for a search engine.
-- 🔍 **Search Index**: A highly scalable distributed search engine (e.g., Elasticsearch, Apache Lucene) that stores the indexed content.
-
-**Scalability & Considerations:**
-- **Distributed Architecture**: All components should be designed to scale horizontally.
-- **Politeness and Throttling**: Crucial to avoid being blocked by websites. Implement delays and respect `robots.txt`.
-- **Duplicate URL Detection**: Use a Bloom filter or a distributed hash set to efficiently check if a URL has already been visited.
-- **Fault Tolerance**: If a fetcher or parser worker fails, the URL should be re-queued and processed by another worker.
-- **Data Freshness**: Periodically re-crawl important pages to keep the index up-to-date.
-
----
-
-### 13. Design an Online Bookstore
-Design an online bookstore like Goodreads or an e-commerce platform for books.
-
-```mermaid
-graph TD
-    User[👩‍💻 User] -- 1. Browse/Search --> Frontend[🌐 Frontend App]
-    Frontend -- 2. API Requests --> APIGateway[⛩️ API Gateway]
-
-    subgraph "Backend Microservices"
-        CatalogSvc[📚 Catalog Service]
-        SearchSvc[🔍 Search Service]
-        ReviewSvc[💬 Review Service]
-        UserSvc[👤 User Service]
-        OrderSvc[📝 Order Service]
-        PaymentSvc[💳 Payment Service]
-    end
-
-    subgraph "Databases & Caches"
-        CatalogDB[(🗄️ Book Catalog DB)]
-        SearchIdx[⚡ Search Index (Elasticsearch)]
-        ReviewDB[(🗄️ Reviews DB)]
-        UserDB[(🗄️ User DB)]
-        OrderDB[(🗄️ Order DB)]
-    end
-
-    APIGateway -- "Catalog" --> CatalogSvc
-    APIGateway -- "Search" --> SearchSvc
-    APIGateway -- "Reviews" --> ReviewSvc
-    APIGateway -- "User" --> UserSvc
-    APIGateway -- "Order" --> OrderSvc
-    APIGateway -- "Payment" --> PaymentSvc
-
-    CatalogSvc -- "Reads" --> CatalogDB
-    SearchSvc -- "Queries" --> SearchIdx
-    ReviewSvc -- "Reads/Writes" --> ReviewDB
-    UserSvc -- "Reads/Writes" --> UserDB
-    OrderSvc -- "Reads/Writes" --> OrderDB
-    OrderSvc -- "Notifies" --> PaymentSvc
-    PaymentSvc -- "Integrates with" --> ThirdPartyPayment[🏦 Third-Party Payment Gateway]
-    CatalogSvc -- "Updates" --> SearchIdx
-```
-
-**Core Components & Concepts:**
-- This design heavily mirrors the E-commerce System (Question 11) with specialized services for books.
-- 📚 **Catalog Service**: Manages book details, ISBNs, authors, genres, inventory, etc.
-- 🔍 **Search Service**: Specifically optimized for book search, including full-text search on titles, authors, and descriptions.
-- 💬 **Review Service**: Handles user-submitted reviews and ratings for books.
-- **Order, Payment, User Services**: Similar to a general e-commerce platform.
-
-**Specific Considerations for Books:**
-- **Metadata Richness**: Books have extensive metadata (ISBN, genre, publisher, publication date, series, editions). The Catalog DB and Search Index must handle this efficiently.
-- **Content Delivery**: For e-books, a content delivery mechanism (e.g., CDN for digital files) would be necessary.
-- **Recommendations**: A recommendation engine (see Question 9) is crucial for a bookstore to suggest books based on user preferences, purchase history, and browsing behavior.
-- **Scalability**: Similar to any e-commerce platform, the system must handle high read and transactional loads.
-
----
-
-### 14. Design an ATM System
-Design a simplified distributed ATM network.
-
-```mermaid
-graph TD
-    Client[🏧 ATM Terminal] -- "1. Request Transaction" --> LoadBalancer[⚖️ Load Balancer]
-    LoadBalancer --> APIServer[🌐 Transaction API]
-
-    subgraph "Core Banking Services"
-        AuthSvc[🔒 Authorization Service]
-        BalanceSvc[💰 Balance Service]
-        TxnSvc[🔄 Transaction Service]
-    end
-
-    subgraph "Databases"
-        UserAccountDB[(🗄️ User Accounts DB)]
-        TransactionLogDB[(🗄️ Transaction Log DB)]
-    end
-
-    APIServer -- "2. Authenticate Card/PIN" --> AuthSvc
-    AuthSvc -- "3. Verify Credentials" --> UserAccountDB
-    AuthSvc -- "4. Return Auth Status" --> APIServer
+    NodeB -- "4. Performs Leader Tasks" --> CriticalTask[✅ Critical Task]
     
-    APIServer -- "5. Get Current Balance" --> BalanceSvc
-    BalanceSvc -- "6. Read Balance" --> UserAccountDB
-    BalanceSvc -- "7. Return Balance" --> APIServer
+    NodeB -- "5. Leader Fails / Disconnects" --> ZK1
+    ZK1 -- "6. Detects Node B failure" --> NodeA[⚙️ Node A<br>Becomes Candidate]
+    ZK1 -- "6. Detects Node B failure" --> NodeC[⚙️ Node C<br>Becomes Candidate]
     
-    APIServer -- "8. Process Transaction" --> TxnSvc
-    TxnSvc -- "9. Debit/Credit Account" --> UserAccountDB
-    TxnSvc -- "10. Log Transaction" --> TransactionLogDB
-    TxnSvc -- "11. Return Txn Status" --> APIServer
+    NodeA -- "7. Compete for Leader" --> ZK1
+    ZK1 -- "8. Assign Smallest ID to Node A" --> NodeA[🌟 New Leader]
+```
+
+**Core Problem**: In a distributed system, for certain tasks that require a single coordinator or a single point of truth, how do you reliably select one node to be the "leader" and automatically select a new leader if the current one fails?
+
+**Core Concepts:**
+- **Nodes**: The participants in the election. Each node is a potential candidate for leadership.
+- **Consensus/Coordination Service (e.g., ZooKeeper, etcd, Consul)**: These systems are designed to provide distributed coordination primitives, including leader election.
+    - They offer features like **ephemeral nodes** (nodes that disappear when the client disconnects) and **watches** (clients can be notified when a node changes).
+- **Leader**: The elected node responsible for a specific set of tasks (e.g., coordinating writes, scheduling jobs). Only one leader exists at any given time.
+- **Followers**: The other nodes that monitor the leader and are ready to take over if the leader fails.
+
+**Workflow (using ZooKeeper's ephemeral-sequential ZNodes):**
+1.  **Join Election**: Each participating node creates an ephemeral-sequential ZNode (e.g., `/election/node_`) in a designated directory in ZooKeeper. ZooKeeper automatically appends a monotonically increasing sequence number to each ZNode (e.g., `/election/node_0000000001`, `/election/node_0000000002`).
+2.  **Determine Leader**: Each node examines the ZNodes in the `/election` directory. The node whose ZNode has the smallest sequence number becomes the **Leader**.
+3.  **Monitor Leader**: Each non-leader node (follower) sets a watch on the ZNode directly preceding its own. For example, `/election/node_0000000002` watches `/election/node_0000000001`.
+4.  **Leader Failure**: If the Leader fails or disconnects, its ephemeral ZNode is automatically deleted by ZooKeeper.
+5.  **New Election**: The follower whose watched ZNode (the previous leader's) was deleted is notified. It then re-evaluates the ZNodes in the directory and, if its ZNode now has the smallest sequence number, it becomes the new Leader.
+
+**Benefits:**
+- **Fault Tolerance**: The system can recover from leader failures automatically.
+- **Single Point of Control**: Ensures only one process is performing critical operations.
+- **Distributed Coordination**: Enables complex distributed systems to operate reliably.
+
+**Considerations:**
+- **Split-Brain**: A critical challenge where network partitions cause two (or more) leaders to be elected simultaneously. Consensus algorithms (Paxos, Raft) or strong fencing mechanisms are needed to prevent this.
+- **Performance**: The coordination overhead can add latency.
+
+---
+
+### 36. Design a Circuit Breaker Pattern
+Design a mechanism to prevent cascading failures in a microservices architecture.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. Request" --> CircuitBreaker[🚦 Circuit Breaker]
+    CircuitBreaker -- "2. Call Service" --> ServiceA[📦 Service A]
+
+    subgraph "Circuit Breaker States"
+        Closed[🟢 Closed<br>(Normal Operation)]
+        Open[🔴 Open<br>(Fail Fast)]
+        HalfOpen[🟡 Half-Open<br>(Test Service Health)]
+    end
+
+    Closed -- "Threshold exceeded (e.g., 5 failures in 10s)" --> Open
+    Open -- "Timeout (e.g., 5s)" --> HalfOpen
+    HalfOpen -- "Test successful" --> Closed
+    HalfOpen -- "Test failed" --> Open
+
+    ServiceA -- "Success" --> CircuitBreaker
+    ServiceA -- "Failure" --> CircuitBreaker
+    CircuitBreaker -- "Returns Error / Fallback" --> Client
+```
+
+**Core Problem**: Prevent a failing microservice from overwhelming and cascading its failures to other services, leading to a complete system outage. It provides resilience by preventing repeated attempts to an operation that's likely to fail.
+
+**Core Concepts:**
+- 🚦 **Circuit Breaker**: A proxy or wrapper around a remote service call. Instead of calling the service directly, the client calls the circuit breaker.
+- **States**: The circuit breaker has three states:
+    - 🟢 **Closed**: (Default state) The circuit breaker allows requests to pass through to the service. It monitors for failures. If the failure rate (or number of failures) exceeds a defined threshold, it transitions to `Open`.
+    - 🔴 **Open**: The circuit breaker immediately rejects requests without calling the underlying service. It returns an error to the client or a predefined fallback response. This state lasts for a configurable timeout period. After the timeout, it transitions to `Half-Open`.
+    - 🟡 **Half-Open**: After the timeout in the `Open` state, the circuit breaker allows a limited number of test requests to pass through to the service. If these test requests succeed, it transitions back to `Closed`. If they fail, it transitions back to `Open`.
+
+**Workflow:**
+1.  A **Client** wants to call **Service A**. It first goes through the **Circuit Breaker**.
+2.  If the circuit is **Closed**, the request goes to **Service A**.
+    - If **Service A** succeeds, the circuit breaker continues to pass requests.
+    - If **Service A** fails repeatedly (e.g., network errors, timeouts) and the failure threshold is met, the circuit transitions to **Open**.
+3.  If the circuit is **Open**, the **Circuit Breaker** immediately returns an error or a fallback response to the client without calling **Service A**. This prevents further load on the failing service and allows it to recover.
+4.  After a configurable timeout (e.g., 30 seconds), the circuit transitions to **Half-Open**.
+5.  In the **Half-Open** state, the circuit breaker allows a few (e.g., 1-5) test requests to **Service A**.
+    - If the test requests succeed, the circuit assumes **Service A** has recovered and transitions back to **Closed**.
+    - If the test requests fail, **Service A** is still unhealthy, and the circuit transitions back to **Open**.
+
+**Benefits:**
+- **Prevents Cascading Failures**: Protects downstream services from being overloaded by upstream failures.
+- **Fail Fast**: Clients get immediate feedback when a service is unavailable, rather than waiting for timeouts.
+- **Self-Healing**: Allows a failing service to recover without constant requests from clients.
+
+**Considerations:**
+- **Fallback Mechanisms**: Provide sensible fallback responses or alternative operations when the circuit is open.
+- **Monitoring**: Monitor circuit breaker states and failure rates to understand service health.
+- **Configuration**: Carefully tune thresholds and timeouts to balance resilience and responsiveness.
+
+---
+
+### 37. Design an Asynchronous Task Queue
+Design a system to offload long-running or non-critical tasks from the main request-response cycle of an application.
+
+```mermaid
+graph TD
+    Client[👩‍💻 User Request] -- "1. Trigger Task" --> WebServer[🌐 Web Server]
+    WebServer -- "2. Enqueue Task Message" --> TaskQueue[🔄 Task Queue<br>(RabbitMQ/Celery)]
+    WebServer -- "3. Return immediate response (200 OK)" --> Client
     
-    APIServer -- "12. Return to ATM" --> Client
-```
-
-**Core Components & Concepts:**
-- 🏧 **ATM Terminal**: The client interface where users interact.
-- ⚖️ **Load Balancer**: Distributes incoming transaction requests across multiple API servers.
-- 🌐 **Transaction API**: The entry point for all ATM operations (withdraw, deposit, balance inquiry, etc.).
-- **Core Banking Microservices**:
-    - 🔒 **Authorization Service**: Verifies card and PIN, checks for account locks or fraud.
-    - 💰 **Balance Service**: Retrieves and updates account balances.
-    - 🔄 **Transaction Service**: Orchestrates the debit/credit operations and logs all transactions.
-- **Databases**:
-    - 🗄️ **User Accounts DB**: Stores user account details, balances, and card information. Requires strong consistency (ACID properties), typically a relational database (e.g., PostgreSQL, Oracle).
-    - 🗄️ **Transaction Log DB**: Stores a detailed, immutable record of every transaction. Can be a separate database for auditing and reconciliation.
-
-**Scalability & Consistency:**
-- **Strong Consistency**: Financial transactions demand strong consistency. A transaction should either fully succeed or fully fail. This means using transactional databases and careful handling of distributed transactions (e.g., Two-Phase Commit, Sagas).
-- **Idempotency**: All transaction requests should be idempotent. If a withdrawal request is retried, it should not debit the account twice.
-- **Security**: Robust encryption for all communication, physical security for ATMs, and fraud detection systems are paramount.
-- **Fault Tolerance**: Redundant systems for all components to ensure high availability.
-- **Auditing**: Comprehensive logging and auditing of all transactions for compliance and dispute resolution.
-
----
-
-### 15. Design a Parking Lot System
-Design a system for managing a multi-story parking lot, including entry/exit and payment.
-
-```mermaid
-graph TD
-    subgraph "Entry Workflow"
-        EntryGate[🚗 Entry Gate] -- "1. Car Arrives" --> EntrySensor[🅿️ Entry Sensor]
-        EntrySensor -- "2. Assign Ticket" --> TicketService[🎫 Ticket Service]
-        TicketService -- "3. Store entry_time, ticket_id" --> ParkingDB[(🗄️ Parking DB)]
-        TicketService -- "4. Open Gate" --> EntryGate
-    end
-
-    subgraph "Exit Workflow"
-        ExitGate[🚗 Exit Gate] -- "1. Car Arrives" --> ExitSensor[🅿️ Exit Sensor]
-        ExitSensor -- "2. Scan Ticket" --> PaymentService[💳 Payment Service]
-        PaymentService -- "3. Calculate Fee" --> ParkingDB
-        PaymentService -- "4. Process Payment" --> PaymentGateway[🏦 Payment Gateway]
-        PaymentService -- "5. Update exit_time" --> ParkingDB
-        PaymentService -- "6. Open Gate" --> ExitGate
-    end
-
-    subgraph "Real-time Monitoring"
-        SpaceSensor[🅿️ Space Sensor] -- "Occupancy Update" --> ParkingService[📊 Parking Service]
-        ParkingService -- "Updates available_spaces" --> ParkingDB
-        ParkingService -- "Display" --> DisplayBoard[📺 Display Board]
-    end
-```
-
-**Core Components & Concepts:**
-- 🚗 **Entry/Exit Gates**: Physical barriers controlling vehicle flow.
-- 🅿️ **Sensors**: Detect vehicle presence (entry, exit, individual parking spots).
-- 🎫 **Ticket Service**: Generates unique tickets (physical or digital) with entry timestamps.
-- 💳 **Payment Service**: Calculates parking fees based on duration, handles payment processing (integrates with a `Payment Gateway`).
-- 📊 **Parking Service**: Manages parking lot occupancy, available spaces, and potentially assigns specific spots.
-- 🗄️ **Parking Database**: Stores:
-    - `ticket_id`, `entry_time`, `exit_time`, `amount_paid`.
-    - `parking_spot_id`, `is_occupied`, `car_license_plate` (optional).
-- 📺 **Display Boards**: Shows available spaces in real-time.
-
-**Scalability & Considerations:**
-- **Real-time Updates**: Parking spot occupancy needs to be updated and reflected on display boards in real-time. A message queue can be used for sensor data to decouple from the Parking Service.
-- **Concurrency**: Multiple entry/exit gates and payment terminals must handle concurrent operations correctly without double-assigning spots or miscalculating fees. Transactions are crucial here.
-- **Fault Tolerance**: If a service fails, the system should still allow entry/exit (e.g., fallback to manual operation) or at least gracefully handle outstanding tickets.
-- **Pricing Rules**: The Payment Service needs to support complex pricing rules (e.g., hourly rates, daily caps, special event pricing).
-- **Search for Car**: If a user forgets where they parked, they might need a service to find their car based on their ticket or license plate.
-
----
-
-### 16. Design a Distributed Cache
-Design a distributed caching system like Memcached or Redis.
-
-```mermaid
-graph TD
-    Client[👩‍💻 Client Application] -- "1. GET key" --> CacheClient[⚙️ Cache Client Library]
-    CacheClient -- "2. Hash key to find server" --> Hashing[#️⃣ Consistent Hashing Ring]
-    Hashing -- "3. Request from responsible cache server" --> CacheServer1[⚡ Cache Server 1]
-    CacheClient -- "..." --> CacheServerN[⚡ Cache Server N]
-
-    CacheServer1 -- "Cache Miss" --> BackendDB[(🗄️ Backend DB)]
-    BackendDB -- "Data" --> CacheServer1
-    CacheServer1 -- "Stores & Returns Data" --> CacheClient
-    CacheClient -- "Returns Data" --> Client
-```
-
-**Core Problem**: How to store large amounts of data in memory across multiple servers and retrieve it quickly, while ensuring consistency and scalability.
-
-**Core Components & Concepts:**
-- ⚙️ **Cache Client Library**: Integrated into the client application. It knows how to connect to the cache servers, handle hashing, and manage retries.
-- #️⃣ **Consistent Hashing**: A crucial technique for distributing keys across cache servers.
-    - It maps both cache servers and data keys to a circular hash ring.
-    - When a server is added or removed, only a small fraction of keys need to be remapped, minimizing data movement and cache misses.
-- ⚡ **Cache Servers**: Individual instances (nodes) in the distributed cache. They are typically stateless (data is in memory) and just store key-value pairs.
-- 🗄️ **Backend Database**: The primary data source. If a cache server experiences a "cache miss," it fetches the data from the backend DB, stores it, and then returns it to the client.
-
-**Scalability & Consistency:**
-- **High Availability**:
-    - **Replication**: Data can be replicated across multiple cache servers (e.g., primary-secondary).
-    - **Quorum**: For write-heavy caches, a quorum of replicas might need to acknowledge a write before it's considered successful.
-- **Cache Eviction Policies**: When the cache is full, it needs to decide which items to remove (e.g., LRU - Least Recently Used, LFU - Least Frequently Used).
-- **Cache Invalidation**: How do you ensure cached data is fresh?
-    - **Time-To-Live (TTL)**: Items expire after a certain time.
-    - **Write-Through/Write-Back**: Updates are written to both cache and DB.
-    - **Explicit Invalidation**: Backend DB pushes invalidation messages to the cache.
-- **Read-Heavy**: Distributed caches are primarily designed to handle massive read loads, reducing the burden on the backend database.
-
----
-
-### 17. Design a Distributed Job Scheduler
-Design a system that can schedule and run jobs across a cluster of machines.
-
-```mermaid
-graph TD
-    User[👩‍💻 User/Service] -- "1. Schedule Job (cron, one-off)" --> API[🌐 API Server]
-    API -- "2. Store Job Metadata" --> JobDB[(🗄️ Job Metadata DB)]
-    API -- "3. Trigger Job Submission" --> JobQueue[🔄 Job Queue<br>(Kafka/SQS)]
-
     subgraph "Worker Cluster"
         Worker1[⚙️ Worker 1]
         Worker2[⚙️ Worker 2]
         WorkerN[⚙️ Worker N]
     end
 
-    JobQueue -- "4. Distribute Jobs" --> Worker1
-    JobQueue -- "..." --> Worker2
-    JobQueue -- "..." --> WorkerN
+    TaskQueue -- "4. Distribute Task Messages" --> Worker1
+    TaskQueue -- "..." --> Worker2
+    TaskQueue -- "..." --> WorkerN
 
-    Worker1 -- "5. Execute Job" --> TaskExecution[✅ Task Execution]
-    TaskExecution -- "6. Report Status" --> StatusUpdater[📊 Status Updater]
-    StatusUpdater -- "7. Update Job Status" --> JobDB
+    Worker1 -- "5. Process Task" --> LongRunningTask[⏳ Long-Running Task]
+    LongRunningTask -- "6. Update Status" --> ResultDB[(🗄️ Result DB)]
+    LongRunningTask -- "7. Notify User (e.g., Email)" --> NotificationSvc[📣 Notification Service]
 ```
 
-**Core Components & Concepts:**
-- 🌐 **API Server**: Provides an interface for users or other services to schedule new jobs, view job status, or cancel jobs. Jobs can be one-off, recurring (like cron jobs), or triggered by events.
-- 🗄️ **Job Metadata Database**: Stores all information about jobs: job ID, schedule (if recurring), command to run, status, logs location, etc.
-- 🔄 **Job Queue**: A message queue (e.g., Kafka, RabbitMQ, SQS) is used to distribute jobs to available workers. This decouples job submission from job execution and provides buffering and fault tolerance.
-- ⚙️ **Worker Fleet**: A cluster of machines (VMs, containers) that execute the actual jobs.
-    - Workers consume messages from the Job Queue.
-    - They need to be robust enough to run various types of jobs (scripts, binaries, containerized tasks).
-    - They report job status back to the Status Updater.
-- 📊 **Status Updater**: A service that processes status updates from workers and persists them in the Job Metadata Database.
-
-**Scalability & Reliability:**
-- **Fault Tolerance**:
-    - If a worker dies mid-job, the job should be re-queued and processed by another worker (requires jobs to be idempotent).
-    - If the Job Queue or Job DB fails, the system should be designed for recovery.
-- **Concurrency Control**: Ensure that scheduled jobs don't run more often than intended or concurrently if not allowed.
-- **Load Balancing**: The Job Queue inherently load balances jobs across available workers.
-- **Monitoring & Alerting**: Crucial to monitor job failures, worker health, and queue backlogs.
-- **Job Types**: Support for different job execution environments (e.g., Docker containers for isolation).
-
----
-
-### 18. Design an Authentication System
-Design a system for user authentication and authorization (login, registration, API access).
-
-```mermaid
-graph TD
-    User[👩‍💻 User] -- 1. Register/Login --> AuthAPI[🌐 Authentication API]
-    AuthAPI -- 2. Validate Credentials --> UserDB[(🗄️ User DB)]
-    AuthAPI -- 3. Generate Token (JWT) --> JWTGen[🔑 JWT Generator]
-    JWTGen -- 4. Return Token --> User
-    
-    User -- "5. API Request with Token" --> APIGateway[⛩️ API Gateway]
-    APIGateway -- "6. Verify Token" --> AuthService[🔒 Authorization Service]
-    AuthService -- "7. Decode JWT" --> JWTDecode[🔑 JWT Decoder]
-    AuthService -- "8. Check Permissions" --> PolicyDB[(🗄️ Policy DB)]
-    AuthService -- "9. Allow/Deny" --> APIGateway
-    APIGateway -- "10. Route to Service" --> BackendService[⚙️ Backend Service]
-```
+**Core Problem**: Improve application responsiveness by executing computationally intensive, time-consuming, or non-critical operations in the background, outside the critical path of user-facing requests.
 
 **Core Components & Concepts:**
-- 🌐 **Authentication API**: Handles user registration, login, password reset, and token issuance.
-- 🗄️ **User Database**: Stores user credentials (passwords hashed and salted!), profile information, and roles.
-- 🔑 **JWT Generator**: Creates JSON Web Tokens (JWTs) upon successful authentication. JWTs are signed and contain claims (user ID, roles, expiration) that can be verified by any service without needing to hit a central authentication server.
-- ⛩️ **API Gateway**: Intercepts all incoming API requests.
-- 🔒 **Authorization Service**: Validates JWTs and checks user permissions before routing requests to backend services.
-    - **JWT Decoder**: Decodes the JWT and verifies its signature.
-    - **Policy Database**: Stores authorization policies (e.g., role-based access control - RBAC).
-- ⚙️ **Backend Services**: The actual business logic services. They receive requests with validated and authorized user contexts.
-
-**Security & Scalability:**
-- **Password Security**: Never store plain text passwords. Use strong hashing algorithms (e.g., bcrypt) with salts.
-- **JWT Security**: JWTs should be signed with a strong secret. They should have short expiration times, and the ability to revoke them (e.g., using a blacklist cache) is crucial for security.
-- **Rate Limiting**: Protect authentication endpoints (login, registration) from brute-force attacks.
-- **MFA (Multi-Factor Authentication)**: For enhanced security.
-- **Horizontal Scaling**: All services should be stateless (except the User DB) to allow for easy horizontal scaling. JWTs greatly help here by offloading session state from the central authentication server.
-
----
-
-### 19. Design a Content Delivery Network (CDN)
-Design a simplified global Content Delivery Network.
-
-```mermaid
-graph TD
-    User[👩‍💻 User] -- "1. Request Asset (image.jpg)" --> DNSResolver[🌐 DNS Resolver]
-    
-    subgraph "CDN Architecture"
-        CDNDNS[🌍 CDN DNS]
-        EdgeServer[⚡ Edge Server<br>(Closest to User)]
-        OriginServer[📦 Origin Server<br>(where original content lives)]
-    end
-
-    DNSResolver -- "2. CDN DNS finds optimal Edge" --> CDNDNS
-    CDNDNS -- "3. Returns IP of Edge Server" --> DNSResolver
-    DNSResolver -- "4. User requests from Edge IP" --> EdgeServer
-    
-    EdgeServer -- "5. Cache Hit" --> User
-    EdgeServer -- "5. Cache Miss" --> OriginServer
-    OriginServer -- "6. Returns Asset" --> EdgeServer
-    EdgeServer -- "7. Caches Asset & Returns to User" --> User
-```
-
-**Core Components & Concepts:**
-- 📦 **Origin Server**: The server where the original, authoritative versions of your static assets (images, videos, CSS, JS files) reside. This could be an S3 bucket, a web server, etc.
-- ⚡ **Edge Servers (PoPs - Points of Presence)**: Geographically distributed servers located close to end-users. These servers cache content from the Origin Server.
-- 🌍 **CDN DNS**: A specialized DNS system that, when queried for a CDN asset, returns the IP address of the Edge Server closest to the user making the request. This is how traffic is routed to the optimal PoP.
+- 🌐 **Web Server/API**: The primary application that receives user requests. For long-running tasks, it should quickly enqueue a task and return an immediate response to the client.
+- 🔄 **Task Queue (e.g., RabbitMQ, Celery, AWS SQS)**: A message queue specifically used for storing and distributing task messages.
+- ⚙️ **Worker Fleet**: A pool of independent processes or servers that consume messages from the Task Queue and execute the actual tasks.
+- ⏳ **Long-Running Task**: The actual work to be done in the background (e.g., image processing, video encoding, email sending, report generation).
+- 🗄️ **Result Database**: (Optional) Stores the results or status of completed tasks, which the client can later query.
+- 📣 **Notification Service**: (Optional) Notifies the user once the task is complete (e.g., email, push notification).
 
 **Workflow:**
-1.  A user requests an asset (e.g., `image.jpg`) from your website, which points to a CDN URL (e.g., `cdn.example.com/image.jpg`).
-2.  The user's DNS resolver queries the CDN's DNS for `cdn.example.com`.
-3.  The CDN DNS uses geo-location to determine the nearest Edge Server to the user and returns its IP.
-4.  The user's browser then makes a request directly to that Edge Server.
-5.  **Cache Hit**: If the Edge Server has `image.jpg` in its cache, it serves the content directly to the user. This is extremely fast.
-6.  **Cache Miss**: If the Edge Server does not have `image.jpg`, it makes a request to the Origin Server to fetch it.
-7.  The Origin Server returns the asset to the Edge Server.
-8.  The Edge Server caches the asset (if configured) and then serves it to the user.
-
-**Benefits & Considerations:**
-- **Improved Performance**: Content is served from servers closer to the user, reducing latency.
-- **Reduced Load on Origin**: Offloads traffic from your Origin Server, saving bandwidth and compute resources.
-- **Increased Availability**: If one Edge Server fails, CDN DNS can route traffic to another healthy PoP.
-- **DDoS Protection**: CDNs can often absorb and mitigate DDoS attacks due to their distributed nature.
-- **Cache Invalidation**: Need mechanisms to invalidate cached content on Edge Servers when the Origin content changes (e.g., using explicit API calls).
-
----
-
-### 20. Design a Pub/Sub System
-Design a Publish/Subscribe (Pub/Sub) message queuing system.
-
-```mermaid
-graph TD
-    Publisher[📝 Publisher] -- "1. Publish Message (Topic X)" --> Broker[🔄 Message Broker]
-    
-    subgraph "Message Broker (e.g., Kafka, RabbitMQ)"
-        Topics[🔖 Topics]
-        Queues[📥 Queues]
-    end
-
-    Broker -- "Stores message in Topic X" --> Topics
-    
-    SubscriberA[👩‍💻 Subscriber A] -- "2. Subscribe to Topic X" --> Broker
-    SubscriberB[👨‍💻 Subscriber B] -- "3. Subscribe to Topic X" --> Broker
-    
-    Broker -- "4. Delivers message" --> SubscriberA
-    Broker -- "4. Delivers message" --> SubscriberB
-```
-
-**Core Concepts:**
-A **Publish/Subscribe (Pub/Sub)** system allows messages to be broadcast to a variable number of consumers (subscribers) that are interested in specific types of messages (topics). Publishers don't know who consumes their messages, and subscribers don't know who publishes them; they only interact with the message broker.
-
-**Core Components:**
-- 📝 **Publisher**: The component that creates and sends messages to the message broker. It "publishes" messages to a specific `topic`.
-- 🔖 **Topic**: A named channel or feed to which publishers send messages and from which subscribers receive messages. Topics categorize messages.
-- 🔄 **Message Broker**: The central component responsible for:
-    - Receiving messages from publishers.
-    - Storing messages (temporarily or persistently).
-    - Filtering messages by topic.
-    - Delivering messages to all subscribed consumers.
-    - Examples: Kafka, RabbitMQ, Redis Pub/Sub, AWS SNS/SQS, Google Cloud Pub/Sub.
-- 👩‍💻 **Subscriber**: The component that registers its interest in one or more topics with the message broker. It "subscribes" to topics and receives all messages published to those topics.
-
-**Workflow:**
-1.  A **Publisher** creates a message and sends it to the **Message Broker**, specifying the `Topic` it belongs to.
-2.  The **Message Broker** receives the message and stores it.
-3.  The **Message Broker** then identifies all **Subscribers** that are currently subscribed to that `Topic`.
-4.  The **Message Broker** delivers the message to each of those subscribed Consumers.
+1.  A **Client** makes a request to the **Web Server** that involves a long-running operation.
+2.  The **Web Server** quickly creates a message describing the task and puts it onto the **Task Queue**.
+3.  The **Web Server** immediately returns a successful (e.g., 200 OK) response to the client, indicating that the task has been accepted for processing.
+4.  An available **Worker** consumes the task message from the **Task Queue**.
+5.  The **Worker** executes the **Long-Running Task**.
+6.  Upon completion, the **Worker** might update a **Result Database** and/or trigger a **Notification Service** to inform the user.
 
 **Benefits:**
-- **Decoupling**: Publishers and Subscribers are independent, allowing services to evolve without directly affecting each other.
-- **Scalability**: Can easily scale the number of consumers for a topic. The broker can also be scaled.
-- **Asynchronous Communication**: Publishers don't need to wait for subscribers to process messages, improving responsiveness.
-- **Flexibility**: New subscribers can be added at any time without changing existing publishers or subscribers.
+- **Improved Responsiveness**: User-facing applications remain fast and responsive.
+- **Scalability**: Workers can be scaled independently of the web servers.
+- **Reliability**: Tasks are durably stored in the queue, ensuring they eventually get processed even if workers fail.
+- **Decoupling**: The web server and workers are decoupled, allowing them to evolve independently.
 
 **Considerations:**
-- **Durability**: How long are messages stored? What happens if a subscriber is offline? (Often handled by queues/consumer groups).
-- **Ordering**: Is message order guaranteed within a topic?
-- **Delivery Guarantees**: At-most-once, at-least-once, exactly-once.
-- **Filtering**: Advanced brokers allow subscribers to filter messages within a topic based on message content.
+- **Idempotency**: Tasks should ideally be idempotent so that if a worker fails and the task is re-processed, it doesn't lead to incorrect results.
+- **Monitoring**: Monitor queue depth, worker health, and task success/failure rates.
+- **Error Handling**: Implement retry mechanisms and dead-letter queues for failed tasks.
+
+---
+
+### 38. Design a Geo-Distributed Database
+Design a database system that spans multiple geographic regions, optimized for global access, high availability, and disaster recovery.
+
+```mermaid
+graph TD
+    ClientNA[👩‍💻 Client (North America)] -- Read/Write --> LBNorthAmerica[⚖️ Load Balancer (NA)]
+    ClientEU[👩‍💻 Client (Europe)] -- Read/Write --> LBEurope[⚖️ Load Balancer (EU)]
+    ClientAsia[👩‍💻 Client (Asia)] -- Read/Write --> LBAsia[⚖️ Load Balancer (Asia)]
+
+    subgraph "Geo-Distributed Database"
+        DCNA[🏢 Data Center NA]
+        DCEU[🏢 Data Center EU]
+        DCAsia[🏢 Data Center Asia]
+    end
+
+    LBNorthAmerica --> DCNA
+    LBEurope --> DCEU
+    LBAsia --> DCAsia
+
+    DCNA -- "Async Replication" --> DCEU
+    DCEU -- "Async Replication" --> DCAsia
+    DCAsia -- "Async Replication" --> DCNA
+
+    subgraph "Database Nodes per DC"
+        MasterNA[🗄️ Master DB (NA)]
+        ReplicaNA1[🗄️ Replica DB 1 (NA)]
+        ReplicaNA2[🗄️ Replica DB 2 (NA)]
+    end
+    DCNA -- Contains --> MasterNA
+    DCNA -- Contains --> ReplicaNA1
+    DCNA -- Contains --> ReplicaNA2
+```
+
+**Core Problem**: Provide low-latency data access to users globally, ensure continuous availability even if an entire data center or region fails, and manage data consistency across geographically dispersed replicas.
+
+**Core Concepts:**
+- **Data Centers/Regions**: Geographically isolated locations hosting a portion or full replica of the database.
+- **Replication**: Data is replicated between regions to ensure durability and availability. Replication can be **synchronous** (high consistency, high latency) or **asynchronous** (lower consistency, lower latency, more common for global distribution).
+- **Global Load Balancer (GSLB)**: Directs client traffic to the nearest healthy data center.
+- **Read/Write Strategies**:
+    - **Single-Master (Primary-Secondary)**: One master database for writes (in one region), and read replicas in other regions. Simpler consistency model, but cross-region writes have higher latency.
+    - **Multi-Master**: Writes can occur in multiple regions. Offers lower write latency for users in different regions but introduces complex conflict resolution challenges.
+- **Data Partitioning (Sharding)**: Data can be partitioned across regions (e.g., user data for European users stored in the EU data center).
+
+**Consistency Models:**
+- **Strong Consistency**: All reads see the most recent write. Hard to achieve efficiently globally due to network latency (CAP theorem implies trading off availability).
+- **Eventual Consistency**: All reads eventually see the most recent write. More common in geo-distributed systems for better performance and availability. Conflict resolution becomes critical.
+- **Causal Consistency**: A weaker form of strong consistency that preserves causality (if event A causes event B, then all observers who see B will also see A).
+
+**Benefits & Considerations:**
+- **Low Latency Global Access**: Users interact with a nearby data center.
+- **Disaster Recovery**: If a region goes down, other regions can take over.
+- **High Availability**: Redundancy across regions prevents single points of failure.
+- **Compliance**: May be required for data residency regulations (e.g., GDPR).
+
+---
+
+### 39. Design a Write-Ahead Log (WAL)
+Design a mechanism to ensure data integrity and durability in a database system, even in the event of crashes.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. SQL Query (UPDATE/INSERT)" --> DBServer[🗄️ Database Server]
+    
+    subgraph "Database Components"
+        BufferCache[⚡ Buffer Cache<br>(In-memory)]
+        WAL[📝 Write-Ahead Log<br>(Disk-based)]
+        DataFiles[💾 Data Files<br>(Disk-based)]
+    end
+
+    DBServer -- "2. Write changes to WAL (disk)" --> WAL
+    WAL -- "3. Flush to disk (before data changes)" --> WAL
+    DBServer -- "4. Apply changes to Buffer Cache" --> BufferCache
+    BufferCache -- "5. Periodically flush to Data Files" --> DataFiles
+    
+    DBServer -- "6. Acknowledge success to Client" --> Client
+    
+    WAL -- "Recovery on Crash" --> DataFiles
+```
+
+**Core Problem**: Ensure that committed transactions are durable (persisted) and that the database can recover to a consistent state after a crash, even if in-memory changes haven't been written to the main data files yet.
+
+**Core Concepts:**
+- 📝 **Write-Ahead Log (WAL)**: Also known as a transaction log or redo log. It's a sequential, append-only log on disk that records all changes made to the database *before* those changes are applied to the main data files.
+- **Buffer Cache (Page Cache)**: An in-memory cache where database pages (blocks of data) are loaded and modified. Writes to the buffer cache are much faster than disk writes.
+- 💾 **Data Files**: The main persistent storage for the database tables.
+
+**WAL Principle (ACID - Durability & Atomicity):**
+The WAL guarantees the "D" (Durability) in ACID. The fundamental rule is: **"Write-Ahead Logging Rule: You must write a change to the log before you can apply that change to the data files."**
+
+**Workflow:**
+1.  A **Client** sends a write query (e.g., `UPDATE`, `INSERT`) to the **Database Server**.
+2.  The **Database Server** first records the proposed change (the "redo" record) into the **WAL**. This record describes how to re-apply the change.
+3.  The WAL entry is typically **flushed to disk** before the transaction is considered committed. This is crucial for durability.
+4.  Only after the WAL entry is safely on disk, the server applies the change to the in-memory **Buffer Cache**.
+5.  Changes in the **Buffer Cache** are eventually (and asynchronously) flushed to the **Data Files** on disk.
+
+**Crash Recovery:**
+- If the database crashes, the **Data Files** might contain a mix of committed and uncommitted changes (because buffer cache flushes are asynchronous).
+- During recovery, the database scans the **WAL**:
+    - **Redo Phase**: It re-applies all committed changes from the WAL that might not have been flushed to the data files yet.
+    - **Undo Phase**: It undoes any uncommitted changes found in the data files (by rolling back incomplete transactions).
+- This process ensures that the database returns to a consistent state, reflecting only committed transactions.
+
+**Benefits:**
+- **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even if the system crashes.
+- **Atomicity**: Supports rollback of incomplete transactions.
+- **Performance**: Allows database writes to appear faster to the client because the actual data file updates are asynchronous.
+
+---
+
+### 40. Design an Anti-Entropy Protocol
+Design a mechanism to reconcile divergent data states among replicas in an eventually consistent distributed system.
+
+```mermaid
+graph TD
+    NodeA[🗄️ Node A<br>Data: {x:1, y:2}]
+    NodeB[🗄️ Node B<br>Data: {x:1, y:3}]
+    NodeC[🗄️ Node C<br>Data: {x:1, y:2}]
+
+    subgraph "Anti-Entropy Process"
+        NodeA -- "1. Initiate Scan (Merkle Tree Hash)" --> NodeB
+        NodeB -- "2. Compare Hashes / Data" --> NodeA
+        NodeA -- "3. Detects Divergence (y:2 != y:3)" --> NodeB
+        NodeB -- "4. Reconcile Data" --> NodeA
+    end
+
+    NodeA -- "Data: {x:1, y:3}" --> NodeA
+    NodeC -- "Data: {x:1, y:3}" --> NodeC
+```
+
+**Core Problem**: In an eventually consistent distributed system with multiple replicas, how do you ensure that all replicas eventually converge to the same data state, even if some updates are missed due to network issues or temporary node failures?
+
+**Core Concepts:**
+- **Eventual Consistency**: A consistency model where, if no new updates are made to a given data item, all reads of that item will eventually return the last updated value.
+- **Replicas**: Multiple copies of data stored on different nodes.
+- **Divergent State**: When different replicas hold different values for the same data item.
+- **Anti-Entropy Protocol**: A process designed to detect and resolve divergent states among replicas, pushing them towards convergence.
+
+**Common Anti-Entropy Techniques:**
+
+1.  **Merkle Trees (Hash Trees)**:
+    - **Concept**: A hash tree where every leaf node is a hash of a block of data, and every non-leaf node is a hash of its children.
+    - **Workflow**:
+        1.  Replicas build Merkle trees over their local data.
+        2.  They exchange the root hashes. If they don't match, they exchange child hashes of the differing branches.
+        3.  This process recursively narrows down the divergent data blocks without transferring the entire dataset.
+        4.  Once the differing blocks are identified, the out-of-date replica requests the correct blocks from a healthy replica.
+    - **Benefits**: Efficiently detects differences with minimal network traffic.
+
+2.  **Read Repair**:
+    - **Concept**: When a client requests data from multiple replicas (e.g., for tunable consistency), if any replica returns an out-of-date version, the read coordinator automatically repairs it by writing the latest version back to the stale replica.
+    - **Benefits**: Repairs data on demand, leveraging read traffic.
+    - **Cons**: Only repairs data that is read.
+
+3.  **Gossip Protocol**:
+    - **Concept**: Nodes periodically exchange information about their data state with a few randomly chosen peers. This information propagates throughout the cluster like a rumor.
+    - **Workflow**: Nodes might exchange version numbers or checksums for data ranges. If a node discovers a peer has newer data, it requests the missing updates.
+    - **Benefits**: Self-healing, eventually consistent, decentralized.
+    - **Cons**: Can be slow to converge, might not detect all inconsistencies quickly.
+
+**Benefits of Anti-Entropy:**
+- **Data Convergence**: Ensures all replicas eventually hold the same data.
+- **Fault Tolerance**: Helps recover from data loss or corruption on individual nodes.
+- **High Availability**: Maintains data availability even if temporary inconsistencies exist.
+
+**Considerations:**
+- **Frequency**: How often should anti-entropy run? Too often increases network traffic; too rarely increases divergence.
+- **Conflict Resolution**: If two replicas have different "latest" versions of data due to concurrent writes, a deterministic conflict resolution strategy is needed (e.g., last-write-wins, vector clocks).
