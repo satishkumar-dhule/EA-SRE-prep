@@ -18,88 +18,181 @@
 ### 1. What is Terraform and why is it important?
 ```mermaid
 graph TD
-    Code[📝 HCL Code] --> Terraform[🔧 Terraform]
-    Terraform --> Plan[📋 terraform plan]
-    Plan --> Apply[🚀 terraform apply]
-    Apply --> Infrastructure[☁️ Cloud Infrastructure]
-    Infrastructure --> State[🗄️ State File]
-    State --> Code
+    subgraph "You Write Code"
+        Code[📝<br>HCL Code]
+    end
+
+    subgraph "Terraform Core"
+        Plan[📋 Plan]
+        Apply[🚀 Apply]
+    end
+
+    subgraph "Cloud/Service API"
+        API[🔌<br>Provider API<br>(AWS, GCP, Azure)]
+    end
+
+    subgraph "Real World"
+        Infra[☁️<br>Infrastructure]
+    end
+
+    Code -- "terraform plan" --> Plan
+    Plan -- "Shows what will change" --> User[👨‍💻 You]
+    User -- "Approve" --> Apply
+    Apply -- "Makes API Calls" --> API
+    API -- "Creates/Updates" --> Infra
+    
+    Terraform -- "Tracks state" --> State[🗄️ State File]
+    Infra -- "Refreshes" --> State
 ```
 
+Terraform is an **Infrastructure as Code (IaC)** tool that lets you build, change, and version infrastructure safely and efficiently. It uses a declarative configuration language to describe your desired "end state" for your infrastructure.
+
 **Key Concepts:**
-- 🏗️ <span style="color: #FF6B6B; font-weight: bold;">Infrastructure as Code</span>: Declarative configuration
-- 📋 <span style="color: #4ECDC4; font-weight: bold;">Plan/Apply</span>: Safe deployment workflow
-- 🗄️ <span style="color: #45B7D1; font-weight: bold;">State Management</span>: Track infrastructure state
-- 🔧 <span style="color: #96CEB4; font-weight: bold;">Provider Model</span>: Multi-cloud support
+- 🏗️ <span style="color: #FF6B6B; font-weight: bold;">Infrastructure as Code (IaC)</span>: Manage infrastructure with configuration files rather than through a graphical user interface. This allows for versioning, reusability, and automation.
+- 📋 <span style="color: #4ECDC4; font-weight: bold;">Plan/Apply Workflow</span>: Terraform's core workflow is `plan` and `apply`. `terraform plan` creates an execution plan, showing you exactly what Terraform will do (create, update, or destroy) before you make any changes. `terraform apply` executes that plan. This prevents surprises.
+- 🗄️ <span style="color: #45B7D1; font-weight: bold;">State Management</span>: Terraform records information about what infrastructure it has created in a `terraform.tfstate` file. This state file is critical as it maps the resources in your code to the real-world resources, enabling Terraform to manage their lifecycle.
+- 🔧 <span style="color: #96CEB4; font-weight: bold;">Provider Ecosystem</span>: Terraform is platform-agnostic. It uses **providers** to interact with the APIs of cloud providers (like AWS, Google Cloud, Azure), SaaS providers (like Datadog, Cloudflare), and other APIs. This allows you to manage a diverse set of infrastructure with a single tool and workflow.
 
 ### 2. Explain HCL (HashiCorp Configuration Language)
 ```mermaid
-graph LR
-    HCL[📝 HCL] --> Blocks[📦 Blocks]
-    Blocks --> Arguments[🔧 Arguments]
-    Arguments --> Expressions[📊 Expressions]
-    Expressions --> Values[💎 Values]
+graph TD
+    HCL[📝 HCL Syntax]
+    
+    subgraph "Building Blocks"
+        BlockType[<br>Block Type<br>e.g., `resource`]
+        Label1[<br>Label 1<br>e.g., `"aws_instance"`]
+        Label2[<br>Label 2<br>e.g., `"web"`]
+        BlockBody["{ ... }"]
+    end
+
+    subgraph "Inside the Body"
+        Argument[Argument = "Value"]
+        Expression["${var.name}"]
+    end
+
+    HCL --> BlockType --> Label1 --> Label2 --> BlockBody
+    BlockBody --> Argument
+    BlockBody --> Expression
+
+    style HCL fill:#f9f9f9,stroke:#333,stroke-width:4px
 ```
+**HCL** is the language used to write Terraform configurations. It is designed to be human-readable and machine-friendly.
 
 **HCL Components:**
-- 📦 <span style="color: #FF6B6B; font-weight: bold;">Blocks</span>: resource, variable, output
-- 🔧 <span style="color: #4ECDC4; font-weight: bold;">Arguments</span>: Configuration parameters
-- 📊 <span style="color: #45B7D1; font-weight: bold;">Expressions</span>: Values and references
-- 💎 <span style="color: #96CEB4; font-weight: bold;">Types</span>: string, number, boolean, list, map
+- 📦 <span style="color: #FF6B6B; font-weight: bold;">Blocks</span>: The main containers for configuration. Each block has a `type` (e.g., `resource`, `variable`, `provider`), can have one or more `labels` (e.g., `"aws_instance" "web"`), and a `body` enclosed in `{ }` that contains the block's arguments.
+- 🔧 <span style="color: #4ECDC4; font-weight: bold;">Arguments</span>: Assign a value to a name within a block. For example, `instance_type = "t2.micro"`.
+- 📊 <span style="color: #45B7D1; font-weight: bold;">Expressions</span>: An expression is anything that returns a value. This can be a literal value (like a string or number), a reference to a variable (`var.instance_type`), a call to a function (`file("user_data.sh")`), or a conditional (`var.is_prod ? 1 : 0`).
+- 💎 <span style="color: #96CEB4; font-weight: bold;">Types</span>: HCL supports primitive types like `string`, `number`, and `bool`, as well as complex types like `list`, `map`, `set`, `object`, and `tuple`, allowing for rich and dynamic configurations.
+
+**Example:**
+```hcl
+resource "aws_instance" "web" { // Block type, label, label
+  ami           = "ami-0c55b159cbfafe1f0" // Argument
+  instance_type = var.instance_type      // Expression (variable reference)
+}
+```
 
 ### 3. What are Terraform providers?
 ```mermaid
 graph TD
-    Terraform[🔧 Terraform Core] --> Provider[🔌 Provider]
-    Provider --> AWS[☁️ AWS]
-    Provider --> Azure[🔷 Azure]
-    Provider --> GCP[🟢 GCP]
-    Provider --> Custom[🛠️ Custom Providers]
+    TerraformCore[🔧 Terraform Core]
     
-    AWS --> Resources[📦 Resources]
-    AWS --> DataSources[📊 Data Sources]
+    subgraph "Provider Plugins (Separate Binaries)"
+        ProviderAWS[🔌 AWS Provider]
+        ProviderGCP[🔌 GCP Provider]
+        ProviderK8s[🔌 Kubernetes Provider]
+    end
+    
+    TerraformCore -- "terraform init" downloads --> ProviderAWS
+    TerraformCore -- "terraform init" downloads --> ProviderGCP
+    TerraformCore -- "terraform init" downloads --> ProviderK8s
+
+    ProviderAWS -- Translates HCL to --> API_AWS[☁️ AWS API Calls]
+    ProviderGCP -- Translates HCL to --> API_GCP[☁️ GCP API Calls]
+    ProviderK8s -- Translates HCL to --> API_K8s[☸️ Kubernetes API Calls]
 ```
 
-**Provider Types:**
-- ☁️ <span style="color: #FF6B6B; font-weight: bold;">Official Providers</span>: AWS, Azure, GCP
-- 🔷 <span style="color: #4ECDC4; font-weight: bold;">Community Providers</span>: Kubernetes, Docker
-- 🛠️ <span style="color: #45B7D1; font-weight: bold;">Custom Providers</span>: Internal APIs
+A **Provider** is a plugin that Terraform uses to interact with a specific API. The provider is responsible for understanding API interactions and exposing resources.
 
-### 4. Describe Terraform resource lifecycle
+**Key Roles of Providers:**
+- 🔌 <span style="color: #FF6B6B; font-weight: bold;">API Abstraction</span>: A provider acts as a translation layer between your declarative HCL code and the specific, imperative API calls needed to create, read, update, and delete resources on a given platform.
+- 📦 <span style="color: #4ECDC4; font-weight: bold;">Resource Management</span>: Each provider exposes a set of `resource` and `data` blocks that correspond to the services and objects on that platform. For example, the `aws` provider gives you resources like `aws_instance`, `aws_s3_bucket`, and `aws_iam_role`.
+- ⚙️ <span style="color: #45B7D1; font-weight: bold;">Initialization</span>: When you run `terraform init`, Terraform reads your configuration, determines which providers are needed, and downloads the appropriate plugin binaries from the Terraform Registry or another configured source. This makes providers pluggable and versionable.
+
+You configure providers in your `.tf` files, specifying the `source` and desired `version`.
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+```
+
+### 4. Describe the Terraform resource lifecycle
 ```mermaid
 flowchart TD
-    Create[🆕 Create] --> Read[📖 Read]
-    Read --> Update[🔄 Update]
-    Update --> Delete[🗑️ Delete]
-    Delete --> Create
+    A[Start] --> B{"Is there a<br>resource in state?"}
+    B -- No --> C[Create: Resource is created via API]
+    B -- Yes --> D{"Does config match<br>the real world?"}
     
-    Plan[📋 Plan Phase] --> Diff[🔍 Diff]
-    Diff --> Actions[⚡ Actions]
+    C --> E[End]
+    
+    D -- Yes --> F[Read: No changes needed]
+    F --> E
+    
+    D -- No --> G{"Does config want<br>to remove the resource?"}
+    G -- Yes --> H[Destroy: Resource is deleted via API]
+    G -- No --> I[Update: Resource is updated via API]
+    
+    H --> E
+    I --> E
 ```
 
-**Lifecycle States:**
-- 🆕 <span style="color: #FF6B6B; font-weight: bold;">Create</span>: Resource doesn't exist
-- 📖 <span style="color: #4ECDC4; font-weight: bold;">Read</span>: Refresh state
-- 🔄 <span style="color: #45B7D1; font-weight: bold;">Update</span>: Modify existing
-- 🗑️ <span style="color: #96CEB4; font-weight: bold;">Delete</span>: Remove resource
+The core of Terraform's resource management is the plan-driven lifecycle. When you run `terraform apply`, Terraform performs a series of actions for each resource defined in your code.
+
+**The `plan` and `apply` phases:**
+- 🔍 <span style="color: #FF6B6B; font-weight: bold;">Refresh & Diff</span>: First, Terraform reads the current state of any already-existing remote objects to get their latest status. It then compares the current configuration to the prior state and notes any differences. This is often called "drift" detection.
+- ⚡ <span style="color: #4ECDC4; font-weight: bold;">Execution Plan</span>: Terraform creates an execution plan that outlines the sequence of actions needed to get from the current state to the desired state. The actions are:
+    - 🆕 **Create**: The resource is defined in the configuration but doesn't exist in the state file or the real world.
+    - 📖 **Read**: The resource exists and its configuration matches the real world. No action needed.
+    - 🔄 **Update**: The resource exists, but one or more of its arguments in the configuration have changed. Terraform will attempt to update the resource in-place if possible.
+    - 🗑️ **Destroy and Re-create**: If an argument is changed that doesn't support in-place updates (e.g., the AMI for an `aws_instance`), Terraform will destroy the existing resource and create a new one.
+    - ❌ **Destroy**: The resource is removed from the configuration, so it needs to be deleted from the real world.
 
 ### 5. What are Terraform variables and outputs?
 ```mermaid
 graph TD
-    Variables[📝 Variables] --> Input[🔧 Input Variables]
-    Variables --> Local[📦 Local Values]
-    Variables --> Environment[🌍 Environment Variables]
-    
-    Outputs[📤 Outputs] --> Display[👀 Display Values]
-    Outputs --> Module[📦 Module Outputs]
-    Outputs --> Remote[🔗 Remote State]
+    subgraph "Inputs: Making Modules Reusable"
+        direction LR
+        var_file["variables.tf<br>or<br>*.tfvars"] -- defines --> InputVars[🔧 Input Variables]
+        InputVars -- passed into --> Module[📦 Module]
+    end
+
+    subgraph "Outputs: Exposing Information"
+        direction LR
+        Module -- exposes --> OutputVars[📤 Output Values]
+        OutputVars -- can be used by --> OtherModule[📦 Another Module]
+    end
+
+    subgraph "Internal Values"
+        direction LR
+        Locals[📝 Local Values<br>(locals.tf)] -- DRY principle --> Module
+    end
+
+    style Module fill:#e6f7ff,stroke:#333,stroke-width:2px
 ```
 
-**Variable Types:**
-- 🔧 <span style="color: #FF6B6B; font-weight: bold;">Input Variables</span>: Parameterize configurations
-- 📦 <span style="color: #4ECDC4; font-weight: bold;">Local Values</span>: Internal expressions
-- 🌍 <span style="color: #45B7D1; font-weight: bold;">Environment Variables</span>: Runtime configuration
-- 📤 <span style="color: #96CEB4; font-weight: bold;">Outputs</span>: Return values
+Variables and outputs are the primary way to parameterize your configuration and share information between different parts of your code.
+
+**Ways to Input Data:**
+- 🔧 <span style="color: #FF6B6B; font-weight: bold;">Input Variables (`variable`)</span>: These are the main way to make your configurations reusable and parameter-driven. You declare a variable with a `variable` block, and you can provide a `type`, `description`, and `default` value. Their values can be set via `.tfvars` files, command-line flags, or environment variables.
+- 📦 <span style="color: #4ECDC4; font-weight: bold;">Local Values (`locals`)</span>: A local value assigns a name to an expression. This is useful for avoiding repetition. Unlike input variables, local values cannot be set directly by the user of the module. They are for internal use to improve readability and maintainability (DRY - Don't Repeat Yourself).
+
+**Ways to Output Data:**
+- 📤 <span style="color: #96CEB4; font-weight: bold;">Output Values (`output`)</span>: Outputs are the return values of a Terraform module. They are used to expose information about the infrastructure a module creates. The root module's outputs are printed on the command line after an `apply`. Outputs from a child module can be used as inputs for another module, creating a dependency.
 
 ---
 
@@ -108,79 +201,148 @@ graph TD
 ### 6. What is Terraform state and why is it important?
 ```mermaid
 graph TD
-    Infrastructure[☁️ Infrastructure] --> State[🗄️ State File]
-    State --> Mapping[🗺️ Resource Mapping]
-    Mapping --> Dependencies[🔗 Dependencies]
-    Dependencies --> Metadata[📊 Metadata]
+    subgraph "Terraform Code (Desired State)"
+        HCL[📝 EC2 Instance Config]
+    end
+    
+    subgraph "Terraform State (Recorded State)"
+        State[🗄️ terraform.tfstate<br>{"id": "i-12345", ...}]
+    end
+
+    subgraph "Real World (Actual State)"
+        Infra[☁️ Actual EC2 Instance i-12345]
+    end
+
+    HCL -- "terraform apply" --> State
+    State -- "is mapped to" --> Infra
+    
+    Plan[📋 terraform plan] -- "Compares" --> HCL
+    Plan -- "Compares" --> State
 ```
 
-**State Importance:**
-- 🗺️ <span style="color: #FF6B6B; font-weight: bold;">Resource Mapping</span>: Code to infrastructure
-- 🔗 <span style="color: #4ECDC4; font-weight: bold;">Dependency Tracking</span>: Resource relationships
-- 📊 <span style="color: #45B7D1; font-weight: bold;">Metadata Storage</span>: Resource attributes
+Terraform state is a JSON file (`terraform.tfstate`) that Terraform creates to store the mapping between the resources in your configuration files and the real-world resources it has created.
+
+**Why State is Critical:**
+- 🗺️ <span style="color: #FF6B6B; font-weight: bold;">Resource Mapping</span>: State is the "single source of truth" for what Terraform manages. When you run a plan, Terraform compares the desired state (your code) with the recorded state (the `.tfstate` file) to determine what changes to make. It does *not* scan your entire cloud account.
+- 🔗 <span style="color: #4ECDC4; font-weight: bold;">Dependency Tracking</span>: Terraform builds a dependency graph to determine the correct order in which to create or destroy resources. For example, it knows to create a VPC before creating a subnet inside it. This dependency information is stored in the state file.
+- 📊 <span style="color: #45B7D1; font-weight: bold;">Performance</span>: By caching the attributes of managed resources, Terraform can quickly determine which, if any, resources need to be updated without having to query the provider's API for every resource on every run.
+- 🔒 <span style="color: #96CEB4; font-weight: bold;">Sensitive Data</span>: Outputs, especially those containing sensitive information like database passwords, can be stored in the state. This is why state should always be treated as a sensitive artifact.
 
 ### 7. Explain remote state backends
 ```mermaid
 graph TD
-    Team[👥 Team] --> Remote[🌐 Remote Backend]
-    Remote --> S3[📦 S3 Backend]
-    Remote --> TerraformCloud[☁️ Terraform Cloud]
-    Remote --> Consul[🔧 Consul Backend]
-    
-    S3 --> Lock[🔒 DynamoDB Lock]
-    TerraformCloud --> Lock2[🔒 Built-in Lock]
-    Consul --> Lock3[🔒 Consul Lock]
+    subgraph "Local State (Default)"
+        direction LR
+        laptop[💻] --> local_state[🗄️ terraform.tfstate]
+    end
+
+    subgraph "Remote State (Best Practice)"
+        direction LR
+        user1[👩‍💻] --> remote_backend
+        user2[👨‍💻] --> remote_backend
+        pipeline[🤖 CI/CD] --> remote_backend
+        remote_backend[🌐 Remote Backend<br>(e.g., S3, Terraform Cloud)]
+    end
+
+    local_state -- "Problem: Single point of failure, no team collaboration" --> local_state
+    remote_backend -- "Benefits: Collaboration, Locking, Security" --> remote_backend
 ```
 
-**Backend Options:**
-- 📦 <span style="color: #FF6B6B; font-weight: bold;">S3 + DynamoDB</span>: Most popular
-- ☁️ <span style="color: #4ECDC4; font-weight: bold;">Terraform Cloud</span>: Managed solution
-- 🔧 <span style="color: #45B7D1; font-weight: bold;">Consul</span>: Self-hosted option
+By default, Terraform stores the state file locally in your project directory. This is not suitable for teams. A **remote backend** tells Terraform to store the state file in a shared, remote location.
+
+**Benefits of Remote State:**
+- 📦 <span style="color: #FF6B6B; font-weight: bold;">Collaboration</span>: Allows all team members to access and modify the same infrastructure state, ensuring everyone is working with the most up-to-date information.
+- 🔒 <span style="color: #4ECDC4; font-weight: bold;">State Locking</span>: Most remote backends provide a locking mechanism. This is crucial for preventing multiple people from running `terraform apply` at the same time, which could lead to state corruption or race conditions.
+- 🛡️ <span style="color: #45B7D1; font-weight: bold;">Security & Durability</span>: Storing state in a managed service (like AWS S3 with versioning and encryption) is more secure and durable than keeping it on a personal laptop. It can be backed up, and access can be controlled with IAM policies.
+- 🤖 <span style="color: #96CEB4; font-weight: bold;">Automation</span>: Remote state is essential for running Terraform in automated CI/CD pipelines, as the pipeline needs a persistent, shared location to read from and write to.
+
+**Common Backend Example (`backend.tf`):**
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state-bucket-name"
+    key            = "global/s3/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-lock-table"
+    encrypt        = true
+  }
+}
+```
 
 ### 8. What is state locking and why is it important?
 ```mermaid
-graph TD
-    User1[👤 User 1] --> Lock[🔒 State Lock]
-    User2[👤 User 2] --> Lock
-    Lock --> Wait[⏳ Wait]
-    Wait --> Release[🔓 Release]
-    Release --> User2
+flowchart TD
+    User1[👩‍💻 User 1<br>runs `apply`] -- "Attempts to acquire lock" --> Lock{🔒 DynamoDB Lock}
+    Lock -- "Success!" --> User1_Applies["User 1<br>is applying..."]
+    
+    User2[👨‍💻 User 2<br>runs `plan`] -- "Attempts to acquire lock" --> Lock
+    Lock -- "Fail! Lock held by User 1" --> User2_Waits["User 2<br>must wait..."]
+
+    User1_Applies -- "Apply finishes" --> Release[Releases lock]
+    Release --> Lock
 ```
 
-**Locking Benefits:**
-- 🔒 <span style="color: #FF6B6B; font-weight: bold;">Prevent Conflicts</span>: Avoid simultaneous changes
-- ⏳ <span style="color: #4ECDC4; font-weight: bold;">Queue Operations</span>: Sequential execution
-- 🔓 <span style="color: #45B7D1; font-weight: bold;">Automatic Release</span>: Lock cleanup
+**State locking** prevents multiple users from running Terraform operations on the same state file at the same time.
+
+**Why is it Important?**
+- 💥 <span style="color: #FF6B6B; font-weight: bold;">Preventing Race Conditions</span>: Imagine two developers run `terraform apply` simultaneously. Both might read the same state file, but they are trying to make different changes. The one who finishes last would overwrite the other's changes in the state file, causing the state to no longer match the real infrastructure. This is known as a **race condition**.
+- 🛡️ <span style="color: #4ECDC4; font-weight: bold;">Ensuring Serial Operations</span>: A lock ensures that only one person can hold the "write token" for the state at a time. If one user has a lock and another tries to run `plan` or `apply`, Terraform will either fail immediately or wait until the lock is released. This forces operations to be serial and predictable.
+- ⚙️ <span style="color: #45B7D1; font-weight: bold;">Automatic Implementation</span>: When you configure a remote backend that supports locking (like AWS S3 with a DynamoDB table, or Terraform Cloud), Terraform automatically handles acquiring and releasing the lock for you during operations that could modify the state (`apply`, `destroy`, `import`, etc.).
 
 ### 9. How do you handle state drift?
 ```mermaid
-flowchart TD
-    Detect[🔍 Detect Drift] --> Plan[📋 terraform plan]
-    Plan --> Diff[📊 Review Changes]
-    Diff --> Apply[🚀 terraform apply]
-    Apply --> Sync[🔄 Sync State]
+graph LR
+    subgraph "Desired State (HCL Code)"
+        Config[📝<br>instance_type = "t2.micro"]
+    end
+    
+    subgraph "Manual Change in Console"
+        ManualChange[👨‍💻<br>Someone changes instance<br>to "t2.large" in the AWS Console]
+    end
+
+    subgraph "Actual State (Real World)"
+        DriftedInfra[☁️<br>EC2 is now "t2.large"]
+    end
+    
+    Config -- "doesn't match" --> DriftedInfra
+    
+    Plan[📋 terraform plan] -- "Detects this mismatch (Drift!)" --> Diff[Plan shows:<br>- t2.large<br>+ t2.micro]
+    Diff -- "You run `apply`" --> Apply[🚀 terraform apply]
+    Apply -- "Reverts manual change" --> FixedInfra[☁️<br>EC2 is back to "t2.micro"]
 ```
 
-**Drift Management:**
-- 🔍 <span style="color: #FF6B6B; font-weight: bold;">Detection</span>: `terraform plan` identifies differences
-- 📊 <span style="color: #4ECDC4; font-weight: bold;">Review</span>: Analyze changes before apply
-- 🔄 <span style="color: #45B7D1; font-weight: bold;">Sync</span>: Reconcile state with reality
+**State drift** occurs when the real-world state of your infrastructure differs from the state recorded in Terraform's `.tfstate` file. This usually happens when someone makes manual changes to the infrastructure outside of Terraform (e.g., through the cloud provider's web console).
 
-### 10. Explain state import and export
+**Drift Management Workflow:**
+1.  🔍 <span style="color: #FF6B6B; font-weight: bold;">Detection</span>: Running `terraform plan` is the primary way to detect drift. Terraform refreshes the state by reading the current attributes of the real-world resources and compares them to the desired configuration in your code. The plan will show any discrepancies.
+2.  📊 <span style="color: #4ECDC4; font-weight: bold;">Review</span>: Carefully review the output of `terraform plan`. The plan is your opportunity to understand what has drifted and decide how to proceed.
+3.  🔄 <span style="color: #45B7D1; font-weight: bold;">Reconciliation</span>: You have two main options:
+    - **Overwrite the drift**: Run `terraform apply`. This is the most common action. Terraform will enforce the "desired state" from your code and overwrite the manual changes.
+    - **Incorporate the drift**: If the manual change was intentional and desired, you should update your `.tf` code to match the change. The next `terraform plan` will then show no changes are needed.
+
+### 10. Explain state import and state mv
 ```mermaid
 graph TD
-    Existing[🌐 Existing Infrastructure] --> Import[📥 terraform import]
-    Import --> State[🗄️ State File]
-    State --> Manage[🔧 Manage with Terraform]
-    
-    Export[📤 terraform state mv] --> Backup[💾 Backup State]
-    Backup --> Restore[🔄 Restore State]
+    subgraph "Use Case 1: Import"
+        A[Manual Resource<br>☁️<br>Created via Console] --> B["`terraform import <addr> <id>`"]
+        B --> C[Resource is now in<br>🗄️ terraform.tfstate<br>and managed by Terraform]
+    end
+
+    subgraph "Use Case 2: Move/Rename"
+        D[resource "aws_instance" "old_name"] -- "Refactor code to" --> E[resource "aws_instance" "new_name"]
+        E --> F["`terraform state mv 'aws_instance.old_name' 'aws_instance.new_name'`"]
+        F --> G[Terraform now knows the resource<br>was renamed, won't destroy it.]
+    end
 ```
 
-**Import/Export Operations:**
-- 📥 <span style="color: #FF6B6B; font-weight: bold;">Import</span>: Bring existing resources under management
-- 📤 <span style="color: #4ECDC4; font-weight: bold;">Export</span>: Move resources between states
-- 💾 <span style="color: #45B7D1; font-weight: bold;">Backup</span>: State file protection
+`terraform import` and `terraform state mv` are powerful but dangerous commands for manipulating the state file directly.
+
+**Import/Move Operations:**
+- 📥 <span style="color: #FF6B6B; font-weight: bold;">`terraform import`</span>: This command is used to bring **existing, manually-created** infrastructure under Terraform's management.
+    1.  You write the HCL `resource` block for the existing resource in your `.tf` file.
+    2.  You run `terraform import <resource_address> <resource_id>`.
+    3.  Terraform then queries the cloud provider for that resource's current configuration and writes it into the `terraform.tfstate` file, "binding" your code to the existing resource.
+- 🚚 <span style="color: #4ECDC4; font-weight: bold;">`terraform state mv`</span>: This command is used to move or rename things *within* the state file. It's often used when you refactor your Terraform code. For example, if you rename a resource from `"old_name"` to `"new_name"`, Terraform would think you want to destroy `"old_name"` and create `"new_name"`. By running `terraform state mv`, you are telling Terraform, "These are the same resource, I just renamed it in my code." This prevents the resource from being wastefully destroyed and recreated.
 
 ---
 
