@@ -519,8 +519,533 @@ graph TD
     - A rider opens the app. Their phone sends their current `(lat, long)` to the Read API.
     - The service calculates the geohash for the rider's location.
     - It then queries the database for all drivers in the rider's geohash cell *and* the 8 neighboring cells. This ensures you don't miss a driver who is right across a cell boundary.
-    - The database returns a list of candidate drivers.
-    - The service can then perform a more precise distance calculation on this much smaller list and return the top N closest drivers to the rider.
+
+---
+
+### 21. Design a Distributed Key-Value Store
+Design a highly available and scalable distributed key-value store like Amazon DynamoDB or Apache Cassandra.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. PUT/GET key, value" --> LoadBalancer[⚖️ Load Balancer]
+    LoadBalancer --> Coordinators[🌐 Coordinator Nodes]
+    
+    subgraph "Distributed Data Storage Nodes"
+        NodeA[🗄️ Data Node A]
+        NodeB[🗄️ Data Node B]
+        NodeC[🗄️ Data Node C]
+    end
+
+    Coordinators -- "2. Hash key to find responsible nodes (Consistent Hashing)" --> Ring[#️⃣ Consistent Hashing Ring]
+    Ring -- "3. Replicate data to N nodes (R=3)" --> NodeA
+    Ring --> NodeB
+    Ring --> NodeC
+
+    NodeA -- "4. Acknowledge Write/Read" --> Coordinators
+    NodeB -- "4. Acknowledge Write/Read" --> Coordinators
+    NodeC -- "4. Acknowledge Write/Read" --> Coordinators
+
+    Coordinators -- "5. Return success/failure (W=2, R=2)" --> Client
+```
+
+**Core Problem**: Store and retrieve data quickly with high availability and scalability, handling node failures and data distribution transparently.
+
+**Core Components & Concepts:**
+- 🌐 **Client**: Applications that interact with the key-value store.
+- ⚖️ **Load Balancer**: Distributes client requests to available coordinator nodes.
+- 🌐 **Coordinator Nodes**: Front-end nodes that receive client requests. They determine which data nodes are responsible for a given key and coordinate the read/write operations with them.
+- 🗄️ **Data Nodes**: Store the actual key-value pairs. Data is partitioned and replicated across these nodes.
+- #️⃣ **Consistent Hashing Ring**: A fundamental technique for distributing data across nodes and handling node additions/removals with minimal data reshuffling. Each key is hashed to a point on the ring, and then assigned to the next data node on the ring.
+- **Replication**: Data is replicated across multiple data nodes (e.g., `N` replicas) to ensure durability and high availability.
+
+**CAP Theorem & Tunable Consistency:**
+- Distributed key-value stores typically prioritize **Availability** and **Partition Tolerance** over strong **Consistency** (Eventual Consistency).
+- **Tunable Consistency (N, W, R)**:
+    - `N`: Number of replicas (e.g., 3).
+    - `W`: Minimum number of replicas that must acknowledge a write for it to be considered successful.
+    - `R`: Minimum number of replicas that must respond for a read to be considered successful.
+    - `W + R > N` guarantees strong consistency (e.g., `W=2, R=2, N=3` implies a read will always see the latest write).
+    - `W + R <= N` implies eventual consistency.
+
+**Scalability & Considerations:**
+- **Horizontal Scalability**: Add more data nodes to increase storage capacity and throughput.
+- **Fault Tolerance**: Replication ensures data is available even if some nodes fail. **Hinted Handoff** can store data for temporarily unreachable nodes.
+- **Conflict Resolution**: With eventual consistency, concurrent writes to the same key on different replicas can lead to conflicts. Vector clocks or "last write wins" are common strategies.
+- **Gossip Protocol**: Nodes communicate with each other to share information about their state, health, and what data they hold.
+
+---
+
+### 22. Design a Distributed Message Queue
+Design a robust and scalable distributed message queue like Apache Kafka or RabbitMQ.
+
+```mermaid
+graph TD
+    Producer[📝 Producer] -- "1. Publish Message (Topic A)" --> LoadBalancer[⚖️ Load Balancer]
+    LoadBalancer --> Brokers[🔄 Broker Nodes]
+    
+    subgraph "Broker Cluster"
+        Broker1[📦 Broker 1]
+        Broker2[📦 Broker 2]
+        Broker3[📦 Broker 3]
+    end
+
+    Brokers -- "2. Store Message (Topic A, Partition 0)" --> Broker1
+    Brokers -- "2. Replicate to followers" --> Broker2
+    Brokers -- "2. Replicate to followers" --> Broker3
+
+    ConsumerGroup[👥 Consumer Group] -- "3. Subscribe to Topic A" --> Brokers
+    ConsumerGroup -- "4. Pull Messages (Partition 0)" --> Broker1
+    
+    Consumer1[👩‍💻 Consumer 1] --> ConsumerGroup
+    Consumer2[👨‍💻 Consumer 2] --> ConsumerGroup
+```
+
+**Core Problem**: Reliably transfer messages between distributed applications (producers and consumers) with high throughput, low latency, and fault tolerance.
+
+**Core Components & Concepts:**
+- 📝 **Producer**: An application that sends messages to the message queue.
+- 👩‍💻 **Consumer**: An application that receives and processes messages from the message queue. Consumers typically belong to **Consumer Groups**.
+- 🔄 **Broker Nodes**: Servers that form the message queue cluster. They receive messages from producers, store them, and deliver them to consumers.
+- 🔖 **Topics**: Messages are categorized into topics. Producers publish messages to topics, and consumers subscribe to topics.
+- **Partitions**: Each topic is divided into partitions. Partitions allow for parallel processing of messages within a topic and enable horizontal scalability.
+- **Replication**: Partitions are replicated across multiple brokers to ensure high availability and durability.
+
+**Key Features & Considerations:**
+- **Durability**: Messages should not be lost, even if brokers fail. Replication and persistent storage are essential.
+- **Ordering**: Message ordering is typically guaranteed within a single partition.
+- **Scalability**: Can scale horizontally by adding more brokers and partitions.
+- **Consumer Offsets**: Consumers keep track of their "offset" (the last message they successfully processed) within each partition. This allows them to resume processing from where they left off after a crash.
+- **At-least-once Delivery**: A common guarantee, meaning a message is delivered at least once (it might be delivered multiple times if a consumer fails before acknowledging a message). Exactly-once is harder to achieve.
+- **Message Acknowledgment**: Consumers acknowledge messages after processing them, allowing the broker to clean up.
+
+---
+
+### 23. Design a Distributed File System (like HDFS)
+Design a fault-tolerant and scalable distributed file system.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. Request File (read/write)" --> NameNode[🧠 NameNode<br>(Metadata Server)]
+    
+    subgraph "DataNode Cluster"
+        DataNode1[💾 DataNode 1]
+        DataNode2[💾 DataNode 2]
+        DataNodeN[💾 DataNode N]
+    end
+
+    NameNode -- "2. Return Block Locations" --> Client
+    Client -- "3. Read/Write Data Blocks" --> DataNode1
+    Client -- "3. Read/Write Data Blocks" --> DataNode2
+    Client -- "3. Read/Write Data Blocks" --> DataNodeN
+
+    DataNode1 -- "4. Replicate Blocks" --> DataNode2
+    DataNode2 -- "4. Replicate Blocks" --> DataNodeN
+
+    NameNode -- "5. Periodically receives Heartbeat/Block Reports" --> DataNode1
+    NameNode -- "..." --> DataNode2
+    NameNode -- "..." --> DataNodeN
+```
+
+**Core Problem**: Store and manage very large files (terabytes to petabytes) across a cluster of commodity hardware, providing high throughput for large data reads and writes, and fault tolerance.
+
+**Core Components & Concepts:**
+- 🧠 **NameNode (Master Node)**: The central authority for file system metadata. It stores:
+    - The file system tree (directories, files).
+    - Metadata for all files (permissions, timestamps).
+    - The mapping of files to data blocks and where those blocks are stored on DataNodes.
+    - **Single Point of Failure**: Historically, NameNode was a SPOF. Modern systems use High-Availability (HA) NameNodes (e.g., active/standby).
+- 💾 **DataNodes (Worker Nodes)**: Store the actual file data in blocks. They perform read/write operations based on client requests and periodically report their status and stored blocks to the NameNode (heartbeats and block reports).
+- **Blocks**: Files are broken down into large blocks (e.g., 128MB or 256MB), which are replicated across multiple DataNodes (typically 3 for fault tolerance).
+- **Client**: An application library that communicates with the NameNode for metadata operations and directly with DataNodes for data I/O.
+
+**Workflow (Simplified Read/Write):**
+- **Write**:
+    1.  Client asks NameNode where to write a new file.
+    2.  NameNode returns a list of DataNodes to store the file's blocks.
+    3.  Client writes data directly to the DataNodes in a pipeline, with each DataNode replicating the block to the next.
+- **Read**:
+    1.  Client asks NameNode for the locations of a file's blocks.
+    2.  NameNode returns the DataNode locations.
+    3.  Client reads data directly from the nearest DataNodes.
+
+**Scalability & Fault Tolerance:**
+- **Horizontal Scalability**: Add more DataNodes to increase storage and throughput.
+- **Fault Tolerance**: Replication of data blocks ensures data durability. If a DataNode fails, the NameNode detects it and initiates replication of lost blocks to new DataNodes.
+- **High Throughput**: Optimized for sequential reads/writes of large files, not low-latency random access.
+
+---
+
+### 24. Design a Distributed Transaction System
+Design a system that ensures atomicity, consistency, isolation, and durability (ACID) across multiple distributed services or databases.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. Request Distributed Transaction" --> Orchestrator[⚙️ Transaction Orchestrator]
+
+    subgraph "Participating Services"
+        SvcA[📦 Service A]
+        SvcB[📦 Service B]
+        SvcC[📦 Service C]
+    end
+
+    subgraph "Databases"
+        DBA[(🗄️ DB A)]
+        DBB[(🗄️ DB B)]
+        DBC[(🗄️ DB C)]
+    end
+
+    Orchestrator -- "2. Start Transaction (Prepare Phase)" --> SvcA
+    Orchestrator -- "..." --> SvcB
+    Orchestrator -- "..." --> SvcC
+
+    SvcA -- "3. Local Transaction" --> DBA
+    SvcB -- "3. Local Transaction" --> DBB
+    SvcC -- "3. Local Transaction" --> DBC
+
+    DBA -- "4. Report Ready/Abort" --> SvcA
+    DBB -- "4. Report Ready/Abort" --> SvcB
+    DBC -- "4. Report Ready/Abort" --> SvcC
+
+    SvcA -- "5. Report Ready/Abort" --> Orchestrator
+    SvcB -- "5. Report Ready/Abort" --> Orchestrator
+    SvcC -- "5. Report Ready/Abort" --> Orchestrator
+
+    Orchestrator -- "6. If all Ready, COMMIT (Commit Phase)" --> SvcA
+    Orchestrator -- "Else, ROLLBACK (Rollback Phase)" --> SvcA
+```
+
+**Core Problem**: Maintain ACID properties when a single logical transaction spans multiple, independent databases or microservices, each with its own local transaction.
+
+**Core Concepts:**
+- ⚙️ **Transaction Orchestrator (Coordinator)**: A central component that coordinates the distributed transaction. It initiates the transaction, monitors the status of participants, and decides whether to commit or abort the entire transaction.
+- 📦 **Participating Services**: Microservices that perform local transactions on their own databases. They must be able to "prepare" a transaction (lock resources, ensure ability to commit) and then either commit or roll back.
+- 🗄️ **Local Databases**: Each service's independent database.
+
+**Common Patterns:**
+
+1.  **Two-Phase Commit (2PC)**:
+    - **Phase 1 (Prepare)**: The coordinator sends a "prepare" message to all participants. Each participant executes its local transaction, writes a log record, and then votes "yes" (ready to commit) or "no" (abort).
+    - **Phase 2 (Commit/Rollback)**:
+        - If all participants vote "yes", the coordinator sends a "commit" message to all.
+        - If any participant votes "no" or a timeout occurs, the coordinator sends an "abort" message to all.
+    - **Pros**: Ensures atomicity (all or nothing).
+    - **Cons**: Blocking protocol (participants remain locked while waiting for coordinator's decision), high latency, coordinator is a single point of failure.
+
+2.  **Saga Pattern**:
+    - A sequence of local transactions, where each transaction updates its own database and publishes an event.
+    - If a local transaction fails, a compensating transaction is executed to undo the changes made by previous local transactions.
+    - **Pros**: Non-blocking, better availability, suitable for microservices.
+    - **Cons**: Complex to implement, eventual consistency, harder to reason about, challenges with compensating transactions.
+
+**Considerations:**
+- **Idempotency**: All operations in distributed transactions must be idempotent to handle retries.
+- **Fault Tolerance**: The orchestrator must be fault-tolerant, and recovery mechanisms are needed if it fails.
+- **Observability**: Distributed tracing is essential for debugging issues in such complex systems.
+
+---
+
+### 25. Design a Distributed ID Generator
+Design a system to generate unique, monotonically increasing IDs across a distributed system, like Twitter's Snowflake or Instagram's ID system.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Application] -- "1. Request ID" --> LoadBalancer[⚖️ Load Balancer]
+    LoadBalancer --> IDService[⚙️ ID Generator Service]
+    
+    subgraph "ID Generator Service (Worker Pool)"
+        Worker1[💻 Worker 1]
+        Worker2[💻 Worker 2]
+        WorkerN[💻 Worker N]
+    end
+
+    IDService -- "2. Generate Unique ID" --> Worker1
+    Worker1 -- "Uses Local State + Config" --> IDComponent[🛠️ ID Components]
+    IDComponent -- "Time (41 bits)<br>Worker ID (10 bits)<br>Sequence (12 bits)" --> UniqueID[#️⃣ Unique, Monotonically Increasing ID]
+    Worker1 -- "3. Return ID" --> IDService
+    IDService -- "4. Return ID" --> Client
+```
+
+**Core Problem**: Generate unique IDs at a very high rate (e.g., millions per second) across multiple servers, without coordination overhead and with predictable ordering (monotonically increasing).
+
+**Naive Approaches (and why they fail/are problematic):**
+- **UUIDs**: Universally Unique Identifiers are unique but not monotonically increasing, and take up a lot of space.
+- **Database AUTO_INCREMENT**: Becomes a bottleneck at high scale, not distributed.
+- **Centralized Service**: Single point of failure, bottleneck.
+
+**Twitter Snowflake Approach (or similar):**
+The idea is to combine several components into a single 64-bit integer ID:
+`ID = Timestamp (41 bits) | Worker ID (10 bits) | Sequence Number (12 bits)`
+
+- #️⃣ **Timestamp (41 bits)**:
+    - Typically milliseconds since a custom epoch (e.g., Twitter uses Nov 04, 2010).
+    - This provides about 69 years of unique IDs.
+    - Ensures IDs are roughly time-ordered (monotonically increasing).
+- 💻 **Worker ID (10 bits)**:
+    - A unique identifier for the specific ID generator instance (server/process) that generated the ID.
+    - Allows for 1024 unique worker IDs. This must be provisioned and managed carefully (e.g., using ZooKeeper, Kubernetes StatefulSets).
+- 🔢 **Sequence Number (12 bits)**:
+    - A counter that increments for each ID generated by a single worker within the same millisecond.
+    - Allows for 4096 unique IDs per millisecond per worker. If more are needed, the worker can pause until the next millisecond.
+
+**Benefits:**
+- **Unique**: Guaranteed unique across the distributed system.
+- **Monotonically Increasing**: Roughly time-ordered, useful for sorting and indexing.
+- **Distributed**: No central bottleneck, each worker generates IDs independently.
+- **Low Latency**: IDs can be generated locally by the worker without network calls (once the Worker ID is assigned).
+
+**Considerations:**
+- **Clock Skew**: If a server's clock drifts backward, it can generate duplicate IDs. Solutions include detecting clock jumps and waiting, or refusing to generate IDs until the clock catches up.
+- **Worker ID Management**: Requires a reliable mechanism to assign and manage unique worker IDs.
+
+---
+
+### 26. Design a Distributed Locking Service
+Design a distributed locking service to coordinate access to shared resources across multiple processes/servers.
+
+```mermaid
+graph TD
+    ClientA[👩‍💻 Client A] -- "1. Acquire Lock (resource_X)" --> LockService[🔒 Distributed Lock Service]
+    ClientB[👨‍💻 Client B] -- "2. Acquire Lock (resource_X)" --> LockService
+    
+    subgraph "Lock Service (e.g., ZooKeeper, Consul, Redis)"
+        Leader[🌟 Leader]
+        Follower1[🤝 Follower 1]
+        Follower2[🤝 Follower 2]
+    end
+
+    LockService -- "3. If available, grant lock to A" --> ClientA
+    LockService -- "4. If A holds lock, B waits/fails" --> ClientB
+
+    ClientA -- "5. Release Lock (resource_X)" --> LockService
+    LockService -- "6. Grant lock to B (if waiting)" --> ClientB
+```
+
+**Core Problem**: Ensure that only one process or server can access a shared resource (e.g., a critical section of code, a shared file, a database record) at any given time, preventing race conditions and data corruption in a distributed environment.
+
+**Core Concepts:**
+- 🔒 **Distributed Lock Service**: A dedicated service or a mechanism within a distributed coordination system (like Apache ZooKeeper, HashiCorp Consul, or Redis with Redlock algorithm) that manages locks.
+- **Clients**: The applications or services that need to acquire and release locks.
+- **Shared Resource**: The resource that needs to be protected by the lock.
+
+**Key Requirements & Challenges:**
+- **Mutual Exclusion**: Only one client can hold the lock at any given time.
+- **Liveness**:
+    - **Deadlock-Free**: If a client acquires a lock and then crashes, the lock must eventually be released. This often involves **expiring locks** (time-to-live, TTL).
+    - **Starvation-Free**: All clients eventually get the lock.
+- **Fault Tolerance**: The locking service itself must be highly available and fault-tolerant.
+- **Performance**: Acquiring and releasing locks should be fast to avoid becoming a bottleneck.
+
+**Implementation Approaches:**
+
+1.  **ZooKeeper/Consul**:
+    - Use ephemeral sequential nodes. A client creates an ephemeral node. The client with the lowest sequence number gets the lock. If a client crashes, its ephemeral node is automatically deleted, releasing the lock.
+    - **Pros**: Strongly consistent, built-in leadership election and watch mechanisms.
+    - **Cons**: Relatively high latency compared to Redis, more complex to set up.
+
+2.  **Redis (with Redlock algorithm)**:
+    - Use `SET NX PX` (set if not exists, with expiration) across multiple independent Redis instances.
+    - **Pros**: Very fast (in-memory).
+    - **Cons**: Less robust than ZooKeeper for true distributed consensus (some theoretical edge cases where Redlock can fail to provide mutual exclusion).
+
+**Considerations:**
+- **Fencing Tokens**: To prevent a "fencing problem" where a client that thought it had the lock (but lost it due to a network partition) might still try to operate on the shared resource, a unique, monotonically increasing "fencing token" can be issued with each successful lock acquisition. The shared resource then only accepts operations with the latest token.
+- **Reentrancy**: Can the same client re-acquire a lock it already holds? (Often yes, but needs careful design).
+
+---
+
+### 27. Design a Distributed Consensus System (like Paxos or Raft)
+Design a system to achieve agreement on a single data value among a group of distributed processes.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client] -- "1. Propose Value X" --> Leader[🌟 Leader]
+    
+    subgraph "Replicated Log / State Machine"
+        Node1[⚙️ Node 1]
+        Node2[⚙️ Node 2]
+        Node3[⚙️ Node 3]
+        Node4[⚙️ Node 4]
+        Node5[⚙️ Node 5]
+    end
+
+    Leader -- "2. Append to its log" --> Leader
+    Leader -- "3. Replicate Log Entry to Followers" --> Node2
+    Leader -- "..." --> Node3
+    Leader -- "..." --> Node4
+    Leader -- "..." --> Node5
+
+    Node2 -- "4. Acknowledge Receipt" --> Leader
+    Node3 -- "..." --> Leader
+    Node4 -- "..." --> Leader
+    Node5 -- "..." --> Leader
+
+    Leader -- "5. If Majority Acknowledge, Commit Entry" --> Leader
+    Leader -- "6. Send Commit to Followers" --> Node2
+    Leader -- "..." --> Node3
+    Leader -- "..." --> Node4
+    Leader -- "..." --> Node5
+    
+    Node1 --- Node2
+    Node2 --- Node3
+    Node3 --- Node4
+    Node4 --- Node5
+    Node5 --- Node1
+```
+
+**Core Problem**: In a distributed system, how can a set of unreliable processes agree on a single outcome or ordering of operations, even if some processes fail or network partitions occur? This is crucial for building fault-tolerant replicated state machines.
+
+**Core Concepts:**
+- **Leader Election**: In most practical consensus algorithms (like Raft), one node is elected as the **Leader**. All client requests go through the Leader. If the Leader fails, a new Leader is elected.
+- **Replicated Log**: All changes to the system's state are applied by appending entries to a replicated log. Each node maintains a copy of this log.
+- **Quorum**: Agreement is reached when a **majority** (more than half) of the nodes agree. This ensures that even if some nodes fail or become isolated, the system can still make progress, and any two majorities will always overlap, preventing divergent outcomes.
+- **State Machine Replication**: Each node applies the committed log entries in the same order to its local state machine, ensuring that all healthy nodes have identical states.
+
+**Raft Algorithm (Simplified Workflow):**
+1.  **Leader Election**: Nodes are in either Follower, Candidate, or Leader state. If a Follower doesn't hear from the Leader, it becomes a Candidate and requests votes. The node with the majority of votes becomes the Leader.
+2.  **Log Replication**:
+    - Clients send requests (e.g., "set x = 5") to the Leader.
+    - The Leader appends the request to its local log.
+    - The Leader sends "AppendEntries" RPCs to all Followers, containing the new log entries.
+    - Followers acknowledge receipt of the log entries.
+    - Once a majority of Followers have acknowledged, the Leader "commits" the entry and applies it to its state machine.
+    - The Leader then notifies Followers to commit the entry.
+
+**Benefits:**
+- **Fault Tolerance**: The system can continue to operate as long as a majority of nodes are healthy.
+- **Consistency**: Guarantees that all committed decisions are consistent across the system.
+- **Durability**: Committed data is stored persistently on multiple nodes.
+
+**Comparison (Raft vs. Paxos):**
+- **Paxos**: The original, more complex consensus algorithm.
+- **Raft**: Designed to be more understandable and easier to implement than Paxos, while achieving the same fault-tolerant consensus.
+
+---
+
+### 28. Design a Distributed Log Storage (like Kafka)
+Design a highly scalable, fault-tolerant, distributed log storage system optimized for event streaming.
+
+```mermaid
+graph TD
+    Producer[📝 Producer] -- "1. Send event (Topic: 'orders', Key: order_id)" --> Brokers[🔄 Broker Cluster]
+    
+    subgraph "Broker Cluster"
+        Broker1[📦 Broker 1]
+        Broker2[📦 Broker 2]
+        Broker3[📦 Broker 3]
+    end
+
+    Brokers -- "2. Route to Partition (based on Key/Round-robin)" --> Partition0[📄 Partition 0]
+    Partition0 -- "3. Append to Log" --> Segment1[💾 Segment 1]
+    Segment1 -- "4. Replicate to followers" --> Replicas[📦 Replicas]
+    
+    ConsumerGroup[👥 Consumer Group] -- "5. Subscribe to Topic 'orders'" --> Brokers
+    ConsumerGroup -- "6. Read from Partition 0, Offset X" --> Partition0
+    ConsumerGroup -- "7. Update Offset" --> Zookeeper[(🗄️ ZooKeeper/Meta Store)]
+```
+
+**Core Problem**: Store a continuous stream of records (events) in an append-only, immutable, distributed log, and allow multiple consumers to read from it at their own pace, with high throughput and durability.
+
+**Core Components & Concepts (similar to Kafka):**
+- 📝 **Producer**: Applications that publish events to a specific `Topic`.
+- 🔄 **Broker Cluster**: A cluster of servers (Kafka brokers) that store the logs.
+- 🔖 **Topic**: A category or feed name to which records are published.
+- **Partitions**: Each Topic is divided into an ordered, immutable sequence of records called a `Partition`. Partitions are the unit of parallelism and allow a Topic to be scaled across multiple brokers.
+- **Segments**: Partitions are stored on disk as a sequence of `Segment` files.
+- **Replication**: Each partition has a configurable number of replicas (e.g., 3). One replica is the **Leader**, and the others are **Followers**. All reads and writes for a partition go through its Leader. Followers passively replicate the Leader's log.
+- 👥 **Consumer Group**: A set of consumers that jointly consume messages from a topic. Each consumer in a group reads from one or more distinct partitions, ensuring that each message is processed only once by the group.
+- 🗄️ **ZooKeeper/Metadata Store**: Used for storing cluster metadata, performing leader elections, and tracking consumer offsets.
+
+**Key Features & Workflow:**
+- **Append-Only Log**: Records are always appended to the end of a partition log. Once written, they are immutable.
+- **High Throughput**: Achieved through partitioning, batching, and sequential disk I/O.
+- **Durability**: Replication and persistent storage ensure messages are not lost.
+- **Decoupling**: Producers and consumers are fully decoupled; they only interact with the brokers.
+- **Consumer Control**: Consumers manage their own offsets, allowing them to rewind, replay, or skip messages.
+
+---
+
+### 29. Design a Real-time Analytics System
+Design a system for real-time aggregation and querying of event streams, like a dashboard for live metrics or fraud detection.
+
+```mermaid
+graph TD
+    EventSource[🌍 Event Sources<br>(Web Clicks, Sensor Data)] -- "1. Generate Events" --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Event Processing Pipeline"
+        IngestAPI -- "2. Push to Stream" --> EventStream[🔄 Event Stream<br>(Kafka)]
+        EventStream -- "3. Stream Processing" --> StreamProcessor[⚙️ Stream Processor<br>(Flink/Spark Streaming)]
+    end
+
+    StreamProcessor -- "4. Aggregate & Transform" --> RealtimeDB[📈 Real-time DB<br>(Druid/ClickHouse)]
+    StreamProcessor -- "5. Load into Dashboard" --> DashboardDB[(🗄️ Dashboard Data Store)]
+
+    User[👩‍💻 Analyst/Dashboard] -- "6. Query Data" --> QueryAPI[🌐 Query API]
+    QueryAPI -- "7. Get Aggregations/Metrics" --> RealtimeDB
+    QueryAPI -- "8. Get Dashboard Data" --> DashboardDB
+    QueryAPI -- "9. Display Dashboard" --> User
+```
+
+**Core Problem**: Process a continuous, high-volume stream of events, perform aggregations and transformations on them in near real-time, and make the results available for low-latency querying and visualization.
+
+**Core Components & Concepts:**
+- 🌍 **Event Sources**: Any system generating data, such as web servers, IoT devices, payment systems, etc.
+- 🌐 **Ingest API**: A highly scalable endpoint that receives raw events from various sources and pushes them into the event stream.
+- 🔄 **Event Stream (Message Queue)**: A distributed message queue (like Kafka) that acts as a buffer and enables decoupling and replayability of events.
+- ⚙️ **Stream Processor**: A real-time data processing engine (e.g., Apache Flink, Apache Spark Streaming, Kafka Streams) that consumes events from the stream. It performs:
+    - **Filtering**: Selecting relevant events.
+    - **Transformations**: Changing event formats.
+    - **Aggregations**: Calculating metrics over time windows (e.g., "count of clicks in the last 5 minutes").
+    - **Joins**: Combining events from different streams.
+- 📈 **Real-time Database/Data Store**: A database optimized for high-volume writes and low-latency analytical queries (e.g., Apache Druid, ClickHouse, Apache Pinot). It stores the aggregated and processed data.
+- 🌐 **Query API**: An API layer that allows users or dashboard applications to query the real-time data stores.
+- 👩‍💻 **Dashboard**: A visualization tool (e.g., Grafana, Tableau) that displays the real-time metrics and insights.
+
+**Key Features & Considerations:**
+- **Low Latency**: End-to-end latency from event generation to dashboard display should be in seconds or milliseconds.
+- **High Throughput**: Capable of handling millions or billions of events per second.
+- **Fault Tolerance**: The entire pipeline should be resilient to component failures, ensuring no data loss and automatic recovery.
+- **Exactly-Once Processing**: Crucial for financial or critical metrics to ensure events are counted precisely once.
+- **Time Windows**: Stream processors often use tumbling, hopping, or sliding windows to define the time periods for aggregations.
+
+---
+
+### 30. Design a Distributed Cache
+Design a distributed caching system like Memcached or Redis.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Application] -- "1. GET key" --> CacheClient[⚙️ Cache Client Library]
+    CacheClient -- "2. Hash key to find server" --> Hashing[#️⃣ Consistent Hashing Ring]
+    Hashing -- "3. Request from responsible cache server" --> CacheServer1[⚡ Cache Server 1]
+    CacheClient -- "..." --> CacheServerN[⚡ Cache Server N]
+
+    CacheServer1 -- "Cache Miss" --> BackendDB[(🗄️ Backend DB)]
+    BackendDB -- "Data" --> CacheServer1
+    CacheServer1 -- "Stores & Returns Data" --> CacheClient
+    CacheClient -- "Returns Data" --> Client
+```
+
+**Core Problem**: Store large amounts of data in memory across multiple servers and retrieve it quickly, while ensuring consistency and scalability.
+
+**Core Components & Concepts:**
+- ⚙️ **Cache Client Library**: Integrated into the client application. It knows how to connect to the cache servers, handle hashing, and manage retries.
+- #️⃣ **Consistent Hashing**: A crucial technique for distributing keys across cache servers.
+    - It maps both cache servers and data keys to a circular hash ring.
+    - When a server is added or removed, only a small fraction of keys need to be remapped, minimizing data movement and cache misses.
+- ⚡ **Cache Servers**: Individual instances (nodes) in the distributed cache. They are typically stateless (data is in memory) and just store key-value pairs.
+- 🗄️ **Backend Database**: The primary data source. If a cache server experiences a "cache miss," it fetches the data from the backend DB, stores it, and then returns it to the client.
+
+**Scalability & Consistency:**
+- **High Availability**:
+    - **Replication**: Data can be replicated across multiple cache servers (e.g., primary-secondary).
+    - **Quorum**: For write-heavy caches, a quorum of replicas might need to acknowledge a write before it's considered successful.
+- **Cache Eviction Policies**: When the cache is full, it needs to decide which items to remove (e.g., LRU - Least Recently Used, LFU - Least Frequently Used).
+- **Cache Invalidation**: How do you ensure cached data is fresh?
+    - **Time-To-Live (TTL)**: Items expire after a certain time.
+    - **Write-Through/Write-Back**: Updates are written to both cache and DB.
+    - **Explicit Invalidation**: Backend DB pushes invalidation messages to the cache.
+- **Read-Heavy**: Distributed caches are primarily designed to handle massive read loads, reducing the burden on the backend database.
+
 
 ---
 
