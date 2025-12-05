@@ -30,18 +30,27 @@
 - [27. Design a Distributed Consensus System (like Paxos or Raft)](#27-design-a-distributed-consensus-system-like-paxos-or-raft)
 - [28. Design a Distributed Log Storage (like Kafka)](#28-design-a-distributed-log-storage-like-kafka)
 - [29. Design a Real-time Analytics System](#29-design-a-real-time-analytics-system)
-- [30. Design a Distributed Cache (Redundant Entry)](#30-design-a-distributed-cache-redundant-entry)
-- [31. Design a Global Load Balancer](#31-design-a-global-load-balancer)
-- [32. Design a Distributed Tracing System](#32-design-a-distributed-tracing-system)
-- [33. Design a Distributed Configuration Service](#33-design-a-distributed-configuration-service)
-- [34. Design a Distributed Logging System](#34-design-a-distributed-logging-system)
-- [35. Design a Leader Election Service](#35-design-a-leader-election-service)
-- [36. Design a Circuit Breaker Pattern](#36-design-a-circuit-breaker-pattern)
-- [37. Design an Asynchronous Task Queue](#37-design-an-asynchronous-task-queue)
-- [38. Design a Geo-Distributed Database](#38-design-a-geo-distributed-database)
-- [39. Design a Write-Ahead Log (WAL)](#39-design-a-write-ahead-log-wal)
-- [40. Design an Anti-Entropy Protocol](#40-design-an-anti-entropy-protocol)
-
+- [30. Design a Write-Ahead Log (WAL)](#30-design-a-write-ahead-log-wal)
+- [31. Design an Anti-Entropy Protocol](#31-design-an-anti-entropy-protocol)
+- [32. Design a Global Load Balancer](#32-design-a-global-load-balancer)
+- [33. Design a Distributed Tracing System](#33-design-a-distributed-tracing-system)
+- [34. Design a Distributed Configuration Service](#34-design-a-distributed-configuration-service)
+- [35. Design a Distributed Logging System](#35-design-a-distributed-logging-system)
+- [36. Design a Leader Election Service](#36-design-a-leader-election-service)
+- [37. Design a Circuit Breaker Pattern](#37-design-a-circuit-breaker-pattern)
+- [38. Design an Asynchronous Task Queue](#38-design-an-asynchronous-task-queue)
+- [39. Design a Geo-Distributed Database](#39-design-a-geo-distributed-database)
+- [40. Design a Write-Ahead Log (WAL)](#40-design-a-write-ahead-log-wal)
+- [41. Design a Distributed Search Engine](#41-design-a-distributed-search-engine)
+- [42. Design a Distributed Graph Database](#42-design-a-distributed-graph-database)
+- [43. Design a Distributed Time Series Database](#43-design-a-distributed-time-series-database)
+- [44. Design a Distributed Queue for Analytics](#44-design-a-distributed-queue-for-analytics)
+- [45. Design a Consistent Hashing Ring](#45-design-a-consistent-hashing-ring)
+- [46. Design a Peer-to-Peer File Sharing System](#46-design-a-peer-to-peer-file-sharing-system)
+- [47. Design a Real-time Auction System](#47-design-a-real-time-auction-system)
+- [48. Design an Ad Server](#48-design-an-ad-server)
+- [49. Design a Matching System (like Uber/Lyft rider-driver matching)](#49-design-a-matching-system-like-uberlyft-rider-driver-matching)
+- [50. Design a Recommendation System for Live Events](#50-design-a-recommendation-system-for-live-events)
 
 ---
 
@@ -1030,122 +1039,47 @@ graph TD
 
 ---
 
-### 30. Design a Write-Ahead Log (WAL)
-Design a mechanism to ensure data integrity and durability in a database system, even in the event of crashes.
+### 30. Design a Distributed Cache
+Design a distributed caching system like Memcached or Redis.
 
 ```mermaid
 graph TD
-    Client[👩‍💻 Client] -- "1. SQL Query (UPDATE/INSERT)" --> DBServer[🗄️ Database Server]
-    
-    subgraph "Database Components"
-        BufferCache[⚡ Buffer Cache<br>(In-memory)]
-        WAL[📝 Write-Ahead Log<br>(Disk-based)]
-        DataFiles[💾 Data Files<br>(Disk-based)]
-    end
+    Client[👩‍💻 Client Application] -- "1. GET key" --> CacheClient[⚙️ Cache Client Library]
+    CacheClient -- "2. Hash key to find server" --> Hashing[#️⃣ Consistent Hashing Ring]
+    Hashing -- "3. Request from responsible cache server" --> CacheServer1[⚡ Cache Server 1]
+    CacheClient -- "..." --> CacheServerN[⚡ Cache Server N]
 
-    DBServer -- "2. Write changes to WAL (disk)" --> WAL
-    WAL -- "3. Flush to disk (before data changes)" --> WAL
-    DBServer -- "4. Apply changes to Buffer Cache" --> BufferCache
-    BufferCache -- "5. Periodically flush to Data Files" --> DataFiles
-    
-    DBServer -- "6. Acknowledge success to Client" --> Client
-    
-    WAL -- "Recovery on Crash" --> DataFiles
+    CacheServer1 -- "Cache Miss" --> BackendDB[(🗄️ Backend DB)]
+    BackendDB -- "Data" --> CacheServer1
+    CacheServer1 -- "Stores & Returns Data" --> CacheClient
+    CacheClient -- "Returns Data" --> Client
 ```
 
-**Core Problem**: Ensure that committed transactions are durable (persisted) and that the database can recover to a consistent state after a crash, even if in-memory changes haven't been written to the main data files yet.
+**Core Problem**: Store large amounts of data in memory across multiple servers and retrieve it quickly, while ensuring consistency and scalability.
 
-**Core Concepts:**
-- 📝 **Write-Ahead Log (WAL)**: Also known as a transaction log or redo log. It's a sequential, append-only log on disk that records all changes made to the database *before* those changes are applied to the main data files.
-- **Buffer Cache (Page Cache)**: An in-memory cache where database pages (blocks of data) are loaded and modified. Writes to the buffer cache are much faster than disk writes.
-- 💾 **Data Files**: The main persistent storage for the database tables.
+**Core Components & Concepts:**
+- ⚙️ **Cache Client Library**: Integrated into the client application. It knows how to connect to the cache servers, handle hashing, and manage retries.
+- #️⃣ **Consistent Hashing**: A crucial technique for distributing keys across cache servers.
+    - It maps both cache servers and data keys to a circular hash ring.
+    - When a server is added or removed, only a small fraction of keys need to be remapped, minimizing data movement and cache misses.
+- ⚡ **Cache Servers**: Individual instances (nodes) in the distributed cache. They are typically stateless (data is in memory) and just store key-value pairs.
+- 🗄️ **Backend Database**: The primary data source. If a cache server experiences a "cache miss," it fetches the data from the backend DB, stores it, and then returns it to the client.
 
-**WAL Principle (ACID - Durability & Atomicity):**
-The WAL guarantees the "D" (Durability) in ACID. The fundamental rule is: **"Write-Ahead Logging Rule: You must write a change to the log before you can apply that change to the data files."**
+**Scalability & Consistency:**
+- **High Availability**:
+    - **Replication**: Data can be replicated across multiple cache servers (e.g., primary-secondary).
+    - **Quorum**: For write-heavy caches, a quorum of replicas might need to acknowledge a write before it's considered successful.
+- **Cache Eviction Policies**: When the cache is full, it needs to decide which items to remove (e.g., LRU - Least Recently Used, LFU - Least Frequently Used).
+- **Cache Invalidation**: How do you ensure cached data is fresh?
+    - **Time-To-Live (TTL)**: Items expire after a certain time.
+    - **Write-Through/Write-Back**: Updates are written to both cache and DB.
+    - **Explicit Invalidation**: Backend DB pushes invalidation messages to the cache.
+- **Read-Heavy**: Distributed caches are primarily designed to handle massive read loads, reducing the burden on the backend database.
 
-**Workflow:**
-1.  A **Client** sends a write query (e.g., `UPDATE`, `INSERT`) to the **Database Server**.
-2.  The **Database Server** first records the proposed change (the "redo" record) into the **WAL**. This record describes how to re-apply the change.
-3.  The WAL entry is typically **flushed to disk** before the transaction is considered committed. This is crucial for durability.
-4.  Only after the WAL entry is safely on disk, the server applies the change to the in-memory **Buffer Cache**.
-5.  Changes in the **Buffer Cache** are eventually (and asynchronously) flushed to the **Data Files** on disk.
-
-**Crash Recovery:**
-- If the database crashes, the **Data Files** might contain a mix of committed and uncommitted changes (because buffer cache flushes are asynchronous).
-- During recovery, the database scans the **WAL**:
-    - **Redo Phase**: It re-applies all committed changes from the WAL that might not have been flushed to the data files yet.
-    - **Undo Phase**: It undoes any uncommitted changes found in the data files (by rolling back incomplete transactions).
-- This process ensures that the database returns to a consistent state, reflecting only committed transactions.
-
-**Benefits:**
-- **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even if the system crashes.
-- **Atomicity**: Supports rollback of incomplete transactions.
-- **Performance**: Allows database writes to appear faster to the client because the actual data file updates are asynchronous.
 
 ---
 
-### 31. Design an Anti-Entropy Protocol
-Design a mechanism to reconcile divergent data states among replicas in an eventually consistent distributed system.
-
-```mermaid
-graph TD
-    NodeA[🗄️ Node A<br>Data: {x:1, y:2}]
-    NodeB[🗄️ Node B<br>Data: {x:1, y:3}]
-    NodeC[🗄️ Node C<br>Data: {x:1, y:2}]
-
-    subgraph "Anti-Entropy Process"
-        NodeA -- "1. Initiate Scan (Merkle Tree Hash)" --> NodeB
-        NodeB -- "2. Compare Hashes / Data" --> NodeA
-        NodeA -- "3. Detects Divergence (y:2 != y:3)" --> NodeB
-        NodeB -- "4. Reconcile Data" --> NodeA
-    end
-
-    NodeA -- "Data: {x:1, y:3}" --> NodeA
-    NodeC -- "Data: {x:1, y:3}" --> NodeC
-```
-
-**Core Problem**: In an eventually consistent distributed system with multiple replicas, how do you ensure that all replicas eventually converge to the same data state, even if some updates are missed due to network issues or temporary node failures?
-
-**Core Concepts:**
-- **Eventual Consistency**: A consistency model where, if no new updates are made to a given data item, all reads of that item will eventually return the last updated value.
-- **Replicas**: Multiple copies of data stored on different nodes.
-- **Divergent State**: When different replicas hold different values for the same data item.
-- **Anti-Entropy Protocol**: A process designed to detect and resolve divergent states among replicas, pushing them towards convergence.
-
-**Common Anti-Entropy Techniques:**
-
-1.  **Merkle Trees (Hash Trees)**:
-    - **Concept**: A hash tree where every leaf node is a hash of a block of data, and every non-leaf node is a hash of its children.
-    - **Workflow**:
-        1.  Replicas build Merkle trees over their local data.
-        2.  They exchange the root hashes. If they don't match, they exchange child hashes of the differing branches.
-        3.  This process recursively narrows down the divergent data blocks without transferring the entire dataset.
-        4.  Once the differing blocks are identified, the out-of-date replica requests the correct blocks from a healthy replica.
-    - **Benefits**: Efficiently detects differences with minimal network traffic.
-
-2.  **Read Repair**:
-    - **Concept**: When a client requests data from multiple replicas (e.g., for tunable consistency), if any replica returns an out-of-date version, the read coordinator automatically repairs it by writing the latest version back to the stale replica.
-    - **Benefits**: Repairs data on demand, leveraging read traffic.
-    - **Cons**: Only repairs data that is read.
-
-3.  **Gossip Protocol**:
-    - **Concept**: Nodes periodically exchange information about their data state with a few randomly chosen peers. This information propagates throughout the cluster like a rumor.
-    - **Workflow**: Nodes might exchange version numbers or checksums for data ranges. If a node discovers a peer has newer data, it requests the missing updates.
-    - **Benefits**: Self-healing, eventually consistent, decentralized.
-    - **Cons**: Can be slow to converge, might not detect all inconsistencies quickly.
-
-**Benefits of Anti-Entropy:**
-- **Data Convergence**: Ensures all replicas eventually hold the same data.
-- **Fault Tolerance**: Helps recover from data loss or corruption on individual nodes.
-- **High Availability**: Maintains data availability even if temporary inconsistencies exist.
-
-**Considerations:**
-- **Frequency**: How often should anti-entropy run? Too often increases network traffic; too rarely increases divergence.
-- **Conflict Resolution**: If two replicas have different "latest" versions of data due to concurrent writes, a deterministic conflict resolution strategy is needed (e.g., last-write-wins, vector clocks).
-
----
-
-### 32. Design a Global Load Balancer
+### 31. Design a Global Load Balancer
 Design a global load balancing system that distributes user requests across geographically dispersed data centers.
 
 ```mermaid
@@ -1188,7 +1122,7 @@ graph TD
 
 ---
 
-### 33. Design a Distributed Tracing System
+### 32. Design a Distributed Tracing System
 Design a system to track requests as they flow through a distributed microservices architecture.
 
 ```mermaid
@@ -1247,7 +1181,7 @@ graph TD
 
 ---
 
-### 34. Design a Distributed Configuration Service
+### 33. Design a Distributed Configuration Service
 Design a centralized service for managing and distributing configuration settings to a fleet of distributed applications.
 
 ```mermaid
@@ -1300,7 +1234,7 @@ graph TD
 
 ---
 
-### 35. Design a Distributed Logging System
+### 34. Design a Distributed Logging System
 Design a centralized, scalable, and fault-tolerant system for collecting, storing, and analyzing logs from distributed applications.
 
 ```mermaid
@@ -1354,7 +1288,7 @@ graph TD
 
 ---
 
-### 36. Design a Leader Election Service
+### 35. Design a Leader Election Service
 Design a fault-tolerant service that elects a single leader among a group of distributed nodes and ensures leader handover upon failure.
 
 ```mermaid
@@ -1633,3 +1567,495 @@ The WAL guarantees the "D" (Durability) in ACID. The fundamental rule is: **"Wri
 - **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even if the system crashes.
 - **Atomicity**: Supports rollback of incomplete transactions.
 - **Performance**: Allows database writes to appear faster to the client because the actual data file updates are asynchronous.
+
+---
+
+### 41. Design a Distributed Search Engine
+Design a highly scalable and fault-tolerant distributed search engine like Elasticsearch or Apache Solr.
+
+```mermaid
+graph TD
+    Client[👩‍💻 User/Application] -- "1. Search Query" --> QueryService[🔍 Query Service]
+    
+    subgraph "Indexing Path (Offline/Batch)"
+        DataSources[📊 Data Sources<br>(DBs, Logs, Web)] --> Crawler[🕷️ Crawler/ETL]
+        Crawler -- "Extracts & Transforms" --> IndexingQueue[🔄 Indexing Queue]
+        IndexingQueue -- "Distributes Documents" --> IndexerWorkers[⚙️ Indexer Workers]
+        IndexerWorkers -- "Builds Inverted Index Segments" --> IndexStorage[💾 Index Storage<br>(Distributed Filesystem/Object Store)]
+        IndexStorage -- "Merges & Optimizes Segments" --> SearchService
+    end
+
+    subgraph "Search Path (Real-time)"
+        QueryService -- "2. Parse Query, Rewrite" --> QueryParser[📄 Query Parser]
+        QueryParser -- "3. Fan-out to Shards" --> QueryCoordinators[🌐 Query Coordinators]
+        QueryCoordinators -- "4. Query Index Shards" --> IndexShards[🗄️ Index Shards]
+        IndexShards -- "5. Return Results" --> QueryCoordinators
+        QueryCoordinators -- "6. Merge & Rank Results" --> QueryService
+        QueryService -- "7. Return Results to Client" --> Client
+    end
+```
+
+**Core Problem**: Efficiently store, index, and query vast amounts of text-heavy data with low latency, providing relevant results across a distributed environment.
+
+**Core Components & Concepts:**
+- 📊 **Data Sources**: Where the original data resides (databases, log files, web pages, etc.).
+- 🕷️ **Crawler/ETL**: Collects data from sources, cleans, and transforms it into documents suitable for indexing.
+- 🔄 **Indexing Queue**: Buffers documents before they are indexed, ensuring high throughput and resilience.
+- ⚙️ **Indexer Workers**: Processes documents, tokenizes text, removes stop words, stems words, and builds **inverted index segments**.
+- 💾 **Index Storage**: Stores the index segments on a distributed file system (e.g., HDFS) or object store (e.g., S3).
+- 🔍 **Search Service**: The main entry point for search queries.
+- **Index Shards**: The inverted index is partitioned (sharded) across multiple nodes for scalability and fault tolerance. Each shard is an independent, searchable unit.
+- **Query Coordinators**: When a search query comes in, it's sent to a coordinator. The coordinator fans out the query to all relevant shards, gathers results, merges them, and ranks the final set.
+
+**Workflow:**
+- **Indexing Path**: Data flows from sources, through crawling/ETL, into an indexing queue. Indexer workers consume from the queue, build index segments, and store them. These segments are periodically merged and optimized.
+- **Search Path**: User submits a query. The query service parses it, fans it out to multiple index shards. Each shard executes the query on its portion of the index. Results are merged, ranked, and returned to the user.
+
+**Scalability & Considerations:**
+- **Horizontal Scalability**: Add more indexer workers and search service nodes (which host index shards) to scale.
+- **Fault Tolerance**: Index shards are typically replicated across multiple nodes. If a node fails, its replica can take over.
+- **Relevance Ranking**: Complex algorithms (e.g., TF-IDF, BM25, machine learning models) are used to rank search results.
+- **Real-time Indexing**: While indexing is often batch-oriented, near real-time indexing can be achieved by continuously updating small index segments.
+
+---
+
+### 42. Design a Distributed Graph Database
+Design a scalable and fault-tolerant graph database for managing highly connected data, like social networks or recommendation engines.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Application] -- "1. Graph Query (e.g., 'Find friends of User X')" --> QueryService[🌐 Query Service]
+    
+    subgraph "Graph Database Cluster"
+        GraphNode1[🗄️ Graph Node 1<br>Stores subset of Vertices/Edges]
+        GraphNode2[🗄️ Graph Node 2<br>Stores subset of Vertices/Edges]
+        GraphNodeN[🗄️ Graph Node N]
+    end
+
+    QueryService -- "2. Route Query to relevant nodes" --> RoutingLayer[#️⃣ Distributed Routing/Partitioning Logic]
+    RoutingLayer -- "3. Fan-out Query to relevant nodes" --> GraphNode1
+    RoutingLayer -- "..." --> GraphNode2
+    RoutingLayer -- "..." --> GraphNodeN
+
+    GraphNode1 -- "4. Execute Local Query" --> GraphNode1
+    GraphNode2 -- "4. Execute Local Query" --> GraphNode2
+    
+    GraphNode1 -- "5. Return partial results" --> QueryService
+    GraphNode2 -- "5. Return partial results" --> QueryService
+    QueryService -- "6. Aggregate & Return Results" --> Client
+```
+
+**Core Problem**: Efficiently store, traverse, and query highly interconnected data where relationships (edges) are as important as the entities (vertices) themselves, across a distributed system.
+
+**Core Components & Concepts:**
+- 🌐 **Query Service**: Acts as the entry point for clients to submit graph queries (e.g., Gremlin, Cypher).
+- 🗄️ **Graph Nodes**: Individual servers in the distributed graph database. Each node stores a partition of the overall graph (a subset of vertices and their associated edges).
+- #️⃣ **Distributed Routing/Partitioning Logic**: A crucial component that determines how the graph is partitioned across nodes and how queries are routed.
+    - **Vertex-centric Partitioning**: A vertex and all its edges are stored on the same node. Good for queries starting from a specific vertex.
+    - **Edge-centric Partitioning**: Edges are distributed, and vertices might be replicated.
+- **Graph Traversal Engines**: Algorithms to efficiently navigate the graph (e.g., Breadth-First Search, Depth-First Search).
+
+**Challenges in Distributed Graph Databases:**
+- **Data Locality**: Graph queries often involve traversing many connected vertices and edges. If a query needs data from multiple nodes, it incurs network latency. Partitioning strategies aim to maximize data locality.
+- **Query Complexity**: Optimizing complex graph traversals across many machines is challenging.
+- **Consistency**: Maintaining consistency across distributed graph data, especially during updates, can be complex.
+
+**Scalability & Considerations:**
+- **Horizontal Scalability**: Add more Graph Nodes to scale storage and processing power.
+- **Replication**: Replicate graph partitions to ensure fault tolerance.
+- **Query Optimization**: Advanced query planners are needed to minimize cross-node communication.
+- **Batch Processing**: For very large-scale graph analysis, integrate with distributed processing frameworks like Apache Spark's GraphX.
+
+---
+
+### 43. Design a Distributed Time Series Database
+Design a scalable and performant database for storing and querying time-stamped data, like monitoring metrics or IoT sensor readings.
+
+```mermaid
+graph TD
+    DataSources[📈 Sensor/Metric Data] -- "1. Send Time-Series Data" --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Time-Series Database Cluster"
+        IngestNodes[⚙️ Ingest Nodes]
+        QueryNodes[🔍 Query Nodes]
+        StorageNodes[💾 Storage Nodes]
+    end
+
+    IngestAPI -- "2. Buffer & Distribute" --> IngestNodes
+    IngestNodes -- "3. Write to appropriate Storage Node (based on time/tag)" --> StorageNodes
+    StorageNodes -- "4. Replicate Data" --> StorageNodes
+
+    Client[👩‍💻 User/Dashboard] -- "5. Time-Series Query" --> QueryService[🌐 Query Service]
+    QueryService -- "6. Fan-out to Query Nodes" --> QueryNodes
+    QueryNodes -- "7. Fetch Data from Storage Nodes" --> StorageNodes
+    StorageNodes -- "8. Return Data" --> QueryNodes
+    QueryNodes -- "9. Aggregate & Return Results" --> Client
+```
+
+**Core Problem**: Efficiently store vast quantities of time-stamped data (metrics, logs, events) that are primarily appended, and allow for fast aggregation and range queries over time intervals.
+
+**Core Components & Concepts:**
+- 🌐 **Ingest API**: A high-throughput endpoint designed to receive a continuous stream of time-series data.
+- ⚙️ **Ingest Nodes**: Handles receiving, buffering, and routing incoming data to the correct Storage Nodes.
+- 💾 **Storage Nodes**: Store the actual time-series data. Data is typically partitioned (sharded) by time and/or tags (e.g., metric name, host ID).
+    - **Columnar Storage**: Often used for time-series data as it's efficient for aggregations over columns.
+    - **Compression**: Time-series data is highly compressible due to patterns and repetition.
+- 🔍 **Query Nodes**: Handles query parsing, fans out queries to relevant Storage Nodes, and aggregates results.
+- **Client**: Applications or dashboards that query the time-series data.
+
+**Key Optimizations for Time Series:**
+- **Time-based Partitioning**: Data is often partitioned by time (e.g., a partition per day/week/month). Old partitions can be easily archived or deleted.
+- **Downsampling/Rollups**: Older, fine-grained data can be aggregated into coarser-grained data (e.g., raw 1-second metrics downsampled to 1-minute averages after a day). This reduces storage and speeds up long-range queries.
+- **Index for Tags**: Efficiently query for specific metrics or tags (e.g., `cpu.usage` for `host=server1`).
+
+**Scalability & Considerations:**
+- **Horizontal Scalability**: Add more Ingest, Query, and Storage Nodes to handle increased load.
+- **Fault Tolerance**: Data is replicated across Storage Nodes.
+- **Write-Heavy Workload**: Designed for high write throughput.
+- **Specific Databases**: Prometheus, InfluxDB, TimescaleDB (PostgreSQL extension), OpenTSDB, Grafana Mimir.
+
+---
+
+### 44. Design a Distributed Queue for Analytics
+Design a distributed queue specifically optimized for handling large volumes of analytical events or data for batch processing.
+
+```mermaid
+graph TD
+    EventSources[📊 Data Sources/Producers] -- "1. Generate Events" --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Distributed Queue for Analytics"
+        LoadBalancer[⚖️ Load Balancer]
+        Brokers[🔄 Broker Nodes]
+        StorageNodes[💾 Storage Nodes (Persistent Disk)]
+    end
+
+    IngestAPI -- "2. Push to Queue" --> LoadBalancer
+    LoadBalancer --> Brokers
+    Brokers -- "3. Persist to Storage" --> StorageNodes
+    StorageNodes -- "4. Replicate" --> StorageNodes
+
+    ConsumerGroup[👥 Analytical Consumers<br>(Spark, Flink, Batch Jobs)] -- "5. Pull Data" --> Brokers
+    Brokers -- "6. Deliver Data" --> ConsumerGroup
+    ConsumerGroup -- "7. Process Data" --> AnalyticsPlatform[📈 Analytics Platform]
+```
+
+**Core Problem**: Provide a robust, scalable, and highly available mechanism to ingest, buffer, and distribute large volumes of data for downstream analytical processing (batch or stream). Differs from Pub/Sub (Question 20) by often prioritizing persistence and ordered consumption for analytics workloads.
+
+**Core Components & Concepts:**
+- 🌐 **Ingest API**: Receives data from various sources.
+- ⚖️ **Load Balancer**: Distributes incoming event writes across broker nodes.
+- 🔄 **Broker Nodes**: Servers that receive, store, and manage messages. They typically organize messages into topics and partitions.
+- 💾 **Storage Nodes**: Provides persistent storage for the messages (e.g., local disks on brokers, distributed file system). Durability is paramount for analytical queues.
+- 👥 **Analytical Consumers**: Batch processing frameworks (e.g., Apache Spark, Apache Flink), data warehouses, or other services that pull data from the queue for processing.
+
+**Key Features & Considerations:**
+- **Durability & Persistence**: Messages must be durably stored until processed, even across node failures.
+- **Ordering**: Often crucial for analytical workloads to maintain event order within partitions.
+- **High Throughput Ingestion**: Must handle bursts of data from producers.
+- **Scalable Consumption**: Multiple consumer groups can read from the same topics independently, and consumers within a group can scale horizontally to process partitions in parallel.
+- **Consumer Offsets**: Consumers manage their own progress (offsets), allowing flexible consumption patterns (e.g., replaying data from an earlier point).
+- **Batching**: Consumers can pull messages in batches, improving efficiency for batch processing.
+
+**Examples**: Apache Kafka, AWS Kinesis.
+
+---
+
+### 45. Design a Consistent Hashing Ring
+Design the core component of a distributed system that uses consistent hashing to distribute data or requests across a dynamic set of nodes.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Request/Data] -- "1. Hash Key" --> KeyHash[#️⃣ Key Hash (h(k))]
+    
+    subgraph "Consistent Hashing Ring"
+        Ring[⭕ Consistent Hashing Ring]
+        Node1[⚙️ Node 1 (h(N1))]
+        Node2[⚙️ Node 2 (h(N2))]
+        Node3[⚙️ Node 3 (h(N3))]
+        Node4[⚙️ Node 4 (h(N4))]
+    end
+
+    KeyHash -- "2. Find next node on ring" --> Node1
+    Node1 -- "3. Assign Key/Route Request" --> Storage[🗄️ Storage/Service]
+
+    NodeAdded[➕ Node Added (h(N_new))] -- "4. Only affects a small range" --> Ring
+    NodeRemoved[➖ Node Removed (h(N2))] -- "4. Only affects a small range" --> Ring
+```
+
+**Core Problem**: Distribute data or requests evenly across a dynamic set of servers (nodes) such that when servers are added or removed, the number of keys that need to be remapped is minimized.
+
+**Core Concepts:**
+- ⭕ **Consistent Hashing Ring**: An abstract circular space representing the output range of a hash function. Both nodes and data keys are mapped to points on this ring.
+- #️⃣ **Node Hashes**: Each physical node in the distributed system is hashed to several random points on the ring (these are called "virtual nodes" or "vnodes"). This helps with better distribution and reduces the impact of a single node failure.
+- **Key Hashes**: Each data key (or request ID) is also hashed to a point on the ring.
+- **Assignment Rule**: A key is assigned to the first node encountered when moving clockwise from the key's position on the ring.
+
+**How it handles dynamic changes:**
+- ➕ **Adding a Node**: When a new node is added to the ring, it takes over a small portion of keys from its clockwise neighbor. Only these keys need to be remapped, leaving most of the other mappings untouched.
+- ➖ **Removing a Node**: When a node is removed, its keys are re-assigned to its clockwise neighbor. Again, only the keys belonging to the removed node need to be remapped.
+
+**Benefits:**
+- **Minimal Remapping**: Significantly reduces the amount of data migration required when the cluster scales up or down, compared to traditional hashing.
+- **Scalability**: Allows for seamless addition and removal of nodes.
+- **Load Balancing**: With enough virtual nodes, data can be distributed relatively evenly.
+
+**Considerations:**
+- **Random Distribution**: The initial distribution might not be perfectly even, especially with a small number of physical nodes. Using virtual nodes helps mitigate this.
+- **Data Replication**: Consistent hashing only describes data placement; replication is still needed for fault tolerance.
+
+---
+
+### 46. Design a Peer-to-Peer File Sharing System
+Design a distributed system like BitTorrent for sharing files among users without a central server for content delivery.
+
+```mermaid
+graph TD
+    ClientA[👩‍💻 Client A<br>(Leecher)] -- "1. Request File X" --> Tracker[🌐 Tracker Server]
+    
+    subgraph "Peer-to-Peer Network"
+        Peer1[💻 Peer 1<br>(Seeder)]
+        Peer2[💻 Peer 2<br>(Seeder/Leecher)]
+        Peer3[💻 Peer 3<br>(Leecher)]
+    end
+
+    Tracker -- "2. Returns list of Peers with File X" --> ClientA
+    ClientA -- "3. Connects to Peers" --> Peer1
+    ClientA -- "3. Connects to Peers" --> Peer2
+    
+    Peer1 -- "4. Sends Chunks of File X" --> ClientA
+    Peer2 -- "4. Sends Chunks of File X" --> ClientA
+    ClientA -- "5. Becomes Seeder as it receives chunks" --> Peer2
+```
+
+**Core Problem**: Efficiently distribute large files among a large number of users without a central bottleneck, leveraging the upload bandwidth of participants.
+
+**Core Components & Concepts:**
+- 🌐 **Tracker Server**: (Centralized component, but not for content delivery). It maintains a list of peers currently participating in the file sharing for a specific file. Clients (peers) report their status (what files they have/want) to the tracker.
+- 💻 **Peers**: Individual clients participating in the network.
+    - **Seeder**: A peer that has a complete copy of the file and is actively uploading chunks to other peers.
+    - **Leecher**: A peer that is downloading the file. A leecher often simultaneously uploads chunks it has already received.
+- **File Chunks**: Files are broken down into small, fixed-size pieces (chunks). This allows parallel downloading and fine-grained sharing.
+- **Swarm**: The collection of all peers sharing a particular file.
+
+**Workflow (Simplified BitTorrent):**
+1.  **Client A** (a leecher) wants to download "File X". It first connects to a **Tracker Server**.
+2.  The **Tracker** responds with a list of other **Peers** in the swarm that have "File X" (seeders and other leechers who have parts of the file).
+3.  **Client A** connects to several of these peers.
+4.  **Client A** starts requesting different **chunks** of "File X" from different peers simultaneously.
+5.  As **Client A** receives chunks, it verifies their integrity and, in turn, can start uploading those chunks to other leechers in the swarm, thus becoming a seeder itself.
+
+**Key Principles:**
+- **Decentralized Content Delivery**: No single server is responsible for hosting the file.
+- **"Choking and Optimistic Unchoking"**: A strategy where peers prioritize uploading to other peers who upload to them, encouraging cooperation. Periodically, a peer will "optimistically unchoke" a new peer to discover if it's a good uploader.
+- **Rare First**: Peers often prioritize downloading the rarest chunks first, helping to ensure that all chunks remain available in the swarm.
+
+---
+
+### 47. Design a Real-time Auction System
+Design a system for conducting real-time online auctions, where users can bid on items and winners are determined instantly.
+
+```mermaid
+graph TD
+    User[👩‍💻 Bidder] -- "1. Place Bid" --> APIGateway[⛩️ API Gateway]
+    APIGateway -- "2. Validate Bid" --> BidService[💰 Bid Service]
+    
+    subgraph "Real-time Auction Core"
+        BidQueue[🔄 Bid Queue<br>(Kafka)]
+        AuctionEngine[⚙️ Auction Engine]
+        AuctionDB[(🗄️ Auction DB)]
+        NotificationService[📣 Notification Service]
+        WSServer[⚡ WebSocket Server]
+    end
+
+    BidService -- "3. Enqueue Bid" --> BidQueue
+    BidQueue -- "4. Process Bid" --> AuctionEngine
+    AuctionEngine -- "5. Update Highest Bid" --> AuctionDB
+    AuctionEngine -- "6. Notify Bidders of New Highest Bid" --> NotificationService
+    NotificationService -- "7. Push Update" --> WSServer
+    WSServer -- "8. Real-time Bid Updates" --> User
+```
+
+**Core Problem**: Handle a high volume of concurrent bids, process them in real-time, maintain accurate bidding state, and instantly notify all participants of changes, ensuring fair and consistent outcomes.
+
+**Core Components & Concepts:**
+- ⛩️ **API Gateway**: Handles incoming bid requests, authentication, and routing.
+- 💰 **Bid Service**: Validates incoming bids (e.g., sufficient funds, within auction rules) and places them onto a message queue.
+- 🔄 **Bid Queue (Kafka)**: Buffers incoming bids, converting bursty bid traffic into a manageable stream for the Auction Engine. Crucial for handling high concurrency.
+- ⚙️ **Auction Engine**: The core logic. It consumes bids from the queue, processes them (e.g., updates the highest bid, checks for minimum increments), and determines the winner at the auction's end. This component needs to be strongly consistent.
+- 🗄️ **Auction Database**: Stores auction details, item information, current highest bid, bid history, and winner information. Requires strong consistency for bid updates.
+- 📣 **Notification Service**: Sends alerts to users about new bids, outbid status, or auction end.
+- ⚡ **WebSocket Server**: Maintains persistent connections with active bidders to push real-time updates (current highest bid, remaining time).
+
+**Key Challenges & Solutions:**
+- **Concurrency**: Many users bidding simultaneously. The Bid Queue serializes bids for the Auction Engine. Distributed locks might be needed for critical sections within the Auction Engine for a specific auction item.
+- **Real-time Updates**: WebSockets provide instant updates to all interested clients.
+- **Consistency**: The Auction Database must be strongly consistent for accurate bidding. The Auction Engine must apply bids deterministically.
+- **Fault Tolerance**: All components need to be highly available. The message queue ensures no bids are lost.
+- **Scalability**: Horizontal scaling of Bid Service, Auction Engine workers, and WebSocket servers.
+
+---
+
+### 48. Design an Ad Server
+Design a system to serve targeted advertisements to users on a website or mobile application.
+
+```mermaid
+graph TD
+    User[👩‍💻 User] -- "1. Page Load/App Open" --> Frontend[🌐 Website/App]
+    Frontend -- "2. Request Ad" --> AdRequestAPI[🌐 Ad Request API]
+    
+    subgraph "Ad Serving Flow"
+        AdRequestAPI -- "3. Contextual Data (User ID, Geo, Page URL)" --> UserProfileService[👤 User Profile Service]
+        UserProfileService -- "4. User Demographics, Interests" --> AdSelectionEngine[💡 Ad Selection Engine]
+        AdSelectionEngine -- "5. Fetch Ads (based on targeting, budget, bid)" --> AdDB[(🗄️ Ad Inventory DB)]
+        AdSelectionEngine -- "6. Real-time Auction (if applicable)" --> RTBPlatform[💰 Real-Time Bidding Platform]
+        AdSelectionEngine -- "7. Select Best Ad" --> AdResponseAPI[🌐 Ad Response API]
+    end
+
+    AdResponseAPI -- "8. Return Ad Creative (Image/Video URL)" --> Frontend
+    Frontend -- "9. Display Ad" --> User
+    Frontend -- "10. Log Impression/Click" --> AdLogger[📈 Ad Logger]
+    AdLogger -- "11. Async Processing" --> Analytics[📊 Analytics Platform]
+```
+
+**Core Problem**: Serve highly relevant advertisements to users with low latency, manage complex targeting rules, optimize for ad revenue, and track ad performance at massive scale.
+
+**Core Components & Concepts:**
+- 🌐 **Ad Request API**: The endpoint where websites/apps request ads. It receives contextual information (user ID, page content, device info, geographical location).
+- 👤 **User Profile Service**: Stores and retrieves user data (demographics, interests, browsing history) used for targeting.
+- 💡 **Ad Selection Engine**: The core decision-making component. It takes user context and available ad inventory to select the most relevant ad. This often involves machine learning models.
+- 🗄️ **Ad Inventory DB**: Stores all available ad creatives, targeting parameters, budgets, and bidding information.
+- 💰 **Real-Time Bidding (RTB) Platform**: (Optional, for complex ad exchanges). If using RTB, the Ad Selection Engine would participate in a real-time auction with advertisers to determine which ad gets displayed.
+- 📈 **Ad Logger**: Collects impressions (ad displayed) and clicks (user interacted with ad) for billing and analytics. This is typically a high-throughput, append-only system.
+- 📊 **Analytics Platform**: Processes logged data for reporting, billing, and optimizing ad campaigns.
+
+**Workflow:**
+1.  User loads a page or opens an app.
+2.  The Frontend requests an ad from the **Ad Request API**, sending user and context data.
+3.  The **Ad Selection Engine** uses user profile, page context, and advertiser targeting rules to filter potential ads.
+4.  If applicable, it interacts with an **RTB Platform** for an auction.
+5.  The **Ad Selection Engine** selects the "best" ad based on predicted click-through rate, bid price, etc.
+6.  The ad creative (e.g., image URL) is returned to the Frontend and displayed.
+7.  Impressions and clicks are logged asynchronously for analytics and billing.
+
+**Scalability & Considerations:**
+- **Low Latency**: Ad requests must be handled in milliseconds to avoid delaying page loads. Heavy caching is essential.
+- **High Throughput**: Must handle millions/billions of ad requests per day.
+- **Data Freshness**: User profiles and ad campaigns need to be updated frequently.
+- **A/B Testing**: Continuously test different ad selection algorithms and creatives.
+- **Fraud Detection**: Prevent fake impressions and clicks.
+
+---
+
+### 49. Design a Matching System (like Uber/Lyft rider-driver matching)
+Design a real-time matching system for connecting demand (riders) with supply (drivers).
+
+```mermaid
+graph TD
+    Rider[👩‍💻 Rider App] -- "1. Request Ride (pickup, dropoff)" --> APIGateway[⛩️ API Gateway]
+    APIGateway -- "2. Validates Request" --> RideService[🚕 Ride Service]
+    
+    subgraph "Matching System"
+        LocationService[🌍 Location Service<br>(Live Driver Locations)]
+        MatchingEngine[⚙️ Matching Engine]
+        NotificationService[📣 Notification Service]
+        DriverApp[🚗 Driver App]
+    end
+
+    RideService -- "3. Get Nearby Drivers" --> LocationService
+    LocationService -- "4. Returns list of available drivers" --> MatchingEngine
+    MatchingEngine -- "5. Apply Matching Logic (distance, rating, surge)" --> MatchingEngine
+    MatchingEngine -- "6. Sends Ride Request" --> NotificationService
+    NotificationService -- "7. Push to Driver's App" --> DriverApp
+    
+    DriverApp -- "8. Driver Accepts/Declines" --> RideService
+    RideService -- "9. Update Ride Status" --> Rider
+```
+
+**Core Problem**: Efficiently and quickly pair a service requester (e.g., a rider) with a service provider (e.g., a driver) based on proximity, availability, preferences, and dynamic pricing, in real-time.
+
+**Core Components & Concepts:**
+- 🌍 **Location Service**: Tracks the real-time GPS coordinates and availability status of all drivers. This typically uses a geospatial database (see Q10) or in-memory caches like Redis GEO.
+- 🚕 **Ride Service**: Orchestrates the ride request lifecycle, from initial request to matching, booking, and completion.
+- ⚙️ **Matching Engine**: The core intelligence that:
+    - Queries the Location Service for nearby available drivers.
+    - Applies various business rules (e.g., shortest distance, driver rating, surge pricing, driver preferences).
+    - Selects the optimal driver(s) and sends them a ride request.
+- 📣 **Notification Service**: Used to send ride requests to drivers and status updates back to riders.
+- 🚗 **Driver App**: Mobile application used by drivers to receive and respond to ride requests.
+
+**Workflow:**
+1.  A **Rider** requests a ride, specifying pickup and dropoff. This goes to the **Ride Service**.
+2.  The **Ride Service** requests nearby available drivers from the **Location Service**.
+3.  The **Matching Engine** receives the list of drivers, applies its matching algorithm, and selects the best driver(s).
+4.  A ride request is sent to the selected **Driver App(s)** via a **Notification Service**.
+5.  The **Driver** can accept or decline the request.
+6.  If accepted, the **Ride Service** updates the ride status and notifies the **Rider**.
+
+**Key Challenges & Solutions:**
+- **Real-time Location Updates**: Drivers constantly send location data. Use efficient geospatial indexing.
+- **Low Latency Matching**: Matching must happen quickly (seconds) to provide a good user experience. Optimize Location Service and Matching Engine for speed (e.g., in-memory processing).
+- **Concurrency**: Many riders requesting rides simultaneously. The Matching Engine needs to handle this without race conditions.
+- **Fairness & Optimization**: Balance driver earnings, rider wait times, and system efficiency (e.g., minimizing deadheading for drivers).
+- **Surge Pricing**: Dynamic pricing based on real-time supply and demand.
+
+---
+
+### 50. Design a Recommendation System for Live Events
+Design a recommendation system that suggests relevant live events (e.g., concerts, sports games) to users in real-time.
+
+```mermaid
+graph TD
+    User[👩‍💻 User] -- "1. Page View / App Open" --> Frontend[🌐 Website/App]
+    Frontend -- "2. Request Recommendations (User ID, Location)" --> RecService[💡 Recommendation Service]
+
+    subgraph "Recommendation Pipeline"
+        UserProfileDB[(🗄️ User Profile DB<br>Interests, Past Events)]
+        EventCatalogDB[(🗄️ Event Catalog DB<br>Genres, Artists, Teams, Geo)]
+        StreamProcessor[⚙️ Stream Processor<br>(Real-time Data)]
+        FeatureStore[📊 Feature Store]
+        MLModel[🧠 ML Model<br>(e.g., Collaborative Filtering, Content-based)]
+        RecsCache[⚡ Recs Cache (Redis)<br>user_id -> [event_id, ...]]
+    end
+
+    RecService -- "3. Get User Profile" --> UserProfileDB
+    RecService -- "4. Get Nearby/Relevant Events" --> EventCatalogDB
+    RecService -- "5. Generate Recommendations" --> MLModel
+    MLModel -- "6. Store/Update Recs in Cache" --> RecsCache
+    RecService -- "7. Fetch Recs from Cache" --> RecsCache
+    RecService -- "8. Return Recs to User" --> Frontend
+
+    EventStream[🔄 User Activity Stream<br>(clicks, purchases)] -- "Continuous Updates" --> StreamProcessor
+    StreamProcessor -- "Updates User Profiles" --> UserProfileDB
+    StreamProcessor -- "Updates Feature Store" --> FeatureStore
+    StreamProcessor -- "Triggers Model Retraining (Offline)" --> MLModel
+```
+
+**Core Problem**: Deliver personalized, relevant recommendations for live events to users, taking into account their preferences, location, real-time context, and the ephemeral nature of events (e.g., tickets selling out).
+
+**Core Components & Concepts:**
+- 🌐 **Frontend**: Displays event recommendations.
+- 💡 **Recommendation Service**: The API endpoint that serves event recommendations.
+- 🗄️ **User Profile DB**: Stores explicit (user-defined interests) and implicit (browsing history, past purchases) user preferences.
+- 🗄️ **Event Catalog DB**: Stores details of all live events, including genre, artist, venue, time, location, available tickets, and popularity.
+- 🔄 **User Activity Stream**: Collects real-time user interactions (clicks, purchases, searches).
+- ⚙️ **Stream Processor**: Processes user activity in real-time to update user profiles and features.
+- 📊 **Feature Store**: Stores engineered features for ML models (e.g., user embeddings, event embeddings).
+- 🧠 **ML Model**: Generates recommendations. Often uses a hybrid approach:
+    - **Collaborative Filtering**: "Users similar to you liked these events."
+    - **Content-Based Filtering**: "You liked rock concerts, here are more rock concerts."
+    - **Geospatial Filtering**: Prioritize events in the user's vicinity (see Q10).
+- ⚡ **Recs Cache**: Stores pre-computed recommendations for users for low-latency retrieval.
+
+**Workflow:**
+1.  **Offline Training**: Historical user activity and event data are used to train ML models and pre-compute initial recommendations.
+2.  **Real-time Updates**: As users interact with the system, their actions are fed into a **User Activity Stream** and processed by a **Stream Processor**. This updates **User Profiles** and potentially triggers re-training of models or real-time re-ranking.
+3.  **Recommendation Request**: When a user requests recommendations, the **RecService**:
+    - Fetches cached recommendations from the **RecsCache**.
+    - If needed, performs real-time filtering (e.g., remove sold-out events, events too far away) and re-ranking.
+    - Returns the final list of events.
+
+**Key Challenges & Solutions:**
+- **Data Freshness**: Event popularity and availability change rapidly. The system needs to incorporate real-time signals.
+- **Cold Start**: For new users or new events, use content-based methods or popular default recommendations.
+- **Location-Awareness**: Integrate geospatial querying for local events.
+- **Serendipity**: Balance recommending highly relevant items with introducing new, unexpected events.
