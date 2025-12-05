@@ -30,17 +30,18 @@
 - [27. Design a Distributed Consensus System (like Paxos or Raft)](#27-design-a-distributed-consensus-system-like-paxos-or-raft)
 - [28. Design a Distributed Log Storage (like Kafka)](#28-design-a-distributed-log-storage-like-kafka)
 - [29. Design a Real-time Analytics System](#29-design-a-real-time-analytics-system)
-- [30. Design a Write-Ahead Log (WAL)](#30-design-a-write-ahead-log-wal)
-- [31. Design an Anti-Entropy Protocol](#31-design-an-anti-entropy-protocol)
-- [32. Design a Global Load Balancer](#32-design-a-global-load-balancer)
-- [33. Design a Distributed Tracing System](#33-design-a-distributed-tracing-system)
-- [34. Design a Distributed Configuration Service](#34-design-a-distributed-configuration-service)
-- [35. Design a Distributed Logging System](#35-design-a-distributed-logging-system)
-- [36. Design a Leader Election Service](#36-design-a-leader-election-service)
-- [37. Design a Circuit Breaker Pattern](#37-design-a-circuit-breaker-pattern)
-- [38. Design an Asynchronous Task Queue](#38-design-an-asynchronous-task-queue)
-- [39. Design a Geo-Distributed Database](#39-design-a-geo-distributed-database)
-- [40. Design a Global Load Balancer (Redundant)](#40-design-a-global-load-balancer-redundant)
+- [30. Design a Distributed Cache (Redundant Entry)](#30-design-a-distributed-cache-redundant-entry)
+- [31. Design a Global Load Balancer](#31-design-a-global-load-balancer)
+- [32. Design a Distributed Tracing System](#32-design-a-distributed-tracing-system)
+- [33. Design a Distributed Configuration Service](#33-design-a-distributed-configuration-service)
+- [34. Design a Distributed Logging System](#34-design-a-distributed-logging-system)
+- [35. Design a Leader Election Service](#35-design-a-leader-election-service)
+- [36. Design a Circuit Breaker Pattern](#36-design-a-circuit-breaker-pattern)
+- [37. Design an Asynchronous Task Queue](#37-design-an-asynchronous-task-queue)
+- [38. Design a Geo-Distributed Database](#38-design-a-geo-distributed-database)
+- [39. Design a Write-Ahead Log (WAL)](#39-design-a-write-ahead-log-wal)
+- [40. Design an Anti-Entropy Protocol](#40-design-an-anti-entropy-protocol)
+
 
 ---
 
@@ -1029,47 +1030,122 @@ graph TD
 
 ---
 
-### 30. Design a Distributed Cache
-Design a distributed caching system like Memcached or Redis.
+### 30. Design a Write-Ahead Log (WAL)
+Design a mechanism to ensure data integrity and durability in a database system, even in the event of crashes.
 
 ```mermaid
 graph TD
-    Client[👩‍💻 Client Application] -- "1. GET key" --> CacheClient[⚙️ Cache Client Library]
-    CacheClient -- "2. Hash key to find server" --> Hashing[#️⃣ Consistent Hashing Ring]
-    Hashing -- "3. Request from responsible cache server" --> CacheServer1[⚡ Cache Server 1]
-    CacheClient -- "..." --> CacheServerN[⚡ Cache Server N]
+    Client[👩‍💻 Client] -- "1. SQL Query (UPDATE/INSERT)" --> DBServer[🗄️ Database Server]
+    
+    subgraph "Database Components"
+        BufferCache[⚡ Buffer Cache<br>(In-memory)]
+        WAL[📝 Write-Ahead Log<br>(Disk-based)]
+        DataFiles[💾 Data Files<br>(Disk-based)]
+    end
 
-    CacheServer1 -- "Cache Miss" --> BackendDB[(🗄️ Backend DB)]
-    BackendDB -- "Data" --> CacheServer1
-    CacheServer1 -- "Stores & Returns Data" --> CacheClient
-    CacheClient -- "Returns Data" --> Client
+    DBServer -- "2. Write changes to WAL (disk)" --> WAL
+    WAL -- "3. Flush to disk (before data changes)" --> WAL
+    DBServer -- "4. Apply changes to Buffer Cache" --> BufferCache
+    BufferCache -- "5. Periodically flush to Data Files" --> DataFiles
+    
+    DBServer -- "6. Acknowledge success to Client" --> Client
+    
+    WAL -- "Recovery on Crash" --> DataFiles
 ```
 
-**Core Problem**: Store large amounts of data in memory across multiple servers and retrieve it quickly, while ensuring consistency and scalability.
+**Core Problem**: Ensure that committed transactions are durable (persisted) and that the database can recover to a consistent state after a crash, even if in-memory changes haven't been written to the main data files yet.
 
-**Core Components & Concepts:**
-- ⚙️ **Cache Client Library**: Integrated into the client application. It knows how to connect to the cache servers, handle hashing, and manage retries.
-- #️⃣ **Consistent Hashing**: A crucial technique for distributing keys across cache servers.
-    - It maps both cache servers and data keys to a circular hash ring.
-    - When a server is added or removed, only a small fraction of keys need to be remapped, minimizing data movement and cache misses.
-- ⚡ **Cache Servers**: Individual instances (nodes) in the distributed cache. They are typically stateless (data is in memory) and just store key-value pairs.
-- 🗄️ **Backend Database**: The primary data source. If a cache server experiences a "cache miss," it fetches the data from the backend DB, stores it, and then returns it to the client.
+**Core Concepts:**
+- 📝 **Write-Ahead Log (WAL)**: Also known as a transaction log or redo log. It's a sequential, append-only log on disk that records all changes made to the database *before* those changes are applied to the main data files.
+- **Buffer Cache (Page Cache)**: An in-memory cache where database pages (blocks of data) are loaded and modified. Writes to the buffer cache are much faster than disk writes.
+- 💾 **Data Files**: The main persistent storage for the database tables.
 
-**Scalability & Consistency:**
-- **High Availability**:
-    - **Replication**: Data can be replicated across multiple cache servers (e.g., primary-secondary).
-    - **Quorum**: For write-heavy caches, a quorum of replicas might need to acknowledge a write before it's considered successful.
-- **Cache Eviction Policies**: When the cache is full, it needs to decide which items to remove (e.g., LRU - Least Recently Used, LFU - Least Frequently Used).
-- **Cache Invalidation**: How do you ensure cached data is fresh?
-    - **Time-To-Live (TTL)**: Items expire after a certain time.
-    - **Write-Through/Write-Back**: Updates are written to both cache and DB.
-    - **Explicit Invalidation**: Backend DB pushes invalidation messages to the cache.
-- **Read-Heavy**: Distributed caches are primarily designed to handle massive read loads, reducing the burden on the backend database.
+**WAL Principle (ACID - Durability & Atomicity):**
+The WAL guarantees the "D" (Durability) in ACID. The fundamental rule is: **"Write-Ahead Logging Rule: You must write a change to the log before you can apply that change to the data files."**
 
+**Workflow:**
+1.  A **Client** sends a write query (e.g., `UPDATE`, `INSERT`) to the **Database Server**.
+2.  The **Database Server** first records the proposed change (the "redo" record) into the **WAL**. This record describes how to re-apply the change.
+3.  The WAL entry is typically **flushed to disk** before the transaction is considered committed. This is crucial for durability.
+4.  Only after the WAL entry is safely on disk, the server applies the change to the in-memory **Buffer Cache**.
+5.  Changes in the **Buffer Cache** are eventually (and asynchronously) flushed to the **Data Files** on disk.
+
+**Crash Recovery:**
+- If the database crashes, the **Data Files** might contain a mix of committed and uncommitted changes (because buffer cache flushes are asynchronous).
+- During recovery, the database scans the **WAL**:
+    - **Redo Phase**: It re-applies all committed changes from the WAL that might not have been flushed to the data files yet.
+    - **Undo Phase**: It undoes any uncommitted changes found in the data files (by rolling back incomplete transactions).
+- This process ensures that the database returns to a consistent state, reflecting only committed transactions.
+
+**Benefits:**
+- **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even if the system crashes.
+- **Atomicity**: Supports rollback of incomplete transactions.
+- **Performance**: Allows database writes to appear faster to the client because the actual data file updates are asynchronous.
 
 ---
 
-### 31. Design a Global Load Balancer
+### 31. Design an Anti-Entropy Protocol
+Design a mechanism to reconcile divergent data states among replicas in an eventually consistent distributed system.
+
+```mermaid
+graph TD
+    NodeA[🗄️ Node A<br>Data: {x:1, y:2}]
+    NodeB[🗄️ Node B<br>Data: {x:1, y:3}]
+    NodeC[🗄️ Node C<br>Data: {x:1, y:2}]
+
+    subgraph "Anti-Entropy Process"
+        NodeA -- "1. Initiate Scan (Merkle Tree Hash)" --> NodeB
+        NodeB -- "2. Compare Hashes / Data" --> NodeA
+        NodeA -- "3. Detects Divergence (y:2 != y:3)" --> NodeB
+        NodeB -- "4. Reconcile Data" --> NodeA
+    end
+
+    NodeA -- "Data: {x:1, y:3}" --> NodeA
+    NodeC -- "Data: {x:1, y:3}" --> NodeC
+```
+
+**Core Problem**: In an eventually consistent distributed system with multiple replicas, how do you ensure that all replicas eventually converge to the same data state, even if some updates are missed due to network issues or temporary node failures?
+
+**Core Concepts:**
+- **Eventual Consistency**: A consistency model where, if no new updates are made to a given data item, all reads of that item will eventually return the last updated value.
+- **Replicas**: Multiple copies of data stored on different nodes.
+- **Divergent State**: When different replicas hold different values for the same data item.
+- **Anti-Entropy Protocol**: A process designed to detect and resolve divergent states among replicas, pushing them towards convergence.
+
+**Common Anti-Entropy Techniques:**
+
+1.  **Merkle Trees (Hash Trees)**:
+    - **Concept**: A hash tree where every leaf node is a hash of a block of data, and every non-leaf node is a hash of its children.
+    - **Workflow**:
+        1.  Replicas build Merkle trees over their local data.
+        2.  They exchange the root hashes. If they don't match, they exchange child hashes of the differing branches.
+        3.  This process recursively narrows down the divergent data blocks without transferring the entire dataset.
+        4.  Once the differing blocks are identified, the out-of-date replica requests the correct blocks from a healthy replica.
+    - **Benefits**: Efficiently detects differences with minimal network traffic.
+
+2.  **Read Repair**:
+    - **Concept**: When a client requests data from multiple replicas (e.g., for tunable consistency), if any replica returns an out-of-date version, the read coordinator automatically repairs it by writing the latest version back to the stale replica.
+    - **Benefits**: Repairs data on demand, leveraging read traffic.
+    - **Cons**: Only repairs data that is read.
+
+3.  **Gossip Protocol**:
+    - **Concept**: Nodes periodically exchange information about their data state with a few randomly chosen peers. This information propagates throughout the cluster like a rumor.
+    - **Workflow**: Nodes might exchange version numbers or checksums for data ranges. If a node discovers a peer has newer data, it requests the missing updates.
+    - **Benefits**: Self-healing, eventually consistent, decentralized.
+    - **Cons**: Can be slow to converge, might not detect all inconsistencies quickly.
+
+**Benefits of Anti-Entropy:**
+- **Data Convergence**: Ensures all replicas eventually hold the same data.
+- **Fault Tolerance**: Helps recover from data loss or corruption on individual nodes.
+- **High Availability**: Maintains data availability even if temporary inconsistencies exist.
+
+**Considerations:**
+- **Frequency**: How often should anti-entropy run? Too often increases network traffic; too rarely increases divergence.
+- **Conflict Resolution**: If two replicas have different "latest" versions of data due to concurrent writes, a deterministic conflict resolution strategy is needed (e.g., last-write-wins, vector clocks).
+
+---
+
+### 32. Design a Global Load Balancer
 Design a global load balancing system that distributes user requests across geographically dispersed data centers.
 
 ```mermaid
@@ -1112,7 +1188,7 @@ graph TD
 
 ---
 
-### 32. Design a Distributed Tracing System
+### 33. Design a Distributed Tracing System
 Design a system to track requests as they flow through a distributed microservices architecture.
 
 ```mermaid
@@ -1171,7 +1247,7 @@ graph TD
 
 ---
 
-### 33. Design a Distributed Configuration Service
+### 34. Design a Distributed Configuration Service
 Design a centralized service for managing and distributing configuration settings to a fleet of distributed applications.
 
 ```mermaid
@@ -1224,7 +1300,7 @@ graph TD
 
 ---
 
-### 34. Design a Distributed Logging System
+### 35. Design a Distributed Logging System
 Design a centralized, scalable, and fault-tolerant system for collecting, storing, and analyzing logs from distributed applications.
 
 ```mermaid
@@ -1278,7 +1354,7 @@ graph TD
 
 ---
 
-### 35. Design a Leader Election Service
+### 36. Design a Leader Election Service
 Design a fault-tolerant service that elects a single leader among a group of distributed nodes and ensures leader handover upon failure.
 
 ```mermaid
@@ -1338,7 +1414,7 @@ graph TD
 
 ---
 
-### 36. Design a Circuit Breaker Pattern
+### 37. Design a Circuit Breaker Pattern
 Design a mechanism to prevent cascading failures in a microservices architecture.
 
 ```mermaid
@@ -1394,7 +1470,7 @@ graph TD
 
 ---
 
-### 37. Design an Asynchronous Task Queue
+### 38. Design an Asynchronous Task Queue
 Design a system to offload long-running or non-critical tasks from the main request-response cycle of an application.
 
 ```mermaid
@@ -1449,7 +1525,7 @@ graph TD
 
 ---
 
-### 38. Design a Geo-Distributed Database
+### 39. Design a Geo-Distributed Database
 Design a database system that spans multiple geographic regions, optimized for global access, high availability, and disaster recovery.
 
 ```mermaid
@@ -1506,7 +1582,7 @@ graph TD
 
 ---
 
-### 39. Design a Write-Ahead Log (WAL)
+### 40. Design a Write-Ahead Log (WAL)
 Design a mechanism to ensure data integrity and durability in a database system, even in the event of crashes.
 
 ```mermaid
@@ -1557,64 +1633,3 @@ The WAL guarantees the "D" (Durability) in ACID. The fundamental rule is: **"Wri
 - **Durability**: Guarantees that once a transaction is committed, its changes are permanent, even if the system crashes.
 - **Atomicity**: Supports rollback of incomplete transactions.
 - **Performance**: Allows database writes to appear faster to the client because the actual data file updates are asynchronous.
-
----
-
-### 40. Design an Anti-Entropy Protocol
-Design a mechanism to reconcile divergent data states among replicas in an eventually consistent distributed system.
-
-```mermaid
-graph TD
-    NodeA[🗄️ Node A<br>Data: {x:1, y:2}]
-    NodeB[🗄️ Node B<br>Data: {x:1, y:3}]
-    NodeC[🗄️ Node C<br>Data: {x:1, y:2}]
-
-    subgraph "Anti-Entropy Process"
-        NodeA -- "1. Initiate Scan (Merkle Tree Hash)" --> NodeB
-        NodeB -- "2. Compare Hashes / Data" --> NodeA
-        NodeA -- "3. Detects Divergence (y:2 != y:3)" --> NodeB
-        NodeB -- "4. Reconcile Data" --> NodeA
-    end
-
-    NodeA -- "Data: {x:1, y:3}" --> NodeA
-    NodeC -- "Data: {x:1, y:3}" --> NodeC
-```
-
-**Core Problem**: In an eventually consistent distributed system with multiple replicas, how do you ensure that all replicas eventually converge to the same data state, even if some updates are missed due to network issues or temporary node failures?
-
-**Core Concepts:**
-- **Eventual Consistency**: A consistency model where, if no new updates are made to a given data item, all reads of that item will eventually return the last updated value.
-- **Replicas**: Multiple copies of data stored on different nodes.
-- **Divergent State**: When different replicas hold different values for the same data item.
-- **Anti-Entropy Protocol**: A process designed to detect and resolve divergent states among replicas, pushing them towards convergence.
-
-**Common Anti-Entropy Techniques:**
-
-1.  **Merkle Trees (Hash Trees)**:
-    - **Concept**: A hash tree where every leaf node is a hash of a block of data, and every non-leaf node is a hash of its children.
-    - **Workflow**:
-        1.  Replicas build Merkle trees over their local data.
-        2.  They exchange the root hashes. If they don't match, they exchange child hashes of the differing branches.
-        3.  This process recursively narrows down the divergent data blocks without transferring the entire dataset.
-        4.  Once the differing blocks are identified, the out-of-date replica requests the correct blocks from a healthy replica.
-    - **Benefits**: Efficiently detects differences with minimal network traffic.
-
-2.  **Read Repair**:
-    - **Concept**: When a client requests data from multiple replicas (e.g., for tunable consistency), if any replica returns an out-of-date version, the read coordinator automatically repairs it by writing the latest version back to the stale replica.
-    - **Benefits**: Repairs data on demand, leveraging read traffic.
-    - **Cons**: Only repairs data that is read.
-
-3.  **Gossip Protocol**:
-    - **Concept**: Nodes periodically exchange information about their data state with a few randomly chosen peers. This information propagates throughout the cluster like a rumor.
-    - **Workflow**: Nodes might exchange version numbers or checksums for data ranges. If a node discovers a peer has newer data, it requests the missing updates.
-    - **Benefits**: Self-healing, eventually consistent, decentralized.
-    - **Cons**: Can be slow to converge, might not detect all inconsistencies quickly.
-
-**Benefits of Anti-Entropy:**
-- **Data Convergence**: Ensures all replicas eventually hold the same data.
-- **Fault Tolerance**: Helps recover from data loss or corruption on individual nodes.
-- **High Availability**: Maintains data availability even if temporary inconsistencies exist.
-
-**Considerations:**
-- **Frequency**: How often should anti-entropy run? Too often increases network traffic; too rarely increases divergence.
-- **Conflict Resolution**: If two replicas have different "latest" versions of data due to concurrent writes, a deterministic conflict resolution strategy is needed (e.g., last-write-wins, vector clocks).
