@@ -31,10 +31,10 @@ graph TD
 ```
 
 **Key Components:**
-- 🎯 **Multi-AZ** deployment
-- ⚡ **Auto Scaling** groups
-- 🔄 **Load Balancing** with ALB
-- 💾 **RDS Multi-AZ** for DB redundancy
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Multi-AZ</span> deployment
+- ⚡ <span style="color: #4ECDC4; font-weight: bold;">Auto Scaling</span> groups
+- 🔄 <span style="color: #45B7D1; font-weight: bold;">Load Balancing</span> with ALB
+- 💾 <span style="color: #96CEB4; font-weight: bold;">RDS Multi-AZ</span> for DB redundancy
 
 ---
 
@@ -70,19 +70,19 @@ graph TD
 ```
 
 **Key ALB Features:**
-- 🎯 **Path-based routing**: `/api/*` → API servers
-- 🔄 **Host-based routing**: `api.example.com` → API TG
-- ⚖️ **Weighted routing**: 90% to v1, 10% to v2
-- 💚 **Health checks**: HTTP/HTTPS, TCP, custom protocols
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Path-based routing</span>: `/api/*` → API servers
+- 🔄 <span style="color: #4ECDC4; font-weight: bold;">Host-based routing</span>: `api.example.com` → API TG
+- ⚖️ <span style="color: #45B7D1; font-weight: bold;">Weighted routing</span>: 90% to v1, 10% to v2
+- 💚 <span style="color: #96CEB4; font-weight: bold;">Health checks</span>: HTTP/HTTPS, TCP, custom protocols
 
 ### NLB vs ALB Comparison
 | Feature | ALB (L7) | NLB (L4) |
 |---------|----------|----------|
-| 🎯 **Protocol** | HTTP/HTTPS | TCP/UDP |
-| ⚡ **Latency** | ~100ms | ~10ms |
-| 📊 **Metrics** | Rich | Basic |
-| 💰 **Cost** | Higher | Lower |
-| 🎯 **Use Case** | Web apps | Gaming/Streaming |
+| 🎯 <span style="color: #FF6B6B; font-weight: bold;">Protocol</span> | HTTP/HTTPS | TCP/UDP |
+| ⚡ <span style="color: #4ECDC4; font-weight: bold;">Latency</span> | ~100ms | ~10ms |
+| 📊 <span style="color: #45B7D1; font-weight: bold;">Metrics</span> | Rich | Basic |
+| 💰 <span style="color: #96CEB4; font-weight: bold;">Cost</span> | Higher | Lower |
+| 🎯 <span style="color: #FF6B6B; font-weight: bold;">Use Case</span> | Web apps | Gaming/Streaming |
 
 ---
 
@@ -118,11 +118,11 @@ flowchart TD
 ```
 
 **Health Check Configuration:**
-- 📡 **Protocol**: HTTP/HTTPS/TCP
-- 🎯 **Endpoint**: `/health` or specific port
-- ⏱️ **Interval**: 10 seconds (fast) or 30 seconds (standard)
-- 🔢 **Threshold**: 3 failures = unhealthy
-- 🌍 **Regions**: Check from multiple locations
+- 📡 <span style="color: #FF6B6B; font-weight: bold;">Protocol</span>: HTTP/HTTPS/TCP
+- 🎯 <span style="color: #4ECDC4; font-weight: bold;">Endpoint</span>: `/health` or specific port
+- ⏱️ <span style="color: #45B7D1; font-weight: bold;">Interval</span>: 10 seconds (fast) or 30 seconds (standard)
+- 🔢 <span style="color: #96CEB4; font-weight: bold;">Threshold</span>: 3 failures = unhealthy
+- 🌍 <span style="color: #9B59B6; font-weight: bold;">Regions</span>: Check from multiple locations
 
 ### Failover Routing Policy
 ```mermaid
@@ -136,10 +136,10 @@ graph LR
 ```
 
 **Advanced Features:**
-- 🎯 **Geolocation routing**: Route based on user location
-- ⚖️ **Latency routing**: Route to lowest latency region
-- 🔄 **Geoproximity routing**: Route with bias for specific region
-- 📊 **Weighted routing**: Split traffic percentage
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Geolocation routing</span>: Route based on user location
+- ⚖️ <span style="color: #4ECDC4; font-weight: bold;">Latency routing</span>: Route to lowest latency region
+- 🔄 <span style="color: #45B7D1; font-weight: bold;">Geoproximity routing</span>: Route with bias for specific region
+- 📊 <span style="color: #96CEB4; font-weight: bold;">Weighted routing</span>: Split traffic percentage
 
 ---
 
@@ -175,10 +175,10 @@ graph TD
 ```
 
 **Key Benefits:**
-- ⚡ **Performance**: 30% better latency for dynamic content
-- 🛡️ **Reliability**: Automatic failover across regions
-- 📊 **Monitoring**: Flow logs and health checks
-- 🌍 **Global**: Fixed IP addresses for any region
+- ⚡ <span style="color: #FF6B6B; font-weight: bold;">Performance</span>: 30% better latency for dynamic content
+- 🛡️ <span style="color: #4ECDC4; font-weight: bold;">Reliability</span>: Automatic failover across regions
+- 📊 <span style="color: #45B7D1; font-weight: bold;">Monitoring</span>: Flow logs and health checks
+- 🌍 <span style="color: #96CEB4; font-weight: bold;">Global</span>: Fixed IP addresses for any region
 
 ### GA Configuration
 ```mermaid
@@ -190,10 +190,10 @@ flowchart TD
 ```
 
 **Endpoint Group Settings:**
-- 🎯 **Traffic Dials**: Control traffic percentage
-- 🌍 **Regions**: Multiple endpoint groups
-- 💚 **Health Checks**: TCP/HTTP protocols
-- ⚖️ **Weights**: Distribute traffic across regions
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Traffic Dials</span>: Control traffic percentage
+- 🌍 <span style="color: #4ECDC4; font-weight: bold;">Regions</span>: Multiple endpoint groups
+- 💚 <span style="color: #45B7D1; font-weight: bold;">Health Checks</span>: TCP/HTTP protocols
+- ⚖️ <span style="color: #96CEB4; font-weight: bold;">Weights</span>: Distribute traffic across regions
 
 ---
 
@@ -234,10 +234,10 @@ graph TD
 ```
 
 **Gaming-Specific Optimizations:**
-- ⚡ **UDP Protocol**: For real-time gaming
-- 🎯 **Sticky Sessions**: Keep players on same server
-- 📊 **Player Metrics**: Track server load by player count
-- 🔄 **Seamless Migration**: Move players without disconnect
+- ⚡ <span style="color: #FF6B6B; font-weight: bold;">UDP Protocol</span>: For real-time gaming
+- 🎯 <span style="color: #4ECDC4; font-weight: bold;">Sticky Sessions</span>: Keep players on same server
+- 📊 <span style="color: #45B7D1; font-weight: bold;">Player Metrics</span>: Track server load by player count
+- 🔄 <span style="color: #96CEB4; font-weight: bold;">Seamless Migration</span>: Move players without disconnect
 
 ---
 
@@ -245,27 +245,27 @@ graph TD
 
 ### Essential Questions
 1. **🎯 When would you use ALB vs NLB?**
-   - ALB: HTTP/HTTPS, path-based routing, SSL termination
-   - NLB: TCP/UDP, ultra-low latency, static IPs
+   - ALB: <span style="color: #FF6B6B; font-weight: bold;">HTTP/HTTPS</span>, <span style="color: #4ECDC4; font-weight: bold;">path-based routing</span>, <span style="color: #45B7D1; font-weight: bold;">SSL termination</span>
+   - NLB: <span style="color: #96CEB4; font-weight: bold;">TCP/UDP</span>, <span style="color: #9B59B6; font-weight: bold;">ultra-low latency</span>, <span style="color: #E67E22; font-weight: bold;">static IPs</span>
 
 2. **🌐 How does Route 53 failover work?**
-   - Health checks monitor endpoints
-   - DNS routing changes based on health
-   - TTL affects failover speed
+   - <span style="color: #FF6B6B; font-weight: bold;">Health checks</span> monitor endpoints
+   - <span style="color: #4ECDC4; font-weight: bold;">DNS routing</span> changes based on health
+   - <span style="color: #45B7D1; font-weight: bold;">TTL</span> affects failover speed
 
 3. **🚀 What's the difference between Global Accelerator and CloudFront?**
-   - GA: Dynamic content, AWS backbone, fixed IPs
-   - CF: Static content, edge caching, CDN
+   - GA: <span style="color: #FF6B6B; font-weight: bold;">Dynamic content</span>, <span style="color: #4ECDC4; font-weight: bold;">AWS backbone</span>, <span style="color: #45B7D1; font-weight: bold;">fixed IPs</span>
+   - CF: <span style="color: #96CEB4; font-weight: bold;">Static content</span>, <span style="color: #9B59B6; font-weight: bold;">edge caching</span>, <span style="color: #E67E22; font-weight: bold;">CDN</span>
 
 4. **⚖️ How do you configure sticky sessions?**
-   - Enable on target group
-   - Duration-based cookies
-   - Use for stateful applications
+   - <span style="color: #FF6B6B; font-weight: bold;">Enable</span> on target group
+   - <span style="color: #4ECDC4; font-weight: bold;">Duration-based cookies</span>
+   - Use for <span style="color: #45B7D1; font-weight: bold;">stateful applications</span>
 
 5. **🛡️ How do load balancers handle DDoS?**
-   - AWS Shield integration
-   - Rate-based rules
-   - Auto-scaling to absorb traffic
+   - <span style="color: #FF6B6B; font-weight: bold;">AWS Shield</span> integration
+   - <span style="color: #4ECDC4; font-weight: bold;">Rate-based rules</span>
+   - <span style="color: #45B7D1; font-weight: bold;">Auto-scaling</span> to absorb traffic
 
 ### Advanced Scenarios
 ```mermaid
@@ -274,9 +274,9 @@ graph TD
     Scenario --> Q2["❓ How ensure <50ms latency globally?"]
     Scenario --> Q3["❓ How migrate without downtime?"]
     
-    Q1 --> A1["🎯 NLB + Auto Scaling + Regional clusters"]
-    Q2 --> A2["🚀 Global Accelerator + Multi-region"]
-    Q3 --> A3["🔄 Blue-green + DNS failover"]
+    Q1 --> A1["🎯 <span style='color: #FF6B6B; font-weight: bold;'>NLB</span> + <span style='color: #4ECDC4; font-weight: bold;'>Auto Scaling</span> + <span style='color: #45B7D1; font-weight: bold;'>Regional clusters</span>"]
+    Q2 --> A2["🚀 <span style='color: #FF6B6B; font-weight: bold;'>Global Accelerator</span> + <span style='color: #4ECDC4; font-weight: bold;'>Multi-region</span>"]
+    Q3 --> A3["🔄 <span style='color: #FF6B6B; font-weight: bold;'>Blue-green</span> + <span style='color: #4ECDC4; font-weight: bold;'>DNS failover</span>"]
 ```
 
 ### Serverless Architecture
@@ -336,10 +336,10 @@ graph LR
 ```
 
 **Key Concepts:**
-- 📊 **SLI**: Service Level Indicator (metrics)
-- 🎯 **SLO**: Service Level Objective (target)
-- 📋 **SLA**: Service Level Agreement (contract)
-- 💰 **Error Budget**: Acceptable failure rate
+- 📊 <span style="color: #FF6B6B; font-weight: bold;">SLI</span>: Service Level Indicator (metrics)
+- 🎯 <span style="color: #4ECDC4; font-weight: bold;">SLO</span>: Service Level Objective (target)
+- 📋 <span style="color: #45B7D1; font-weight: bold;">SLA</span>: Service Level Agreement (contract)
+- 💰 <span style="color: #96CEB4; font-weight: bold;">Error Budget</span>: Acceptable failure rate
 
 ### Incident Response Flow
 ```mermaid
@@ -442,10 +442,10 @@ flowchart TD
 ```
 
 **Key Roles:**
-- 🎯 **Incident Commander**: Lead response
-- 📊 **Communicator**: Stakeholder updates
-- 🔧 **Technical Lead**: Fix implementation
-- 📝 **Scribe**: Document timeline
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Incident Commander</span>: Lead response
+- 📊 <span style="color: #4ECDC4; font-weight: bold;">Communicator</span>: Stakeholder updates
+- 🔧 <span style="color: #45B7D1; font-weight: bold;">Technical Lead</span>: Fix implementation
+- 📝 <span style="color: #96CEB4; font-weight: bold;">Scribe</span>: Document timeline
 
 ---
 
@@ -461,10 +461,10 @@ graph TD
 ```
 
 **Leadership Skills:**
-- 🎯 **Technical expertise**
-- 🗣️ **Communication**
-- 🤝 **Collaboration**
-- 📚 **Continuous learning**
+- 🎯 <span style="color: #FF6B6B; font-weight: bold;">Technical expertise</span>
+- 🗣️ <span style="color: #4ECDC4; font-weight: bold;">Communication</span>
+- 🤝 <span style="color: #45B7D1; font-weight: bold;">Collaboration</span>
+- 📚 <span style="color: #96CEB4; font-weight: bold;">Continuous learning</span>
 
 ---
 
@@ -480,10 +480,10 @@ graph TD
 ```
 
 **Key Metrics:**
-- 👥 **Player count**
-- ⚡ **Latency**
-- 🎯 **Success rate**
-- 💾 **Resource usage**
+- 👥 <span style="color: #FF6B6B; font-weight: bold;">Player count</span>
+- ⚡ <span style="color: #4ECDC4; font-weight: bold;">Latency</span>
+- 🎯 <span style="color: #45B7D1; font-weight: bold;">Success rate</span>
+- 💾 <span style="color: #96CEB4; font-weight: bold;">Resource usage</span>
 
 ---
 
@@ -492,20 +492,20 @@ graph TD
 ### AWS Services Cheat Sheet
 | Service | Use Case | Key Feature |
 |---------|----------|-------------|
-| 🖥️ EC2 | Compute | Virtual servers |
-| 🗄️ RDS | Database | Managed SQL |
-| ⚡ Lambda | Serverless | Event-driven |
-| ⚖️ ALB/NLB | Load Balancing | L4/L7 routing |
-| 🌐 Route 53 | DNS | Failover & routing |
-| 🚀 Global Accelerator | Performance | AWS backbone |
-| 🌐 CloudFront | CDN | Global distribution |
-| 📊 CloudWatch | Monitoring | Metrics & logs |
+| 🖥️ <span style="color: #FF6B6B; font-weight: bold;">EC2</span> | Compute | Virtual servers |
+| 🗄️ <span style="color: #4ECDC4; font-weight: bold;">RDS</span> | Database | Managed SQL |
+| ⚡ <span style="color: #45B7D1; font-weight: bold;">Lambda</span> | Serverless | Event-driven |
+| ⚖️ <span style="color: #96CEB4; font-weight: bold;">ALB/NLB</span> | Load Balancing | L4/L7 routing |
+| 🌐 <span style="color: #9B59B6; font-weight: bold;">Route 53</span> | DNS | Failover & routing |
+| 🚀 <span style="color: #E67E22; font-weight: bold;">Global Accelerator</span> | Performance | AWS backbone |
+| 🌐 <span style="color: #FF6B6B; font-weight: bold;">CloudFront</span> | CDN | Global distribution |
+| 📊 <span style="color: #4ECDC4; font-weight: bold;">CloudWatch</span> | Monitoring | Metrics & logs |
 
 ### SRE Formulas
 ```
-Error Budget = 100% - SLO
-Burn Rate = Error Budget Used / Time Elapsed
-MTTR = Total Downtime / Number of Incidents
+<span style="color: #FF6B6B; font-weight: bold;">Error Budget</span> = 100% - <span style="color: #4ECDC4; font-weight: bold;">SLO</span>
+<span style="color: #45B7D1; font-weight: bold;">Burn Rate</span> = Error Budget Used / Time Elapsed
+<span style="color: #96CEB4; font-weight: bold;">MTTR</span> = Total Downtime / Number of Incidents
 ```
 
 ---
@@ -513,17 +513,17 @@ MTTR = Total Downtime / Number of Incidents
 ## 🎯 Interview Tips
 
 ### Common Question Types
-1. **🏗️ Architecture Design**
-2. **🚨 Incident Response**
-3. **💰 Cost Optimization**
-4. **👥 Leadership Experience**
-5. **🔧 Technical Deep Dive**
+1. **🏗️ <span style="color: #FF6B6B; font-weight: bold;">Architecture Design</span>**
+2. **🚨 <span style="color: #4ECDC4; font-weight: bold;">Incident Response</span>**
+3. **💰 <span style="color: #45B7D1; font-weight: bold;">Cost Optimization</span>**
+4. **👥 <span style="color: #96CEB4; font-weight: bold;">Leadership Experience</span>**
+5. **🔧 <span style="color: #9B59B6; font-weight: bold;">Technical Deep Dive</span>**
 
 ### STAR Method
-- **S**ituation: Context
-- **T**ask: Goal
-- **A**ction: What you did
-- **R**esult: Outcome
+- **<span style="color: #FF6B6B; font-weight: bold;">S</span>ituation**: Context
+- **<span style="color: #4ECDC4; font-weight: bold;">T</span>ask**: Goal
+- **<span style="color: #45B7D1; font-weight: bold;">A</span>ction**: What you did
+- **<span style="color: #96CEB4; font-weight: bold;">R</span>esult**: Outcome
 
 ---
 
@@ -532,12 +532,12 @@ MTTR = Total Downtime / Number of Incidents
 ### Week-by-Week Preparation
 | Week | Focus | Practice |
 |------|-------|----------|
-| 1 | AWS Architecture | Design diagrams |
-| 2 | Reliability | SLO calculations |
-| 3 | Scalability | Auto-scaling configs |
-| 4 | Observability | Monitoring setup |
-| 5 | Cost Optimization | Budget analysis |
-| 6 | Incident Response | Mock scenarios |
+| 1 | <span style="color: #FF6B6B; font-weight: bold;">AWS Architecture</span> | Design diagrams |
+| 2 | <span style="color: #4ECDC4; font-weight: bold;">Reliability</span> | SLO calculations |
+| 3 | <span style="color: #45B7D1; font-weight: bold;">Scalability</span> | Auto-scaling configs |
+| 4 | <span style="color: #96CEB4; font-weight: bold;">Observability</span> | Monitoring setup |
+| 5 | <span style="color: #9B59B6; font-weight: bold;">Cost Optimization</span> | Budget analysis |
+| 6 | <span style="color: #E67E22; font-weight: bold;">Incident Response</span> | Mock scenarios |
 
 ---
 
