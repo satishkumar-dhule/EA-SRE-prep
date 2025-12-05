@@ -222,8 +222,7 @@ graph TD
 
     User -- "Saves file 'report.docx'" --> FileWatcher
     FileWatcher --> Chunker
-    Chunker -- "Splits file into A, B, C" --> Chunks
-    Chunks -- "Uploads Chunks" --> APIServer
+    Chunker -- "Splits file into A, B, C and uploads them" --> APIServer
     APIServer -- "Stores chunks" --> BlockStore
     APIServer -- "Updates file metadata" --> MetadataDB
     APIServer -- "Notifies other clients" --> NotificationService
@@ -264,14 +263,19 @@ graph TD
     APIServer -- "Forwards 'syst'" --> Service[💡 Typeahead Service]
     
     subgraph "Trie Data Structure"
-        TrieRoot --- s
+        TrieRoot(" ") --- s
         s --- y
         y --- s
         s --- t
         t --- e
         e --- m
-        m -- "is_word=true, freq=99" --> system
-        m --- design(" d")
+        m -- "is_word=true, freq=99" --> system(system)
+        m --- d("d")
+        d --- e2("e")
+        e2 --- s2("s")
+        s2 --- i("i")
+        i --- g("g")
+        g --- n("n")
     end
 
     Service -- "Finds all words under prefix 'syst'" --> Trie
@@ -389,10 +393,9 @@ graph TD
     APIServer -- "1. Send 'like' event" --> MsgQueue
     Workers -- "2. Consume event" --> MsgQueue
     Workers -- "3. Get user prefs & template" --> DB
-    Workers -- "4. Format message" --> FormattedMsg
-    FormattedMsg -- "5. Send to appropriate gateway" --> PushGateway
-    FormattedMsg -- "..." --> SMSGateway
-    FormattedMsg -- "..." --> EmailGateway
+    Workers -- "4. Format message and send to gateway" --> PushGateway
+    Workers -- "..." --> SMSGateway
+    Workers -- "..." --> EmailGateway
 ```
 
 **Core Components & Concepts:**
@@ -436,9 +439,8 @@ graph TD
         User[👩‍💻 User] -- "GET /recommendations" --> RecService[💡 Recommendation Service]
         RecService -- "1. Get pre-computed recs" --> RecsDB
         RecsDB -- "[item1, item2, ...]" --> RecService
-        RecService -- "2. Filter (e.g., remove purchased)" --> FilteredRecs
-        FilteredRecs -- "3. Rank (optional)" --> RankedRecs
-        RankedRecs -- "Returns top N" --> User
+        RecService -- "2. Filter & Rank" --> RecService
+        RecService -- "Returns top N" --> User
     end
 ```
 
@@ -479,8 +481,7 @@ graph TD
         Rider[👩‍💻 Rider's Phone] -- "GET /nearby_drivers?lat=X&long=Y" --> ReadAPI[🌐 Read API]
         
         subgraph "Geohash/Quadtree Logic"
-             ReadAPI -- "1. Find Geohash for (X,Y)" --> Geohash
-             Geohash -- "2. Query DB for drivers in<br>current & neighboring hashes" --> DB
+             ReadAPI -- "1. Find Geohash for (X,Y) and neighbors" --> DB
         end
 
         DB -- "Returns list of nearby drivers" --> ReadAPI
