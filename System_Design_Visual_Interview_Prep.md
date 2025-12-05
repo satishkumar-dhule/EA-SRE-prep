@@ -61,6 +61,16 @@
 - [58. Design a System for Processing IoT Sensor Data](#58-design-a-system-for-processing-iot-sensor-data)
 - [59. Design an Online Code Editor](#59-design-an-online-code-editor)
 - [60. Design a Feature Flag System](#60-design-a-feature-flag-system)
+- [61. Design a Distributed Transactions System with Saga Pattern](#61-design-a-distributed-transactions-system-with-saga-pattern)
+- [62. Design a Stream Processing System (real-time ETL)](#62-design-a-stream-processing-system-real-time-etl)
+- [63. Design a Distributed Tracing System for Microservices (Advanced)](#63-design-a-distributed-tracing-system-for-microservices-advanced)
+- [64. Design a Distributed Rate Limiter (Advanced)](#64-design-a-distributed-rate-limiter-advanced)
+- [65. Design a Distributed Cache with Eviction Policies](#65-design-a-distributed-cache-with-eviction-policies)
+- [66. Design a Distributed Consensus System (Paxos vs Raft deeper dive)](#66-design-a-distributed-consensus-system-paxos-vs-raft-deeper-dive)
+- [67. Design a Global Storage System (spanning multiple regions)](#67-design-a-global-storage-system-spanning-multiple-regions)
+- [68. Design a Geo-replicated Database with Conflict Resolution](#68-design-a-geo-replicated-database-with-conflict-resolution)
+- [69. Design a Distributed Lock Manager (Advanced)](#69-design-a-distributed-lock-manager-advanced)
+- [70. Design a Real-time Analytics Dashboard](#70-design-a-real-time-analytics-dashboard)
 
 ---
 
@@ -1892,7 +1902,7 @@ graph TD
 4.  After a configurable timeout (e.g., 30 seconds), the circuit transitions to **Half-Open**.
 5.  In the **Half-Open** state, the circuit breaker allows a few (e.g., 1-5) test requests to **Service A**.
     - If the test requests succeed, the circuit assumes **Service A** has recovered and transitions back to **Closed**.
-    - If the test requests fail, **Service A** is still unhealthy, and the circuit transitions back to **Open**.
+    - If the test requests fail, **Service A** is still unhealthy, and the circuit transitions back to **Open`.
 
 **Benefits:**
 - **Prevents Cascading Failures**: Protects downstream services from being overloaded by upstream failures.
@@ -3115,3 +3125,538 @@ graph TD
 
 **Workflow:**
 1.  **Admin/Developer** defines or updates a feature flag's rules (e.g., "Feature X is ON for 10% of
+```mermaid
+graph TD
+    OrderSvc[📦 Order Service] -- "1. Order Placed" --> OrderCreatedEvent[✅ OrderCreatedEvent<br>(Message Queue)]
+    OrderCreatedEvent --> PaymentSvc[💳 Payment Service]
+    PaymentSvc -- "2. Payment Processed" --> PaymentProcessedEvent[✅ PaymentProcessedEvent<br>(Message Queue)]
+    PaymentProcessedEvent --> InventorySvc[📦 Inventory Service]
+    InventorySvc -- "3. Inventory Reserved" --> InventoryReservedEvent[✅ InventoryReservedEvent<br>(Message Queue)]
+    InventoryReservedEvent --> ShippingSvc[🚚 Shipping Service]
+    ShippingSvc -- "4. Shipment Scheduled" --> ShipmentScheduledEvent[✅ ShipmentScheduledEvent<br>(Message Queue)]
+
+    PaymentSvc -- "X. Payment Failed" --> PaymentFailedEvent[❌ PaymentFailedEvent<br>(Message Queue)]
+    PaymentFailedEvent --> InventorySvc -- "Compensate" --> InventoryReleasedEvent[↩️ InventoryReleasedEvent]
+    InventoryReleasedEvent --> OrderSvc -- "Compensate" --> OrderCancelledEvent[↩️ OrderCancelledEvent]
+```
+
+**Core Problem**: Maintain transactional integrity and data consistency across multiple independent services in a distributed environment, where traditional ACID transactions are not feasible.
+
+**Core Concepts:**
+- **Saga**: A sequence of local transactions, where each transaction updates its own database and publishes an event.
+- **Local Transaction**: An atomic operation within a single service.
+- **Compensating Transaction**: An operation that undoes the changes made by a preceding local transaction in case of a failure later in the saga.
+
+**Workflow (Choreography-based Saga - simplified):**
+1.  **Order Service** receives an order. It creates a local transaction to `create_order` and publishes an `OrderCreatedEvent`.
+2.  **Payment Service** consumes `OrderCreatedEvent`. It performs a local transaction to `process_payment` and publishes either a `PaymentProcessedEvent` or a `PaymentFailedEvent`.
+3.  **Inventory Service** consumes `PaymentProcessedEvent`. It performs a local transaction to `reserve_inventory` and publishes an `InventoryReservedEvent`.
+    - If it consumes `PaymentFailedEvent`, it executes a compensating transaction to `release_inventory` and publishes an `InventoryReleasedEvent`.
+4.  **Shipping Service** consumes `InventoryReservedEvent`. It performs a local transaction to `schedule_shipment` and publishes a `ShipmentScheduledEvent`.
+    - If it consumes `InventoryReleasedEvent` (indirectly from `PaymentFailedEvent`), it takes no action or cancels any pending shipment.
+
+**Benefits:**
+- **Loose Coupling**: Services are independent and only communicate via events.
+- **Improved Availability**: Services can continue to operate even if other services are temporarily unavailable.
+- **Scalability**: Individual services can be scaled independently.
+
+**Considerations:**
+- **Complexity**: Sagas are significantly more complex to implement and debug than traditional distributed transactions.
+- **Eventual Consistency**: Data might be inconsistent for a short period while the saga is in progress.
+- **Error Handling**: Requires careful design of compensating transactions and idempotent operations.
+
+---
+
+### 62. Design a Stream Processing System (real-time ETL)
+Design a system for continuous, real-time extraction, transformation, and loading (ETL) of data, typically for analytics or data warehousing.
+
+```mermaid
+graph TD
+    DataSources[📊 Raw Data Sources<br>(Logs, DB Changes, Events)] -- "1. Generate Events" --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Stream Processing Pipeline"
+        IngestAPI -- "2. Push to Stream" --> RawEventStream[🔄 Raw Event Stream<br>(Kafka/Kinesis)]
+        RawEventStream -- "3. Stream Processing" --> Processor[⚙️ Stream Processor<br>(Spark Streaming/Flink/Kafka Streams)]
+    end
+
+    Processor -- "4. ETL Operations (Filter, Transform, Join)" --> ProcessedEventStream[✅ Processed Event Stream<br>(Kafka Topic)]
+    ProcessedEventStream -- "5. Load to Destinations" --> DataWarehouse[📈 Data Warehouse<br>(Snowflake/BigQuery)]
+    ProcessedEventStream -- "5. Load to Destinations" --> DataLake[💾 Data Lake<br>(S3/HDFS)]
+    ProcessedEventStream -- "5. Load to Destinations" --> OtherApplications[📦 Other Applications]
+```
+
+**Core Problem**: Process data continuously as it arrives, applying transformations and loading it into various destinations with minimal latency, enabling real-time analytics and operational decision-making.
+
+**Core Components & Concepts:**
+- 📊 **Raw Data Sources**: Where the data originates (e.g., application logs, database change data capture (CDC), user clickstreams, IoT sensor data).
+- 🌐 **Ingest API**: A scalable endpoint for ingesting raw data.
+- 🔄 **Raw Event Stream (Kafka/Kinesis)**: A high-throughput, durable message queue that acts as the backbone for raw data.
+- ⚙️ **Stream Processor (Spark Streaming, Flink, Kafka Streams)**: The engine that consumes data from the raw event stream and performs real-time ETL operations:
+    - **Extraction**: Reads data from the stream.
+    - **Transformation**: Filters, cleans, normalizes, enriches, aggregates, or joins data from multiple streams.
+    - **Loading**: Writes the processed data to various downstream systems.
+- ✅ **Processed Event Stream**: Another Kafka topic for processed data, allowing multiple downstream consumers.
+- 📈 **Data Warehouse**: For structured analytical queries.
+- 💾 **Data Lake**: For storing raw or semi-structured data for future analysis.
+- 📦 **Other Applications**: Downstream services that need access to processed real-time data.
+
+**Key Challenges & Solutions:**
+- **Latency**: Minimize end-to-end latency from source to destination.
+- **Throughput**: Handle large volumes of streaming data.
+- **Fault Tolerance & Durability**: Ensure no data loss and continuous operation despite failures.
+- **Exactly-Once Processing**: Guarantee that each record is processed exactly once, crucial for accurate analytics.
+- **Schema Evolution**: Handle changes in data schemas gracefully.
+
+---
+
+### 63. Design a Distributed Tracing System for Microservices (Advanced)
+Deep dive into design considerations for a robust distributed tracing system.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Request] --> Gateway[⛩️ API Gateway]
+    Gateway -- "Injects Trace Context" --> ServiceA[📦 Service A]
+    ServiceA -- "Call Service B" --> ServiceB[📦 Service B]
+    ServiceB -- "Call DB" --> Database[(🗄️ Database)]
+
+    subgraph "Tracing Pipeline"
+        OpenTelemetrySDK[➕ OpenTelemetry SDK]
+        Agent[📈 Agent<br>(Collector per host)]
+        Collector[📊 Collector<br>(Batching, Processing)]
+        Storage[🗄️ Trace Storage<br>(OLAP DB / Object Store)]
+        QueryService[🔍 Query Service]
+        UI[💻 UI<br>(Jaeger/Zipkin/Grafana Tempo)]
+    end
+
+    ServiceA -- "Generate Spans" --> OpenTelemetrySDK
+    ServiceB -- "Generate Spans" --> OpenTelemetrySDK
+    Gateway -- "Generate Spans" --> OpenTelemetrySDK
+
+    OpenTelemetrySDK -- "Export Spans" --> Agent
+    Agent -- "Forward Spans" --> Collector
+    Collector -- "Store Spans" --> Storage
+    
+    UI -- "Query Traces" --> QueryService
+    QueryService -- "Retrieve from" --> Storage
+```
+
+**Core Problem**: Provide detailed visibility into the request flow, performance, and errors across a complex, asynchronous, and distributed microservices architecture, enabling fast root cause analysis and performance optimization.
+
+**Core Concepts (revisiting and expanding on Q32):**
+- **Trace Context Propagation**: Crucial for linking spans across service boundaries. Standards like W3C Trace Context (HTTP headers) are used to pass `trace_id` and `parent_span_id`.
+- **Instrumentation (OpenTelemetry/OpenTracing)**: Libraries (SDKs) embedded in each service automatically capture span data or allow manual instrumentation.
+- **Agent/Sidecar Collector**: A lightweight process running alongside each application instance. It collects spans, batches them, and forwards them to central collectors. Reduces network calls from the application itself.
+- **Central Collector**: Receives spans from agents/SDKs, performs further processing (e.g., sampling, enrichment), and stores them.
+- **Trace Storage**: Optimized for storing high-volume, potentially high-cardinality time-series data. Examples: Apache Cassandra, Elasticsearch, ClickHouse, Apache Druid, Parquet in S3 (for cost-effectiveness).
+- **Query Service**: Provides an API for searching and retrieving traces based on various criteria (service name, operation, tags, duration).
+- **Visualization UI**: Tools like Jaeger, Zipkin, or Grafana Tempo for graphical representation and analysis of traces.
+
+**Advanced Considerations:**
+- **Sampling**: With high traffic, storing every trace can be prohibitive. Implement sampling strategies:
+    - **Head-based sampling**: Decision made at the start of the trace (e.g., at API Gateway).
+    - **Tail-based sampling**: Decision made after the trace is complete, allowing for more intelligent sampling (e.g., keep all error traces, sample successful ones).
+- **Context Propagation beyond HTTP**: For message queues, gRPC, and asynchronous operations, trace context needs to be propagated in message headers or event payloads.
+- **Data Retention**: Manage storage costs by implementing retention policies (e.g., keep full traces for a few days, summarized traces for longer).
+
+---
+
+### 64. Design a Distributed Rate Limiter (Advanced)
+A deeper look into designing a highly accurate, performant, and distributed rate limiting system.
+
+```mermaid
+graph TD
+    UserReq[👨‍💻 User Request] --> EdgeLB[⚖️ Edge Load Balancer]
+    EdgeLB --> APIGateway[⛩️ API Gateway]
+    APIGateway -- "Before routing" --> RateLimiterService[🚦 Rate Limiter Service]
+
+    subgraph "Rate Limiter Service (Centralized / Distributed)"
+        RedisCluster[⚡ Redis Cluster<br>(Atomic Counters/Buckets)]
+        ControlPlane[⚙️ Control Plane<br>(Manages policies)]
+        LocalCache[🌐 Local Cache<br>(Optimistic Check)]
+    end
+
+    RateLimiterService -- "1. Check Local Cache (Optimistic)" --> LocalCache
+    LocalCache -- "2. If allowed by local, check global" --> RedisCluster
+    RedisCluster -- "3. Atomically decrement/check" --> RedisCluster
+    
+    RateLimiterService -- "4. Decision (Allow/Reject)" --> APIGateway
+    APIGateway -- "Allow" --> BackendService[🏭 Backend Service]
+    APIGateway -- "Reject (429)" --> UserReq
+    
+    ControlPlane -- "Updates policies" --> RedisCluster
+    ControlPlane -- "Updates policies" --> LocalCache
+```
+
+**Core Problem**: Implement accurate rate limiting across a fleet of distributed API servers while maintaining high performance and handling various rate limiting algorithms and policies.
+
+**Core Concepts (revisiting and expanding on Q7):**
+- **Rate Limiting Algorithms**:
+    - **Token Bucket**: Allows bursts, refills tokens over time. (Primary method for this design).
+    - **Leaky Bucket**: Processes requests at a constant rate, smoothing bursts.
+    - **Fixed Window Counter**: Simple, but has "edge-case" burst problem.
+    - **Sliding Window Log**: Most accurate, but high memory usage.
+    - **Sliding Window Counter**: Hybrid, good balance of accuracy and resource usage.
+- 🚦 **Rate Limiter Service**: A dedicated microservice responsible for making rate limiting decisions.
+- ⚡ **Redis Cluster**: Used as the highly available, distributed counter/token store. Redis's atomic operations (`INCR`, `SET EX NX`) are crucial.
+- 🌐 **Local Cache (Guava Cache, in-memory)**: An optional optimization where each Rate Limiter Service instance maintains a local cache of recent counts/tokens. This allows for optimistic checks and reduces calls to Redis, significantly improving performance for non-critical limits.
+- ⚙️ **Control Plane**: A management interface for defining, updating, and distributing rate limiting policies (e.g., `100 req/min per user`, `10 req/sec per IP`).
+
+**Advanced Design Considerations:**
+- **Two-Tiered Rate Limiting**:
+    1.  **Optimistic Local Check**: First, check a fast, in-memory local cache. If it suggests the request is allowed, proceed. If it suggests rejection, reject immediately.
+    2.  **Authoritative Global Check**: For requests allowed by the local cache, perform an atomic check and decrement in the central **Redis Cluster**. This is the authoritative decision.
+- **Eventual Consistency for Counters**: For high-volume limits where slight overages are acceptable (e.g., millions of events per minute), a purely eventually consistent approach (e.g., Kafka to aggregate counts) might be used instead of Redis for even higher scale.
+- **Policy Enforcement**: Policies can be complex, involving user attributes, API endpoints, geographical location. The Control Plane translates these into rules consumable by the Rate Limiter Service.
+
+---
+
+### 65. Design a Distributed Cache with Eviction Policies
+A deeper dive into distributed cache design, focusing on effective memory management through various eviction policies.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Application] -- "1. GET key" --> CacheClient[⚙️ Cache Client Library]
+    CacheClient -- "2. Hash key to find server" --> Hashing[#️⃣ Consistent Hashing Ring]
+    Hashing -- "3. Request from responsible cache server" --> CacheNode[⚡ Cache Node]
+
+    CacheNode -- "4. Check for Key" --> CacheStorage[💾 In-Memory Storage]
+    CacheStorage -- "Cache Hit" --> Client
+    
+    CacheStorage -- "Cache Miss" --> BackendDB[(🗄️ Backend DB)]
+    BackendDB -- "Data" --> CacheNode
+    CacheNode -- "5. Store Data with Metadata" --> CacheStorage
+    CacheStorage -- "6. Apply Eviction Policy if full" --> EvictionPolicy[🗑️ Eviction Policy Manager]
+    EvictionPolicy -- "7. Remove item" --> CacheStorage
+    CacheNode -- "Return Data" --> Client
+```
+
+**Core Problem**: Efficiently manage a finite amount of memory in a distributed cache by intelligently removing less valuable or expired data when the cache is full, minimizing cache misses and maximizing performance.
+
+**Core Concepts (revisiting and expanding on Q16):**
+- **Cache Node**: An individual server in the distributed cache.
+- **In-Memory Storage**: The primary storage for cached data on each node.
+- **Metadata per Item**: Each cached item typically stores:
+    - Key, Value
+    - **Time-To-Live (TTL)**: Expiration timestamp.
+    - **Access Frequency/Count**: For LFU.
+    - **Last Accessed Time**: For LRU.
+- **Eviction Policy Manager**: The component responsible for deciding which items to evict when the cache reaches its capacity limit.
+
+**Common Eviction Policies:**
+1.  **LRU (Least Recently Used)**: Evicts the item that has not been accessed for the longest time.
+    - **Implementation**: Requires tracking the last access time for each item. Often uses a doubly linked list + hash map (hash map for O(1) access, linked list for O(1) removal/insertion at ends).
+2.  **LFU (Least Frequently Used)**: Evicts the item that has been accessed the fewest times.
+    - **Implementation**: More complex than LRU. Requires tracking both frequency and recency, often using a "min-heap of frequencies" or a combination of hash maps and linked lists.
+3.  **FIFO (First-In, First-Out)**: Evicts the item that was added first.
+    - **Implementation**: Simple queue.
+4.  **Random Replacement**: Evicts a random item. (Least effective).
+5.  **TTL (Time-To-Live)**: Items expire after a predefined duration. This is often used in conjunction with other policies.
+
+**Advanced Considerations:**
+- **Distributed Eviction**: Eviction decisions are typically local to each cache node. Global eviction across the entire cluster is complex and often not necessary.
+- **Pre-fetching**: Load data into the cache proactively based on predicted access patterns.
+- **Write-Through/Write-Back/Cache-Aside**: Different strategies for how data is written to the cache and the underlying database.
+- **Hot-Warm-Cold Tiering**: Store very hot data in faster caches (e.g., DRAM), less hot data in slower caches (e.g., NVMe SSDs), and cold data in persistent storage.
+
+---
+
+### 66. Design a Distributed Consensus System (Paxos vs Raft deeper dive)
+A deeper look into the differences, strengths, and weaknesses of Paxos and Raft.
+
+```mermaid
+graph TD
+    Client[👩‍💻 Client Request] --> LeaderNode[🌟 Leader Node]
+    
+    subgraph "Consensus Group (5 Nodes)"
+        NodeA[⚙️ Node A]
+        NodeB[⚙️ Node B]
+        NodeC[⚙️ Node C]
+        NodeD[⚙️ Node D]
+        NodeE[⚙️ Node E]
+    end
+
+    LeaderNode -- "1. Propose Value" --> NodeA
+    LeaderNode -- "..." --> NodeB
+    LeaderNode -- "..." --> NodeC
+    LeaderNode -- "..." --> NodeD
+    LeaderNode -- "..." --> NodeE
+
+    NodeA -- "2. Vote/Accept" --> LeaderNode
+    NodeB -- "..." --> LeaderNode
+    NodeC -- "..." --> LeaderNode
+    NodeD -- "..." --> LeaderNode
+    NodeE -- "..." --> LeaderNode
+
+    LeaderNode -- "3. If Majority Votes, Commit" --> LeaderNode
+    LeaderNode -- "4. Inform Followers of Commit" --> NodeA
+    LeaderNode -- "..." --> NodeB
+    LeaderNode -- "..." --> NodeC
+    LeaderNode -- "..." --> NodeD
+    LeaderNode -- "..." --> NodeE
+```
+
+**Core Problem**: Achieve agreement on a single value or a consistent ordering of operations among a group of distributed, potentially failing processes, ensuring safety (never committing incorrect values) and liveness (eventually committing some value).
+
+**Paxos (Original Algorithm):**
+- **Roles**:
+    - **Proposer**: Proposes values.
+    - **Acceptor**: Votes on proposed values.
+    - **Learner**: Learns the chosen value.
+- **Phases**:
+    1.  **Prepare**: Proposer sends a "prepare" message to a majority of acceptors, asking them to promise not to accept proposals with a smaller number, and to return any previously accepted proposal with the highest number.
+    2.  **Accept**: If a majority responds, the proposer sends an "accept" message to the same majority with a value (either its own or one learned from acceptors).
+- **Strengths**: Proven correctness, handles arbitrary failures (crash, network partitions).
+- **Weaknesses**: Extremely complex to understand and implement, difficult to reason about, can suffer from livelock (multiple proposers endlessly making new proposals).
+
+**Raft (Log-Replication based Consensus):**
+- **Roles**:
+    - **Leader**: Manages log replication, handles client requests. Only one leader at a time.
+    - **Follower**: Passive, replicates log entries from leader, votes for new leaders.
+    - **Candidate**: State during leader election.
+- **Phases/Mechanisms**:
+    1.  **Leader Election**: If no heartbeats from leader, followers become candidates and request votes.
+    2.  **Log Replication**: Leader appends entries, replicates to followers, commits once a majority acknowledge.
+    3.  **Safety**: Ensures that elected leaders contain all committed entries, and that if a majority commits an entry, no other entry at that index can be committed.
+- **Strengths**: Designed for understandability and ease of implementation, strong leader model simplifies management.
+- **Weaknesses**: Can be sensitive to network partitions (leader may resign due to timeout even if healthy), less flexible than Paxos in some corner cases.
+
+**Comparison:**
+- **Approach**: Paxos is message-driven (agree on a value), Raft is log-driven (agree on a sequence of log entries).
+- **Complexity**: Raft is much simpler to understand and implement.
+- **State**: Raft has a strong leader, Paxos allows multiple proposers.
+
+---
+
+### 67. Design a Global Storage System (spanning multiple regions)
+Design a highly durable, available, and performant object storage system that spans multiple geographical regions (e.g., AWS S3).
+
+```mermaid
+graph TD
+    ClientNA[👩‍💻 Client (NA)] --> GSLB[🌍 Global Service Load Balancer]
+    ClientEU[👩‍💻 Client (EU)] --> GSLB
+    
+    subgraph "Global Storage System"
+        RegionNA[🏢 Region: North America]
+        RegionEU[🏢 Region: Europe]
+        RegionAPAC[🏢 Region: APAC]
+    end
+
+    GSLB -- "Route to nearest region" --> RegionNA
+    GSLB -- "Route to nearest region" --> RegionEU
+    GSLB -- "Route to nearest region" --> RegionAPAC
+
+    subgraph "Region NA (Example)"
+        UploadAPI_NA[🌐 Upload API]
+        DownloadAPI_NA[🌐 Download API]
+        DataStore_NA[💾 Object Storage Cluster]
+        MetadataDB_NA[(🗄️ Metadata DB)]
+    end
+
+    RegionNA -- Contains --> UploadAPI_NA
+    RegionNA -- Contains --> DownloadAPI_NA
+    RegionNA -- Contains --> DataStore_NA
+    RegionNA -- Contains --> MetadataDB_NA
+
+    UploadAPI_NA -- "1. Ingest Object" --> DataStore_NA
+    DataStore_NA -- "2. Replicate within Region (Erasure Coding/Replication)" --> DataStore_NA
+    DataStore_NA -- "3. Cross-Region Asynchronous Replication" --> RegionEU
+    DataStore_NA -- "3. Cross-Region Asynchronous Replication" --> RegionAPAC
+    
+    DownloadAPI_NA -- "4. Retrieve Object" --> DataStore_NA
+    MetadataDB_NA -- "Object Metadata, Location" --> MetadataDB_NA
+```
+
+**Core Problem**: Store massive amounts of unstructured data (objects) globally, providing extremely high durability, availability, and low-latency access from anywhere in the world, while being cost-effective.
+
+**Core Components & Concepts:**
+- 🌍 **Global Service Load Balancer (GSLB)**: Directs client requests to the optimal geographical region for their interaction (e.g., lowest latency, closest storage).
+- **Regions**: Isolated geographical locations, each containing a full, independent deployment of the storage system.
+- 🌐 **Upload/Download APIs**: Endpoints for clients to interact with the storage system.
+- 💾 **Object Storage Cluster**: Within each region, data is stored in a highly distributed and fault-tolerant manner. This typically involves:
+    - **Data Partitioning**: Objects are sharded across many nodes.
+    - **Redundancy**: Using techniques like **Erasure Coding** (more efficient than full replication for large data) or **Replication** to ensure durability within the region.
+- 🗄️ **Metadata Database**: Stores metadata about objects (names, sizes, types, access control lists (ACLs), location information). This must be highly available and potentially replicated across regions.
+- **Cross-Region Asynchronous Replication**: Critical for global durability and disaster recovery. Changes made in one region are asynchronously replicated to other designated regions.
+
+**Benefits:**
+- **Extreme Durability**: Achieved through multi-region replication and intra-region redundancy.
+- **High Availability**: Tolerates region-wide outages.
+- **Low Latency**: Users access data from the nearest region.
+- **Scalability**: Scales to exabytes of data and trillions of objects.
+
+**Considerations:**
+- **Consistency Model**: Typically **Eventual Consistency** for cross-region writes due to network latency. Conflicts can arise and need to be resolved (e.g., "last writer wins").
+- **Data Transfer Costs**: Cross-region data transfer is expensive. Optimize by routing read requests to local replicas.
+- **Compliance**: Data residency requirements can dictate where data must be stored.
+
+---
+
+### 68. Design a Geo-replicated Database with Conflict Resolution
+Design a database that replicates data across multiple geographic regions, focusing on how to handle conflicts that arise from concurrent writes.
+
+```mermaid
+graph TD
+    ClientNA[👩‍💻 Client (NA)] --> AppNA[📦 App (NA)]
+    ClientEU[👩‍💻 Client (EU)] --> AppEU[📦 App (EU)]
+    
+    subgraph "Geo-Replicated Database"
+        DB_NA[🗄️ Database Node (NA)]
+        DB_EU[🗄️ Database Node (EU)]
+        DB_APAC[🗄️ Database Node (APAC)]
+    end
+
+    AppNA -- "Write (Key X, Val 1)" --> DB_NA
+    AppEU -- "Write (Key X, Val 2)" --> DB_EU
+
+    DB_NA -- "Async Replication" --> DB_EU
+    DB_EU -- "Async Replication" --> DB_NA
+    DB_NA -- "Async Replication" --> DB_APAC
+    DB_EU -- "Async Replication" --> DB_APAC
+
+    subgraph "Conflict Resolution"
+        CRService[⚙️ Conflict Resolution Service]
+        VectorClocks[🕰️ Vector Clocks]
+        LWW[🥇 Last Writer Wins]
+        CustomLogic[🧠 Custom Logic]
+    end
+
+    DB_NA -- "Detect Conflict on Key X" --> CRService
+    DB_EU -- "Detect Conflict on Key X" --> CRService
+    CRService -- "Resolve Conflict" --> DB_NA
+    CRService -- "Update All Replicas" --> DB_EU
+    CRService -- "Update All Replicas" --> DB_APAC
+```
+
+**Core Problem**: When data is replicated asynchronously across geographically distributed databases, concurrent writes to the same data item can lead to divergent versions (conflicts). The system needs a robust way to detect and resolve these conflicts.
+
+**Core Concepts**:
+- **Geo-Replication**: Data is copied and maintained across multiple geographically separated database instances. Often asynchronous for low write latency.
+- **Eventual Consistency**: The system aims for consistency over time, meaning replicas will eventually converge to the same state, but there might be temporary divergences.
+- **Conflict Detection**: Identifying when two or more concurrent writes have modified the same data item in different ways.
+- **Conflict Resolution**: Choosing which version of the data "wins" or merging the divergent versions.
+
+**Common Conflict Resolution Strategies:**
+1.  **Last Writer Wins (LWW)**: The version with the most recent timestamp (or a client-provided timestamp/version ID) is chosen.
+    - **Pros**: Simple to implement.
+    - **Cons**: Can lead to data loss if clocks are not perfectly synchronized or if a "newer" write is logically older.
+2.  **Vector Clocks**: A mechanism to track causal relationships between different versions of data. Each replica maintains a vector of (replica_id, version_number) pairs. If two versions' vector clocks are incomparable, they are concurrent and represent a conflict.
+    - **Pros**: Guarantees causal consistency, no data loss.
+    - **Cons**: Vector clocks can grow large, more complex to implement and reason about. Requires application-level merging.
+3.  **Application-Defined/Custom Logic**: The application provides specific rules for merging conflicting versions (e.g., for a shopping cart, merge items from both versions).
+    - **Pros**: Most flexible, preserves data based on business logic.
+    - **Cons**: Most complex to implement, requires deep application understanding.
+4.  **Operational Transformation (OT)/CRDTs**: (More common in collaborative editing, see Q59). Data structures designed to be mergeable by definition.
+
+**Workflow:**
+1.  A client writes to `DB_NA`. This write is immediately acknowledged to the client (low latency).
+2.  The write is asynchronously replicated to `DB_EU` and `DB_APAC`.
+3.  Concurrently, another client writes to the same `Key X` in `DB_EU`.
+4.  When `DB_NA`'s update arrives at `DB_EU`, a conflict is detected (two different values for `Key X`).
+5.  A **Conflict Resolution Service** (or the database itself) applies a predefined strategy (e.g., LWW, Vector Clocks with application-level merge) to resolve the conflict.
+6.  The resolved version is then replicated to all nodes, bringing them back to a consistent state.
+
+---
+
+### 69. Design a Distributed Lock Manager (Advanced)
+A deeper look into advanced features and implementation techniques for a distributed lock manager.
+
+```mermaid
+graph TD
+    ClientA[👩‍💻 Client A] -- "1. Acquire Lock (Resource X)" --> DLockMgr[🔒 Distributed Lock Manager]
+    ClientB[👨‍💻 Client B] -- "2. Acquire Lock (Resource X)" --> DLockMgr
+
+    subgraph "Distributed Lock Manager Core (e.g., ZooKeeper/etcd based)"
+        LockService[⚙️ Lock Service API]
+        ConsensusCluster[🗄️ Consensus Cluster<br>(ZooKeeper/etcd)]
+        FencingTokenService[🔑 Fencing Token Generator]
+    end
+
+    DLockMgr -- "3. Try to create ephemeral lock node" --> ConsensusCluster
+    ConsensusCluster -- "4. Assign unique lock ID (sequential ZNode)" --> ConsensusCluster
+    ConsensusCluster -- "5. Grant Lock to A (smallest ID)" --> DLockMgr
+    FencingTokenService -- "6. Issue Fencing Token (monotonically increasing)" --> DLockMgr
+    DLockMgr -- "7. Return Lock + Token to Client A" --> ClientA
+
+    ClientA -- "8. Perform Critical Section" --> SharedResource[🌐 Shared Resource]
+    SharedResource -- "9. Verify Fencing Token" --> FencingTokenService
+
+    DLockMgr -- "10. Client B Waits/Fails" --> ClientB
+    ClientA -- "11. Release Lock" --> DLockMgr
+    DLockMgr -- "12. Delete ephemeral lock node" --> ConsensusCluster
+    ConsensusCluster -- "13. Notify waiting clients" --> DLockMgr
+    DLockMgr -- "14. Grant Lock to B (new smallest ID)" --> ClientB
+```
+
+**Core Problem**: Securely coordinate access to shared resources across multiple, independent distributed processes, preventing race conditions and ensuring data integrity, especially in the face of network partitions and node failures.
+
+**Core Concepts (revisiting and expanding on Q26):**
+- 🔒 **Distributed Lock Manager (DLM)**: A dedicated system that provides clients with the ability to acquire and release distributed locks.
+- 🗄️ **Consensus Cluster (ZooKeeper/etcd)**: Provides the underlying strong consistency and distributed coordination primitives required for building reliable locks. It handles:
+    - **Leader Election**: For managing the lock state.
+    - **Ephemeral Nodes**: For automatic lock release if a client crashes.
+    - **Watches**: To notify waiting clients when a lock becomes available.
+    - **Sequential Nodes**: To establish a fair ordering for clients waiting for a lock.
+- 🔑 **Fencing Token Generator**: A service that issues monotonically increasing tokens with each successful lock acquisition. These tokens are crucial for preventing "fencing problems".
+
+**Advanced Design Considerations:**
+- **Fencing Problem**: A client that believes it holds a lock (but due to a network partition, its lock might have expired and been re-acquired by another client) might still attempt to operate on the shared resource.
+    - **Solution**: The **Fencing Token**. When a client acquires a lock, it receives a unique, monotonically increasing token. All operations on the shared resource must include this token. The shared resource only accepts operations with the latest token, effectively "fencing off" stale clients.
+- **Reentrancy**: Allows a client that already holds a lock to acquire it again without blocking itself. (Managed by the DLM if needed).
+- **Timeouts (TTL)**: Locks must have an expiration time (TTL) to prevent deadlocks if a client crashes without releasing the lock. The client needs to periodically "heartbeat" to refresh its lock.
+- **Fairness**: Clients waiting for a lock should acquire it in a fair order (e.g., FIFO). ZooKeeper's sequential nodes help here.
+- **Idempotency**: Operations performed under the protection of a distributed lock should ideally be idempotent.
+
+---
+
+### 70. Design a Real-time Analytics Dashboard
+Design a system for building and serving interactive dashboards that display real-time metrics and insights from streaming data.
+
+```mermaid
+graph TD
+    DataSources[📊 Raw Data Sources<br>(Events, Logs, Metrics)] -- "1. Generate Events" --> IngestAPI[🌐 Ingest API]
+    
+    subgraph "Real-time Analytics Pipeline"
+        IngestAPI -- "2. Push to Stream" --> RawEventStream[🔄 Raw Event Stream<br>(Kafka/Kinesis)]
+        RawEventStream -- "3. Stream Processing" --> Processor[⚙️ Stream Processor<br>(Flink/Spark Streaming)]
+    end
+
+    Processor -- "4. Aggregate & Transform (e.g., sum clicks per minute)" --> AggregatedMetricsStream[📈 Aggregated Metrics Stream<br>(Kafka Topic)]
+    AggregatedMetricsStream -- "5. Store Aggregations" --> RealtimeAnalyticsDB[📊 Real-time Analytics DB<br>(Druid/ClickHouse/Redis)]
+
+    User[👩‍💻 User/Viewer] -- "6. View Dashboard" --> DashboardFrontend[💻 Dashboard Frontend]
+    DashboardFrontend -- "7. Query Metrics (real-time)" --> QueryAPI[🌐 Query API]
+    QueryAPI -- "8. Fetch from" --> RealtimeAnalyticsDB
+    QueryAPI -- "9. Return Data" --> DashboardFrontend
+    
+    Processor -- "10. Store Raw Events (for drill-down/historical analysis)" --> DataLake[💾 Data Lake<br>(S3/HDFS)]
+```
+
+**Core Problem**: Provide interactive, low-latency visualization of data and metrics derived from high-volume, continuously flowing event streams, enabling immediate operational insights and rapid decision-making.
+
+**Core Components & Concepts**:
+- 📊 **Raw Data Sources**: Continuous streams of events, logs, and metrics.
+- 🌐 **Ingest API**: Receives data from sources.
+- 🔄 **Raw Event Stream (Kafka/Kinesis)**: Buffers and distributes raw data.
+- ⚙️ **Stream Processor (Flink/Spark Streaming)**: The heart of the real-time processing. It consumes raw events and performs:
+    - **Filtering**: Selecting relevant data points.
+    - **Transformation**: Formatting and enriching data.
+    - **Real-time Aggregation**: Computing metrics over defined time windows (e.g., count of unique users in the last minute, sum of sales in the last 5 minutes). These aggregations are continuously updated.
+- 📈 **Aggregated Metrics Stream**: A stream (e.g., another Kafka topic) for the already processed and aggregated metrics, ready for consumption by storage.
+- 📊 **Real-time Analytics DB**: A database optimized for fast writes of aggregated data and low-latency analytical queries (e.g., Apache Druid, ClickHouse, Redis (for simpler metrics)).
+- 💻 **Dashboard Frontend**: The web application where users view the interactive charts and graphs.
+- 🌐 **Query API**: Provides an interface for the dashboard to fetch aggregated data from the Real-time Analytics DB.
+- 💾 **Data Lake**: Stores raw events for historical analysis, debugging, and training future models (cold path).
+
+**Workflow:**
+1.  **Raw events** flow from sources into the **Ingest API** and then into the **Raw Event Stream**.
+2.  The **Stream Processor** consumes these events, performs real-time aggregations (e.g., summing up page views per minute for various dimensions).
+3.  The aggregated metrics are pushed into the **Aggregated Metrics Stream** and then stored in the **Real-time Analytics DB**.
+4.  The **Dashboard Frontend** periodically (or via WebSockets for push updates) queries the **Query API** for the latest metrics.
+5.  The **Query API** fetches data from the **Real-time Analytics DB** and returns it for visualization.
+
+**Key Challenges & Solutions:**
+- **Low Latency**: End-to-end latency in seconds or sub-seconds. Achieved by in-memory stream processing and optimized analytical databases.
+- **Scalability**: Handle high ingest rates and concurrent queries.
+- **Exactly-Once Processing**: Crucial for accurate metrics.
+- **Data Model**: Design efficient data models in the Real-time Analytics DB for fast aggregations.
+- **Alerting**: Integrate the stream processor with an alerting system to trigger notifications when thresholds are crossed.
