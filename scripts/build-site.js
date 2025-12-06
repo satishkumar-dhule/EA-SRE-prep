@@ -267,26 +267,15 @@ function generateIndex(guides) {
 }
 
 function generateGuidePage(guide) {
-  const questionsHtml = guide.questions
-    .map(
-      (q, idx) => `
-    <div class="question-card" data-id="${q.id}">
-      <div class="question-header" onclick="toggleQuestion(this)">
-        <div class="question-number">${idx + 1}</div>
-        <h3>${q.title}</h3>
-        <span class="toggle-icon">▼</span>
-      </div>
-      <div class="question-content" style="display:none;">
-        <div class="question-body">${marked(q.content)}</div>
-        <div class="question-actions">
-          <button onclick="toggleComplete('${q.id}', this)" class="btn-small btn-complete">✓ Mark Complete</button>
-          <button onclick="toggleBookmark('${q.id}', this)" class="btn-small btn-bookmark">⭐ Bookmark</button>
-        </div>
-      </div>
-    </div>
-  `
-    )
-    .join('\n');
+  // Create questions data as JSON for JavaScript
+  const questionsData = guide.questions.map((q, idx) => ({
+    id: q.id,
+    number: idx + 1,
+    title: q.title,
+    content: marked(q.content),
+  }));
+  
+  const questionsJson = JSON.stringify(questionsData).replace(/"/g, '&quot;');
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -302,182 +291,193 @@ function generateGuidePage(guide) {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
-      padding: 40px 20px;
+      padding: 20px;
     }
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* Header */
     .header {
       background: white;
-      padding: 40px;
-      border-radius: 16px;
-      margin-bottom: 40px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-      border-left: 5px solid #667eea;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .header-left {
+      flex: 1;
+      min-width: 200px;
     }
     .back-link {
       display: inline-block;
       color: #667eea;
       text-decoration: none;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-weight: 600;
-      font-size: 0.95em;
-      transition: color 0.3s;
+      font-size: 0.9em;
     }
     .back-link:hover { color: #764ba2; }
     h1 {
-      font-size: 2.8em;
+      font-size: 2em;
       color: #1a1a1a;
-      margin-bottom: 12px;
+      margin-bottom: 5px;
       font-weight: 800;
     }
-    .description {
+    .guide-info {
       color: #666;
-      font-size: 1.05em;
-      margin-bottom: 25px;
-      line-height: 1.6;
+      font-size: 0.9em;
     }
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 25px;
+    
+    /* Stats */
+    .header-stats {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
     }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 20px;
-    }
-    .stat {
+    .stat-badge {
       background: linear-gradient(135deg, #667eea15, #764ba215);
-      padding: 20px;
-      border-radius: 12px;
+      padding: 12px 18px;
+      border-radius: 8px;
       text-align: center;
       border: 1px solid #667eea30;
+      min-width: 100px;
     }
     .stat-value {
-      font-size: 2em;
+      font-size: 1.5em;
       font-weight: 800;
       color: #667eea;
     }
     .stat-label {
       color: #666;
-      font-size: 0.85em;
-      margin-top: 8px;
+      font-size: 0.75em;
+      margin-top: 4px;
       font-weight: 600;
     }
-    .search-box {
-      margin-bottom: 35px;
+    
+    /* Main Content */
+    .main-content {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 20px;
     }
-    .search-box input {
-      width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #ddd;
-      border-radius: 12px;
-      font-size: 1em;
-      transition: all 0.3s;
+    
+    /* Sidebar */
+    .sidebar {
       background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
     }
-    .search-box input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    .sidebar h3 {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
-    .questions {
+    .question-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 8px;
     }
-    .question-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-left: 4px solid #667eea;
-    }
-    .question-card:hover {
-      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-      transform: translateX(4px);
-    }
-    .question-card.open {
-      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-    }
-    .question-header {
-      padding: 20px;
+    .question-item {
+      padding: 10px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fafafa;
-      transition: background 0.3s;
-      gap: 15px;
+      font-size: 0.85em;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+      background: #f9f9f9;
+      color: #666;
     }
-    .question-header:hover {
+    .question-item:hover {
       background: #f0f0f0;
+      color: #333;
     }
-    .question-number {
+    .question-item.active {
       background: #667eea;
       color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9em;
-      flex-shrink: 0;
-    }
-    .question-header h3 {
-      color: #1a1a1a;
-      font-size: 1.1em;
-      flex: 1;
+      border-left-color: #764ba2;
       font-weight: 600;
     }
-    .toggle-icon {
-      color: #999;
-      transition: transform 0.3s;
-      font-size: 0.8em;
+    .question-item.completed::before {
+      content: '✓ ';
+      color: #4caf50;
+      font-weight: bold;
     }
-    .question-card.open .toggle-icon {
-      transform: rotate(180deg);
+    .question-item.bookmarked::after {
+      content: ' ⭐';
+      color: #ff9800;
     }
+    
+    /* Question Display */
+    .question-display {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      min-height: 500px;
+    }
+    .question-header {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .question-number-badge {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .question-title {
+      font-size: 1.8em;
+      color: #1a1a1a;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    
+    /* Question Content */
     .question-content {
-      padding: 25px;
-      border-top: 1px solid #eee;
-      background: #fafafa;
+      margin-bottom: 30px;
     }
     .question-body {
       color: #444;
-      line-height: 1.8;
-      margin-bottom: 20px;
+      line-height: 1.9;
+      font-size: 1em;
     }
     .question-body h4, .question-body h5, .question-body h6 {
-      margin-top: 15px;
-      margin-bottom: 10px;
+      margin-top: 20px;
+      margin-bottom: 12px;
       color: #1a1a1a;
-      font-weight: 600;
+      font-weight: 700;
     }
     .question-body p {
-      margin-bottom: 12px;
+      margin-bottom: 15px;
     }
     .question-body ul, .question-body ol {
-      margin-left: 20px;
-      margin-bottom: 12px;
+      margin-left: 25px;
+      margin-bottom: 15px;
     }
     .question-body li {
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .question-body code {
-      background: #f0f0f0;
-      padding: 3px 8px;
+      background: #f5f5f5;
+      padding: 4px 10px;
       border-radius: 4px;
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 0.9em;
@@ -486,10 +486,10 @@ function generateGuidePage(guide) {
     .question-body pre {
       background: #2d2d2d;
       color: #f8f8f2;
-      padding: 16px;
+      padding: 20px;
       border-radius: 8px;
       overflow-x: auto;
-      margin: 15px 0;
+      margin: 20px 0;
       border-left: 4px solid #667eea;
     }
     .question-body pre code {
@@ -501,173 +501,283 @@ function generateGuidePage(guide) {
     .mermaid {
       display: flex;
       justify-content: center;
-      margin: 20px 0;
-      background: white;
-      padding: 20px;
+      margin: 25px 0;
+      background: #f9f9f9;
+      padding: 25px;
       border-radius: 8px;
       border: 1px solid #eee;
     }
+    
+    /* Actions */
     .question-actions {
       display: flex;
       gap: 12px;
-      margin-top: 20px;
-      flex-wrap: wrap;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #f0f0f0;
     }
-    .btn-small {
-      padding: 10px 18px;
+    .btn {
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
       background: #667eea;
       color: white;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.9em;
+      font-size: 0.95em;
       transition: all 0.3s;
       border: 2px solid #667eea;
     }
-    .btn-small:hover {
+    .btn:hover {
       background: #764ba2;
       border-color: #764ba2;
       transform: translateY(-2px);
     }
-    .btn-small.completed {
+    .btn.completed {
       background: #4caf50;
       border-color: #4caf50;
     }
-    .btn-small.bookmarked {
+    .btn.bookmarked {
       background: #ff9800;
       border-color: #ff9800;
     }
+    
+    /* Navigation */
+    .navigation {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #f0f0f0;
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid #ddd;
+      background: white;
+      color: #667eea;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      border-color: #667eea;
+      background: #f9f9f9;
+    }
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+        max-height: none;
+      }
+    }
     @media (max-width: 768px) {
-      h1 { font-size: 2em; }
-      .header { padding: 25px; }
-      .stats { grid-template-columns: 1fr; }
-      .question-header { flex-wrap: wrap; }
+      h1 { font-size: 1.5em; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .question-display { padding: 25px; }
+      .question-title { font-size: 1.4em; }
+      .question-actions, .navigation { flex-direction: column; }
+      .nav-btn { width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <a href="index.html" class="back-link">← Back to guides</a>
-      <h1>${guide.emoji} ${guide.title}</h1>
-      <p class="description">${guide.description}</p>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progress-fill"></div>
+      <div class="header-left">
+        <a href="index.html" class="back-link">← Back to guides</a>
+        <h1>${guide.emoji} ${guide.title}</h1>
+        <p class="guide-info">${guide.description}</p>
       </div>
-      <div class="stats">
-        <div class="stat">
+      <div class="header-stats">
+        <div class="stat-badge">
           <div class="stat-value" id="completed-count">0</div>
           <div class="stat-label">Completed</div>
         </div>
-        <div class="stat">
+        <div class="stat-badge">
           <div class="stat-value" id="bookmarked-count">0</div>
           <div class="stat-label">Bookmarked</div>
         </div>
-        <div class="stat">
+        <div class="stat-badge">
           <div class="stat-value" id="progress-percent">0%</div>
           <div class="stat-label">Progress</div>
         </div>
       </div>
     </div>
 
-    <div class="search-box">
-      <input type="text" id="search" placeholder="🔍 Search questions..." onkeyup="filterQuestions()">
-    </div>
+    <div class="main-content">
+      <div class="sidebar">
+        <h3>Questions</h3>
+        <div class="question-list" id="question-list"></div>
+      </div>
 
-    <div class="questions" id="questions">
-      ${questionsHtml}
+      <div class="question-display">
+        <div class="question-header">
+          <span class="question-number-badge" id="question-badge">Q 1 / ${guide.questions.length}</span>
+          <h2 class="question-title" id="question-title"></h2>
+        </div>
+        <div class="question-content">
+          <div class="question-body" id="question-body"></div>
+        </div>
+        <div class="question-actions">
+          <button class="btn btn-complete" id="btn-complete" onclick="toggleComplete()">✓ Mark Complete</button>
+          <button class="btn btn-bookmark" id="btn-bookmark" onclick="toggleBookmark()">⭐ Bookmark</button>
+        </div>
+        <div class="navigation">
+          <button class="nav-btn" id="btn-prev" onclick="previousQuestion()">← Previous</button>
+          <button class="nav-btn" id="btn-next" onclick="nextQuestion()">Next →</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
     const GUIDE_SLUG = '${guide.slug}';
-    const TOTAL_QUESTIONS = ${guide.questions.length};
+    const QUESTIONS = ${JSON.stringify(questionsData)};
+    let currentQuestion = 0;
 
     // Initialize Mermaid
     mermaid.initialize({ startOnLoad: true, theme: 'default' });
 
-    function toggleQuestion(header) {
-      const card = header.parentElement;
-      card.classList.toggle('open');
-      const content = card.querySelector('.question-content');
-      content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    function loadQuestion(index) {
+      if (index < 0 || index >= QUESTIONS.length) return;
       
-      // Re-render mermaid diagrams when content is shown
-      if (content.style.display !== 'none') {
-        setTimeout(() => mermaid.contentLoaded(), 100);
+      currentQuestion = index;
+      const q = QUESTIONS[index];
+      
+      document.getElementById('question-badge').textContent = \`Q \${index + 1} / \${QUESTIONS.length}\`;
+      document.getElementById('question-title').textContent = q.title;
+      document.getElementById('question-body').innerHTML = q.content;
+      
+      // Update navigation buttons
+      document.getElementById('btn-prev').disabled = index === 0;
+      document.getElementById('btn-next').disabled = index === QUESTIONS.length - 1;
+      
+      // Update action buttons
+      updateActionButtons();
+      
+      // Render mermaid diagrams
+      setTimeout(() => mermaid.contentLoaded(), 100);
+      
+      // Highlight current question in sidebar
+      document.querySelectorAll('.question-item').forEach((item, i) => {
+        item.classList.toggle('active', i === index);
+      });
+    }
+
+    function nextQuestion() {
+      if (currentQuestion < QUESTIONS.length - 1) {
+        loadQuestion(currentQuestion + 1);
       }
     }
 
-    function toggleComplete(id, btn) {
+    function previousQuestion() {
+      if (currentQuestion > 0) {
+        loadQuestion(currentQuestion - 1);
+      }
+    }
+
+    function toggleComplete() {
       const completed = JSON.parse(localStorage.getItem(\`completed-\${GUIDE_SLUG}\`) || '[]');
-      const index = completed.indexOf(id);
+      const qId = QUESTIONS[currentQuestion].id;
+      const index = completed.indexOf(qId);
+      
       if (index > -1) {
         completed.splice(index, 1);
-        btn.classList.remove('completed');
       } else {
-        completed.push(id);
-        btn.classList.add('completed');
+        completed.push(qId);
       }
+      
       localStorage.setItem(\`completed-\${GUIDE_SLUG}\`, JSON.stringify(completed));
+      updateActionButtons();
       updateStats();
+      updateSidebar();
     }
 
-    function toggleBookmark(id, btn) {
+    function toggleBookmark() {
       const bookmarked = JSON.parse(localStorage.getItem(\`bookmarked-\${GUIDE_SLUG}\`) || '[]');
-      const index = bookmarked.indexOf(id);
+      const qId = QUESTIONS[currentQuestion].id;
+      const index = bookmarked.indexOf(qId);
+      
       if (index > -1) {
         bookmarked.splice(index, 1);
-        btn.classList.remove('bookmarked');
       } else {
-        bookmarked.push(id);
-        btn.classList.add('bookmarked');
+        bookmarked.push(qId);
       }
+      
       localStorage.setItem(\`bookmarked-\${GUIDE_SLUG}\`, JSON.stringify(bookmarked));
+      updateActionButtons();
       updateStats();
+      updateSidebar();
+    }
+
+    function updateActionButtons() {
+      const completed = JSON.parse(localStorage.getItem(\`completed-\${GUIDE_SLUG}\`) || '[]');
+      const bookmarked = JSON.parse(localStorage.getItem(\`bookmarked-\${GUIDE_SLUG}\`) || '[]');
+      const qId = QUESTIONS[currentQuestion].id;
+      
+      const btnComplete = document.getElementById('btn-complete');
+      const btnBookmark = document.getElementById('btn-bookmark');
+      
+      if (completed.includes(qId)) {
+        btnComplete.classList.add('completed');
+      } else {
+        btnComplete.classList.remove('completed');
+      }
+      
+      if (bookmarked.includes(qId)) {
+        btnBookmark.classList.add('bookmarked');
+      } else {
+        btnBookmark.classList.remove('bookmarked');
+      }
     }
 
     function updateStats() {
       const completed = JSON.parse(localStorage.getItem(\`completed-\${GUIDE_SLUG}\`) || '[]');
       const bookmarked = JSON.parse(localStorage.getItem(\`bookmarked-\${GUIDE_SLUG}\`) || '[]');
-      const percent = Math.round((completed.length / TOTAL_QUESTIONS) * 100);
+      const percent = Math.round((completed.length / QUESTIONS.length) * 100);
       
       document.getElementById('completed-count').textContent = completed.length;
       document.getElementById('bookmarked-count').textContent = bookmarked.length;
       document.getElementById('progress-percent').textContent = percent + '%';
-      document.getElementById('progress-fill').style.width = percent + '%';
+    }
 
-      // Update button states
-      completed.forEach(id => {
-        const card = document.querySelector(\`[data-id="\${id}"]\`);
-        if (card) {
-          const btn = card.querySelector('.btn-complete');
-          if (btn) btn.classList.add('completed');
-        }
-      });
-      bookmarked.forEach(id => {
-        const card = document.querySelector(\`[data-id="\${id}"]\`);
-        if (card) {
-          const btn = card.querySelector('.btn-bookmark');
-          if (btn) btn.classList.add('bookmarked');
-        }
+    function updateSidebar() {
+      const completed = JSON.parse(localStorage.getItem(\`completed-\${GUIDE_SLUG}\`) || '[]');
+      const bookmarked = JSON.parse(localStorage.getItem(\`bookmarked-\${GUIDE_SLUG}\`) || '[]');
+      
+      document.querySelectorAll('.question-item').forEach((item, i) => {
+        const qId = QUESTIONS[i].id;
+        item.classList.toggle('completed', completed.includes(qId));
+        item.classList.toggle('bookmarked', bookmarked.includes(qId));
       });
     }
 
-    function filterQuestions() {
-      const search = document.getElementById('search').value.toLowerCase();
-      const cards = document.querySelectorAll('.question-card');
-      cards.forEach(card => {
-        const title = card.querySelector('h3').textContent.toLowerCase();
-        const body = card.querySelector('.question-body').textContent.toLowerCase();
-        card.style.display = title.includes(search) || body.includes(search) ? 'block' : 'none';
+    function initSidebar() {
+      const list = document.getElementById('question-list');
+      QUESTIONS.forEach((q, i) => {
+        const item = document.createElement('div');
+        item.className = 'question-item';
+        item.textContent = \`Q\${i + 1}: \${q.title.substring(0, 30)}...\`;
+        item.onclick = () => loadQuestion(i);
+        list.appendChild(item);
       });
+      updateSidebar();
     }
 
     // Initialize on load
     window.addEventListener('load', () => {
+      initSidebar();
+      loadQuestion(0);
       updateStats();
-      mermaid.contentLoaded();
     });
   </script>
 </body>
