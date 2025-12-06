@@ -6,7 +6,6 @@ const nextConfig = {
   },
   basePath: process.env.BASE_PATH || '',
   trailingSlash: true,
-  turbopack: {},
 }
 
 module.exports = nextConfig
