@@ -1,14 +1,22 @@
-name: Update Content
+name: Rebuild on Content Change
 
 on:
   push:
     paths:
       - '*.md'
       - '!README.md'
+      - '!QUICKSTART.md'
+      - '!DEPLOYMENT.md'
+      - '!FEATURES.md'
+      - '!README_SETUP.md'
+      - '!SETUP_COMPLETE.md'
+      - '!START_HERE.md'
+      - '!VERIFICATION_CHECKLIST.md'
+      - '!IMPLEMENTATION_SUMMARY.md'
     branches: [main]
 
 jobs:
-  update:
+  rebuild:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,9 +34,26 @@ jobs:
       - name: Generate site
         run: npm run generate
 
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add content/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update content" && git push)
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './out'
+
+  deploy:
+    needs: rebuild
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
