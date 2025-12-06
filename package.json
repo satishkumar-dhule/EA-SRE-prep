@@ -2,6 +2,10 @@
   "name": "interview-prep-site",
   "version": "1.0.0",
   "description": "Visual Interview Prep Static Site Generator",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/generate-site.js && next build",
