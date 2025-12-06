@@ -23,8 +23,10 @@ A modern, production-ready static site for interview preparation with progress t
 ```bash
 npm install
 npm run dev
-# Visit http://localhost:3000
+# Builds and serves at http://localhost:3000
 ```
+
+See [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md) for detailed local development guide.
 
 ### Deploy to GitHub Pages
 ```bash

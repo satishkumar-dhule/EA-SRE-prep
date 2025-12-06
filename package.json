@@ -8,7 +8,9 @@
   },
   "scripts": {
     "build": "node scripts/generate-site.js && node scripts/build-site.js",
-    "generate": "node scripts/generate-site.js"
+    "generate": "node scripts/generate-site.js",
+    "serve": "node scripts/serve.js",
+    "dev": "npm run build && npm run serve"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
