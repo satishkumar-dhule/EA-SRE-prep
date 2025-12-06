@@ -1,10 +1,38 @@
+# Dependencies
 node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
 .next/
 out/
 dist/
 build/
-*.log
-.DS_Store
+
+# Generated content
+content/
+
+# Environment
 .env.local
 .env.*.local
-content/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.ruff_cache/
+.eslintcache
