@@ -1,0 +1,45 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SRE Interview Questions</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <style>
+            .last-visited {
+                background-color: #f0f0f0;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h1>SRE Interview Questions</h1>
+            <ul class="list-group" id="question-list">
+                
+            </ul>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const lastVisited = localStorage.getItem('last_visited');
+                if (lastVisited) {
+                    const links = document.querySelectorAll('#question-list a');
+                    links.forEach(link => {
+                        if (link.getAttribute('href') === lastVisited) {
+                            link.parentElement.classList.add('last-visited');
+                        }
+                    });
+                }
+
+                const questionLinks = document.querySelectorAll('#question-list a');
+                questionLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        localStorage.setItem('last_visited', this.getAttribute('href'));
+                    });
+                });
+            });
+        </script>
+    </body>
+    </html>
+    
