@@ -14,9 +14,20 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 }
 
 // Configure marked to handle code blocks properly
+const renderer = new marked.Renderer();
+
+// Override code block rendering to preserve mermaid blocks
+renderer.codeblock = function(code, language) {
+  if (language === 'mermaid') {
+    return `<div class="mermaid">\n${code}\n</div>`;
+  }
+  return `<pre><code class="language-${language}">${code}</code></pre>`;
+};
+
 marked.setOptions({
   breaks: true,
   gfm: true,
+  renderer: renderer,
 });
 
 // Read all guides
